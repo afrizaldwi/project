@@ -1,0 +1,27 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Tagihan extends Model
+{
+    protected $table = 'tagihan'; //
+    protected $primaryKey = 'id_tagihan'; //
+
+    protected $fillable = [
+        'id_sewa',             //
+        'kode_invoice',        //
+        'tanggal_tagihan',     //
+        'tanggal_jatuh_tempo', //
+        'total_tagihan',       //
+        'status_tagihan',      //
+    ];
+
+    // Relasi kembali ke Riwayat Sewa
+    public function riwayatSewa(): BelongsTo
+    {
+        return $this->belongsTo(RiwayatSewa::class, 'id_sewa', 'id_sewa');
+    }
+}
