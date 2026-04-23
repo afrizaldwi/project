@@ -1,20 +1,17 @@
-# /docker-compose.yml
-
 services:
-  # 1. THE DATABASE
   kost-db:
     image: postgres:18-alpine
     container_name: kost-db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: kost_database     # Must match your .env
-      POSTGRES_USER: kost_user       # Must match your .env
-      POSTGRES_PASSWORD: P@ssw0rd    # Must match your .env
+      POSTGRES_DB: kost_database 
+      POSTGRES_USER: kost_user   
+      POSTGRES_PASSWORD: P@ssw0rd
+      PGDATA: /var/lib/postgresql/data
     volumes:
       - db-data:/var/lib/postgresql/data
 
-  # 2. THE LARAVEL BACKEND (Using Official Guide Setup)
   laravel-api:
     build: 
       context: ./server
@@ -27,7 +24,6 @@ services:
     depends_on:
       - kost-db
 
-  # 3. THE WEB SERVER (Nginx Proxy)
   kost-nginx:
     image: nginx:alpine
     container_name: kost-nginx
@@ -40,7 +36,6 @@ services:
     depends_on:
       - laravel-api
 
-  # 4. THE REACT DASHBOARD (Using Official Guide Setup)
   frontend:
     build:
       context: ./frontend
@@ -50,26 +45,9 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules # Protects the container's Linux node_modules
+      - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true # Ensures instant hot-reloading on Windows
-
-  # 5. THE REACT NATIVE MOBILE APP (Kept standard for Expo)
-  # kost-mobile:
-  #   image: node:24.14.1-alpine
-  #   container_name: mobile
-  #   working_dir: /app
-  #   volumes:
-  #     - ./mobile:/app
-  #   ports:
-  #     - "8081:8081"
-  #   environment:
-  #     - EXPO_USE_WEB_UI=1
-  #     - CHOKIDAR_USEPOLLING=true  # <-- FORCES Docker to check for file saves
-  #     - WATCHPACK_POLLING=true    # <-- Backup polling for Webpack/Metro
-  #   tty: true         # <-- ADD THIS: Creates a virtual screen
-  #   stdin_open: true  # <-- ADD THIS: Creates a virtual keyboard
-  #   command: sh -c "npm install -g @expo/ngrok && npm install && npx expo start --tunnel"
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   db-data:
