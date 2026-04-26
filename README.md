@@ -2,8 +2,8 @@
 Buka terminal dan clone repository:
 
 ```
-git clone <insert-your-github-repo-url-here>
-cd manajemen-kost
+git clone https://github.com/afrizaldwi/test11.git
+cd test11
 ````
 
 ### 2\. Environment Configuration
