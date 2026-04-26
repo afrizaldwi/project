@@ -31,7 +31,7 @@ docker exec -it laravel-api composer install
 
 ```
 docker exec -it laravel-api php artisan key:generate
-docker exec -it laravel-api php artisan migrate:fresh --seed
+docker exec -it laravel-api php artisan migrate
 ```
 
 -----
