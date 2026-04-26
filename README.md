@@ -40,7 +40,7 @@ docker exec -it laravel-api php artisan migrate
 
 Setelah semuanya selesai, buka halaman berikut di browser:
 
-  * **Web Dashboard (React/Vite):** [http://localhost:5173](http://http://localhost:5173)
-  * **API Gateway (Laravel/Nginx):** [http://localhost:8000](http://http://localhost:8000)
+  * **Web Dashboard (React/Vite):** [http://localhost:5173](http://localhost:5173)
+  * **API Gateway (Laravel/Nginx):** [http://localhost:8000](http://localhost:8000)
 
 -----
