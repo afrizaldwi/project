@@ -26,11 +26,20 @@ RUN groupadd -g ${GID} www && \
 # 5. Set the working directory
 WORKDIR /var/www/html
 
-# 6. Switch to the non-root user for security
+# 6. Copy only composer files first (caching trick!)
+COPY --chown=www:www composer.json composer.lock ./
+
+# 7. Install Composer dependencies
+RUN composer install --optimize-autoloader --no-scripts
+
+# 8. Copy the rest of the application code
+COPY --chown=www:www . .
+
+# 9. Switch to the non-root user for security
 USER www
 
-# 7. Expose the FPM port
+# 10. Expose the FPM port
 EXPOSE 9000
 
-# 8. Start the FPM server
+# 11. Start the FPM server
 CMD ["php-fpm"]

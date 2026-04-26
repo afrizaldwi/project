@@ -21,13 +21,8 @@ docker compose up -d --build
 
 *Tunggu hingga proses selesai*
 
-### 4\. Install Backend Dependencies
 
-```
-docker exec -it laravel-api composer install
-```
-
-### 5\. Generate Keys and Migrate the Database
+### 4\. Generate Keys and Migrate the Database
 
 ```
 docker exec -it laravel-api php artisan key:generate
