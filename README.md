@@ -21,8 +21,13 @@ docker compose up -d --build
 
 *Tunggu hingga proses selesai*
 
+### 4\. Install Backend Dependencies
 
-### 4\. Generate Keys and Migrate the Database
+```
+docker exec -it laravel-api composer install
+```
+
+### 5\. Generate Keys and Migrate the Database
 
 ```
 docker exec -it laravel-api php artisan key:generate
@@ -35,7 +40,7 @@ docker exec -it laravel-api php artisan migrate
 
 Setelah semuanya selesai, buka halaman berikut di browser:
 
-  * **Web Dashboard (React/Vite):** [http://localhost:5173](https://www.google.com/search?q=http://localhost:5173)
-  * **API Gateway (Laravel/Nginx):** [http://localhost:8000](https://www.google.com/search?q=http://localhost:8000)
+  * **Web Dashboard (React/Vite):** [http://localhost:5173](http://http://localhost:5173)
+  * **API Gateway (Laravel/Nginx):** [http://localhost:8000](http://http://localhost:8000)
 
 -----
