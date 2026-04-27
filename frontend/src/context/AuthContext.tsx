@@ -1,0 +1,86 @@
+import { createContext, useEffect, useState, type ReactNode } from "react";
+import type {
+  MeResponse,
+  User,
+  AuthContextType,
+  LoginResponse,
+} from "../types";
+import api from "../api/axios";
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const AuthContext = createContext<AuthContextType | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const cached = sessionStorage.getItem("user");
+    return cached ? JSON.parse(cached) : null;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("user")) {
+      setIsLoading(false);
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const response = await api.get<MeResponse>("/me");
+        setUser(response.data.user);
+      } catch (error) {
+        console.log(error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<User> => {
+    try {
+      await api.get("/sanctum/csrf-cookie", {
+        baseURL: "",
+      });
+
+      const response = await api.post<LoginResponse>("/login", {
+        email,
+        password,
+      });
+
+      console.log("response:", response.data);
+      setUser(response.data.user);
+      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+
+      return response.data.user;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    await api.post("/logout");
+    setUser(null);
+    sessionStorage.removeItem("user");
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        role: user?.role || null,
+        isLoading,
+        isAuthenticated: !!user,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
