@@ -7,7 +7,6 @@ import type {
 } from "../types";
 import api from "../api/axios";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
@@ -19,11 +18,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const cached = sessionStorage.getItem("user");
     return cached ? JSON.parse(cached) : null;
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    !sessionStorage.getItem("user"),
+  );
 
   useEffect(() => {
     if (sessionStorage.getItem("user")) {
-      setIsLoading(false);
       return;
     }
 
@@ -43,24 +43,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
-    try {
-      await api.get("/sanctum/csrf-cookie", {
-        baseURL: "",
-      });
+    await api.get("/sanctum/csrf-cookie", {
+      baseURL: "",
+    });
 
-      const response = await api.post<LoginResponse>("/login", {
-        email,
-        password,
-      });
+    const response = await api.post<LoginResponse>("/login", {
+      email,
+      password,
+    });
 
-      console.log("response:", response.data);
-      setUser(response.data.user);
-      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+    console.log("response:", response.data);
+    setUser(response.data.user);
+    sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
-      return response.data.user;
-    } catch (error) {
-      console.log(error);
-    }
+    return response.data.user;
   };
 
   const logout = async (): Promise<void> => {
