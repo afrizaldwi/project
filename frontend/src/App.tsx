@@ -4,23 +4,14 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import PenyewaDashboard from "./pages/dashboard/PenyewaDashboard";
+import Landing from "./pages/Landing";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <a
-                href="/login"
-                className="px-4 py-2 bg-blue-500 text-lg rounded"
-              >
-                Login
-              </a>
-            }
-          />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
 
           <Route

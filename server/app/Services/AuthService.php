@@ -37,7 +37,7 @@ class AuthService
         Auth::guard('web')->logout();
     }
 
-    public function me(User $user): User
+    public function profile(User $user): User
     {
         return $user;
     }

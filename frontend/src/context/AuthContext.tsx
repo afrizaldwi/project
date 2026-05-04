@@ -1,9 +1,9 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import type {
-  MeResponse,
   User,
   AuthContextType,
   LoginResponse,
+  ProfleResponse,
 } from "../types";
 import api from "../api/axios";
 
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const checkAuth = async () => {
       try {
-        const response = await api.get<MeResponse>("/me");
+        const response = await api.get<ProfleResponse>("/profile");
         setUser(response.data.user);
       } catch (error) {
         console.log(error);

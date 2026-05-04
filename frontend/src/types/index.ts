@@ -24,6 +24,6 @@ export interface LoginResponse {
   user: User;
   token: string;
 }
-export interface MeResponse {
+export interface ProfleResponse {
   user: User;
 }

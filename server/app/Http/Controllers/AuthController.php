@@ -40,10 +40,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function me(Request $req): JsonResponse
+    public function profile(Request $req): JsonResponse
     {
         return response()->json([
-            'user' => $this->authService->me($req->user())
+            'user' => $this->authService->profile($req->user())
         ]);
     }
 }
