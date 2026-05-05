@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import { useState, type FormEvent } from "react";
-import IsLoading from "../components/isLoading";
+import IsLoading from "../components/IsLoading";
 
 const Login = () => {
   const { login, isAuthenticated, role, isLoading } = useAuth();

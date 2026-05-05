@@ -18,22 +18,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const cached = sessionStorage.getItem("user");
     return cached ? JSON.parse(cached) : null;
   });
-  const [isLoading, setIsLoading] = useState<boolean>(
-    !sessionStorage.getItem("user"),
-  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (sessionStorage.getItem("user")) {
-      return;
-    }
-
     const checkAuth = async () => {
       try {
         const response = await api.get<ProfleResponse>("/profile");
         setUser(response.data.user);
+        sessionStorage.setItem("user", JSON.stringify(response.data.user));
       } catch (error) {
         console.log(error);
         setUser(null);
+        sessionStorage.removeItem("user");
       } finally {
         setIsLoading(false);
       }
@@ -60,9 +56,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async (): Promise<void> => {
-    await api.post("/logout");
-    setUser(null);
-    sessionStorage.removeItem("user");
+    try {
+      setIsLoading(true);
+      await api.post("/logout");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setUser(null);
+      sessionStorage.removeItem("user");
+      setIsLoading(false);
+    }
   };
 
   return (

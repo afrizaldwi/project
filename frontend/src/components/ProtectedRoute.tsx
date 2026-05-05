@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import useAuth from "../hook/useAuth";
 import { Navigate } from "react-router-dom";
 import type { User } from "../types";
-import IsLoading from "./isLoading";
+import Sidebar from "./navigation/Sidebar";
+import Navbar from "./navigation/Navbar";
+import IsLoading from "./IsLoading";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -11,7 +13,6 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
   const { user, isAuthenticated, isLoading } = useAuth();
-
   if (isLoading) {
     return <IsLoading />;
   }
@@ -24,7 +25,15 @@ const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
     return <Navigate to={`/${user?.role}/dashboard`} replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <div className="flex">
+      <Sidebar display="hidden" />
+      <div className="flex flex-col flex-1">
+        <Navbar />
+        <main>{children}</main>
+      </div>
+    </div>
+  );
 };
 
 export default ProtectedRoute;
