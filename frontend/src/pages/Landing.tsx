@@ -43,15 +43,8 @@ const facilities = [
 const Landing = () => {
     const [roomViewed, setRoomViewed] = useState<string | null>(null);
     const startTimeRef = useRef<number>(Date.now());
-    const [timeSpent, setTimeSpent] = useState<number>(0);
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTimeSpent(Math.floor((Date.now() - startTimeRef.current) / 1000));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -314,10 +307,7 @@ const Landing = () => {
                 </div>
             </footer>
 
-            <CookieConsent
-                timeSpent={timeSpent}
-                roomViewed={roomViewed}
-            />
+            <CookieConsent />
         </div>
     );
 };

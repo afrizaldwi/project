@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
-import api from "../api/axios";
 
 interface CookieConsentProps {
-  timeSpent: number;
-  roomViewed: string | null;
 }
-const CookieConsent = ({ timeSpent, roomViewed }: CookieConsentProps) => {
+const CookieConsent = ({}: CookieConsentProps) => {
   const [show, setShow] = useState<boolean>(false);
 
   useEffect(() => {
