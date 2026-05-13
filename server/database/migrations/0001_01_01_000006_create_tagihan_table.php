@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('tanggal_tagihan'); //
             $table->date('tanggal_jatuh_tempo'); //
             $table->decimal('total_tagihan', 15, 2); //
-            $table->enum('status_tagihan', ['belum_bayar', 'lunas', 'telat'])->default('belum_bayar'); //
+            $table->enum('status_tagihan', ['belum_bayar', 'lunas', 'telat', 'pending'])->default('belum_bayar'); //
             $table->timestamps();
         });
     }
