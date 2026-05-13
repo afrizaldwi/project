@@ -20,12 +20,30 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'email' => 'penyewa@kost.com',
+            'email' => 'budi@kost.com',
             'password' => Hash::make('password123'),
             'role' => 'penyewa',
             'nama_lengkap' => 'Budi Santoso',
             'no_hp' => '089876543210',
             'alamat_asal' => 'Jakarta',
+        ]);
+
+        User::create([
+            'email' => 'siti@kost.com',
+            'password' => Hash::make('password123'),
+            'role' => 'penyewa',
+            'nama_lengkap' => 'Siti Aminah',
+            'no_hp' => '087654321098',
+            'alamat_asal' => 'Bandung',
+        ]);
+
+        User::create([
+            'email' => 'agus@kost.com',
+            'password' => Hash::make('password123'),
+            'role' => 'penyewa',
+            'nama_lengkap' => 'Agus Pratama',
+            'no_hp' => '081122334455',
+            'alamat_asal' => 'Jogja',
         ]);
     }
 }

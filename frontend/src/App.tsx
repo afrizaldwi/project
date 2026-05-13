@@ -16,6 +16,7 @@ import AdminTagihan from "./pages/admin/AdminTagihan";
 import AdminTamu from "./pages/admin/AdminTamu";
 import AdminKeluhan from "./pages/admin/AdminKeluhan";
 import AdminProfil from "./pages/admin/AdminProfil";
+import AdminTambahPenghuni from "./pages/admin/AdminTambahPenghuni";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="kamar" element={<AdminKamar />} />
             <Route path="penghuni" element={<AdminPenghuni />} />
+            <Route path="penghuni/tambah" element={<AdminTambahPenghuni />} />
             <Route path="laporan" element={<AdminLaporanKeuangan />} />
             <Route path="tagihan" element={<AdminTagihan />} />
             <Route path="tamu" element={<AdminTamu />} />

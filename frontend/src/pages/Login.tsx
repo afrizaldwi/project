@@ -16,6 +16,8 @@ const Login = () => {
     return <IsLoading />;
   }
 
+  // Remove automatic redirect to allow viewing the login page even if authenticated
+  /*
   if (isAuthenticated) {
     if (role === "admin") {
       navigate("/admin/dashboard");
@@ -23,6 +25,8 @@ const Login = () => {
       navigate("/penyewa/dashboard");
     }
   }
+  */
+
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

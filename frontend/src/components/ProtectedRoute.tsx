@@ -26,11 +26,13 @@ const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
   }
 
   return (
-    <div className="flex">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar display="hidden" />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <Navbar />
-        <main>{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          {children}
+        </main>
       </div>
     </div>
   );
