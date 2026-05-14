@@ -2,28 +2,30 @@
 
 namespace App\Services;
 
-use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthService
 {
-    public function login(LoginRequest $request): array
+    public function login(Request $request): array
     {
-        if (!Auth::attempt([
-            'email' => $request->email,
-            'password' => $request->password,
-        ])) {
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return [
                 'success' => false,
                 'message' => 'Email atau password salah.',
             ];
         }
 
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            Auth::login($user);
+            $request->session()->regenerate();
+        }
 
-        $user = Auth::user();
         $token = $user->createToken('authToken')->plainTextToken;
 
         return [
@@ -40,15 +42,16 @@ class AuthService
         if ($user) {
             $token = $user->currentAccessToken();
 
-            if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            if ($token instanceof PersonalAccessToken) {
                 $token->delete();
             }
         }
 
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
     }
 
     public function profile(User $user): User
