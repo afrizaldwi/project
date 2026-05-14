@@ -2,19 +2,26 @@
 
 namespace App\Services;
 
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthService
 {
-    public function login(string $email, string $password): array
+    public function login(LoginRequest $request): array
     {
-        if (!Auth::attempt(['email' => $email, 'password' => $password])) {
+        if (!Auth::attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+        ])) {
             return [
                 'success' => false,
                 'message' => 'Email atau password salah.',
             ];
         }
+
+        $request->session()->regenerate();
 
         $user = Auth::user();
         $token = $user->createToken('authToken')->plainTextToken;
@@ -26,15 +33,22 @@ class AuthService
         ];
     }
 
-    public function logout(User $user): void
+    public function logout(Request $request): void
     {
-        $token = $user->currentAccessToken();
+        $user = $request->user();
 
-        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
-            $token->delete();
+        if ($user) {
+            $token = $user->currentAccessToken();
+
+            if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+                $token->delete();
+            }
         }
 
         Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 
     public function profile(User $user): User

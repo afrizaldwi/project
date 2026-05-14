@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import IsLoading from "../components/IsLoading";
 
 const Login = () => {
@@ -12,16 +12,18 @@ const Login = () => {
   const [error, setError] = useState<string>("");
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
 
-  if (isLoading) {
-    return <IsLoading />;
-  }
-
-  if (isAuthenticated) {
-    if (role === "admin") {
-      navigate("/admin/dashboard");
-    } else {
-      navigate("/penyewa/dashboard");
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      if (role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (role === "penyewa") {
+        navigate("/penyewa/dashboard", { replace: true });
+      }
     }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  if (isLoading || isAuthenticated) {
+    return <IsLoading />;
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -33,13 +35,12 @@ const Login = () => {
       const user = await login(email, password);
 
       if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/penyewa/dashboard");
+        navigate("/admin/dashboard", { replace: true });
+      } else if (user.role === "penyewa") {
+        navigate("/penyewa/dashboard", { replace: true });
       }
     } catch (error) {
       console.log(error);
-
       setError("Email atau password salah.");
     } finally {
       setIsLoadingSubmit(false);
