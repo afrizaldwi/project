@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
       <Sidebar display="hidden" />
       <div className="flex flex-col flex-1">
         <Navbar />
-        <main>{children}</main>
+        <main className="min-h-screen bg-light lg:ml-[20%]">{children}</main>
       </div>
     </div>
   );

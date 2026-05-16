@@ -6,4 +6,8 @@
   --color-accent: #1e40af;
   --color-light: #f9fafb;
   --color-dark: #1f2938;
+
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
 }
