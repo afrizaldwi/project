@@ -26,6 +26,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./server:/var/www/html
+      - ./server/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     depends_on:
       kost-db:
         condition: service_healthy
