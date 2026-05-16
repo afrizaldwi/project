@@ -10,12 +10,17 @@ import PenyewaTamu from "./pages/penyewa/PenyewaTamu";
 import PenyewaKeluhan from "./pages/penyewa/PenyewaKeluhan";
 import PenyewaProfil from "./pages/penyewa/PenyewaProfil";
 import AdminKamar from "./pages/admin/AdminKamar";
+import AdminKamarTambah from "./pages/admin/AdminKamarTambah";
+import AdminKamarEdit from "./pages/admin/AdminKamarEdit";
 import AdminPenghuni from "./pages/admin/AdminPenghuni";
 import AdminLaporanKeuangan from "./pages/admin/AdminLaporanKeuangan";
 import AdminTagihan from "./pages/admin/AdminTagihan";
 import AdminTamu from "./pages/admin/AdminTamu";
 import AdminKeluhan from "./pages/admin/AdminKeluhan";
 import AdminProfil from "./pages/admin/AdminProfil";
+import AdminPenghuniTambah from "./pages/admin/AdminPenghuniTambah";
+import AdminPenghuniPerpanjang from "./pages/admin/AdminPenghuniPerpanjang";
+import AdminPenghuniDetail from "./pages/admin/AdminPenghuniDetail";
 
 function App() {
   return (
@@ -33,15 +38,24 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/admin" element={
-            <ProtectedRoute role="admin">
-              <Outlet />
-            </ProtectedRoute>
-          }>
 
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <Outlet />
+              </ProtectedRoute>
+            }
+          >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="kamar" element={<AdminKamar />} />
+            <Route path="kamar/tambah" element={<AdminKamarTambah />} />
+            <Route path="kamar/edit/:id" element={<AdminKamarEdit />} />
             <Route path="penghuni" element={<AdminPenghuni />} />
+            <Route path="penghuni/tambah" element={<AdminPenghuniTambah />} />
+            <Route path="penghuni/perpanjang/:id" element={<AdminPenghuniPerpanjang />} />
+            <Route path="penghuni/perpanjang/:id" element={<AdminPenghuniPerpanjang />} />
+            <Route path="penghuni/detail/:id" element={<AdminPenghuniDetail />} />  {/* ← tambah */}
             <Route path="laporan" element={<AdminLaporanKeuangan />} />
             <Route path="tagihan" element={<AdminTagihan />} />
             <Route path="tamu" element={<AdminTamu />} />
