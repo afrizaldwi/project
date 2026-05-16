@@ -20,7 +20,8 @@ const Sidebar = ({ display }: SidebarProps) => {
 
   return (
     <aside
-      className={`max-lg:${display} w-full lg:flex flex-col lg:w-1/5 min-h-screen bg-primary text-light`}
+      className={`${display} fixed left-0 top-0 z-40 h-screen w-full flex-col bg-primary text-light lg:flex lg:w-1/5`}
+
     >
       <div className="px-6 py-5 border-b border-accent">
         <h1 className="text-xl font-bold">Kost Bahagia</h1>
@@ -32,10 +33,9 @@ const Sidebar = ({ display }: SidebarProps) => {
             key={menu.path}
             to={menu.path}
             className={({ isActive }) =>
-              `px-4 py-2 rounded text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-light text-primary"
-                  : "hover:bg-accent text-light"
+              `px-4 py-2 rounded text-sm font-medium transition-colors ${isActive
+                ? "bg-light text-primary"
+                : "hover:bg-accent text-light"
               }`
             }
           >
