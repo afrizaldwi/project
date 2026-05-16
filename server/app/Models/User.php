@@ -14,13 +14,13 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'email',           //
-        'password',        //
-        'role',            //
-        'nama_lengkap',    //
-        'no_hp',           //
-        'foto_profil',     //
-        'alamat_asal',     //
+        'email',
+        'password',
+        'role',
+        'nama_lengkap',
+        'no_hp',
+        'foto_profil',
+        'alamat_asal',
     ];
 
     /**
@@ -37,8 +37,17 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    protected function isPeyewa(): bool
+    {
+        return $this->role === 'penyewa';
     }
 }

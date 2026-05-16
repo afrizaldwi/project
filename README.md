@@ -8,6 +8,12 @@ cd test11
 
 ### 2\. Environment Configuration
 
+  * copas file bernama `.env.example` di root folder.
+  * Rename file hasil copas tersebut menjadi `.env`.
+
+  * buka folder frontend dan copas file bernama `.env.example`.
+  * Rename file hasil copas tersebut menjadi `.env`.
+
   * buka folder server dan copas file bernama `.env.example`.
   * Rename file hasil copas tersebut menjadi `.env`.
 
@@ -31,7 +37,7 @@ docker exec -it laravel-api composer install
 
 ```
 docker exec -it laravel-api php artisan key:generate
-docker exec -it laravel-api php artisan migrate
+docker exec -it laravel-api php artisan migrate:fresh --seed
 ```
 
 -----

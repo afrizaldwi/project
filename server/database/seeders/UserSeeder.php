@@ -10,7 +10,6 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Akun Admin Utama
         User::create([
             'email' => 'admin@kost.com',
             'password' => Hash::make('password123'),
@@ -20,7 +19,6 @@ class UserSeeder extends Seeder
             'alamat_asal' => 'Surabaya',
         ]);
 
-        // 2. Akun Contoh Penyewa
         User::create([
             'email' => 'penyewa@kost.com',
             'password' => Hash::make('password123'),
