@@ -7,15 +7,18 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: "0.0.0.0",
+    port: 5173,
     proxy: {
       "/api": {
         target: "http://kost-nginx:80",
         changeOrigin: true,
+        xfwd: true,
       },
       "/sanctum": {
         target: "http://kost-nginx:80",
         changeOrigin: true,
+        xfwd: true,
       },
     },
-  },
+  }
 });

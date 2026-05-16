@@ -9,11 +9,7 @@ class Visitor extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'ip_address',
-        'user_agent',
-        'page',
-        'visited_at',
-        'time_spent',
-        'room_viewed',
+        'visitor_key',
+        'visit_date',
     ];
 }

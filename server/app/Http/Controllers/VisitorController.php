@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Visitor;
+use App\Services\VisitorTrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class VisitorController extends Controller
 {
+    public function __construct(
+        private VisitorTrackingService $visitorTrackingService
+    ) {}
+
     public function track(Request $request): JsonResponse
     {
-        $data = $request->all() ?: json_decode($request->getContent(), true);
+        $tracked = $this->visitorTrackingService->track($request);
 
-        Visitor::create([
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
-            'page'        => $data['page'] ?? '/',
-            'visited_at'  => now(),
-            'time_spent'  => $data['time_spent'] ?? 0,
-            'room_viewed' => $data['room_viewed'] ?? null,
-        ]);
+        if (! $tracked) {
+            return response()->json([
+                'message' => 'Visit already tracked today.',
+            ]);
+        }
+
         return response()->json([
             'message' => 'Visit tracked successfully.',
         ]);

@@ -1,23 +1,24 @@
-import { useState, useEffect } from "react";
-import api from "../api/axios";
+import { useEffect, useState } from "react";
 
 interface CookieConsentProps {
-  timeSpent: number;
-  roomViewed: string | null;
+  onAccept?: () => void;
 }
-const CookieConsent = ({ timeSpent, roomViewed }: CookieConsentProps) => {
-  const [show, setShow] = useState<boolean>(false);
+
+const CookieConsent = ({ onAccept }: CookieConsentProps) => {
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie_consent");
+
     if (!consent) {
       setShow(true);
     }
   }, []);
 
-  const handleAccept = async () => {
+  const handleAccept = () => {
     localStorage.setItem("cookie_consent", "accepted");
     setShow(false);
+    onAccept?.();
   };
 
   const handleDecline = () => {
@@ -28,21 +29,23 @@ const CookieConsent = ({ timeSpent, roomViewed }: CookieConsentProps) => {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 flex flex-col sm:flex-row items-center justify-between gap-4 z-50">
-      <p className="text-sm text-center sm:text-left">
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-xl rounded-xl bg-white p-4 shadow-lg border">
+      <p className="mb-4 text-sm text-gray-700">
         Kami menggunakan cookies untuk melacak kunjungan Anda. Apakah Anda
         menyetujui penggunaan cookies?
       </p>
-      <div className="flex gap-2">
+
+      <div className="flex justify-end gap-3">
         <button
           onClick={handleDecline}
-          className="px-4 py-2 text-sm rounded bg-gray-600 hover:bg-gray-500"
+          className="rounded-lg border px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
           Tolak
         </button>
+
         <button
           onClick={handleAccept}
-          className="px-4 py-2 text-sm rounded bg-blue-600 hover:bg-blue-700"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
         >
           Terima
         </button>

@@ -20,10 +20,11 @@ export interface AuthContextType {
 }
 
 export interface LoginResponse {
-  messagea: string;
+  message: string;
   user: User;
-  token: string;
+  token?: string;
 }
-export interface ProfleResponse {
+
+export interface ProfileResponse {
   user: User;
 }

@@ -20,13 +20,14 @@ class AuthService
                 'message' => 'Email atau password salah.',
             ];
         }
+        $token = null;
 
         if ($request->hasSession()) {
             Auth::login($user);
             $request->session()->regenerate();
+        } else {
+            $token = $user->createToken('authToken')->plainTextToken;
         }
-
-        $token = $user->createToken('authToken')->plainTextToken;
 
         return [
             'success' => true,

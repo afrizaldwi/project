@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import CookieConsent from "../components/CookieConsent";
 
 const rooms = [
@@ -41,49 +41,79 @@ const facilities = [
 ];
 
 const Landing = () => {
-    const [roomViewed, setRoomViewed] = useState<string | null>(null);
-    const startTimeRef = useRef<number>(Date.now());
-    const [timeSpent, setTimeSpent] = useState<number>(0);
-    const [isScrolled, setIsScrolled] = useState<boolean>(false);
+    const hasSentTrackingRef = useRef(false);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTimeSpent(Math.floor((Date.now() - startTimeRef.current) / 1000));
-        }, 1000);
-        return () => clearInterval(interval);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    const sendTracking = useCallback(() => {
+        const consent = localStorage.getItem("cookie_consent");
+
+        if (consent !== "accepted" || hasSentTrackingRef.current) {
+            return;
+        }
+
+        hasSentTrackingRef.current = true;
+
+        const payload = JSON.stringify({});
+
+        const blob = new Blob([payload], {
+            type: "application/json",
+        });
+
+        const sent = navigator.sendBeacon("/api/track-visitor", blob);
+
+        if (!sent) {
+            fetch("/api/track-visitor", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: payload,
+                keepalive: true,
+            }).catch(() => {
+                hasSentTrackingRef.current = false;
+            });
+        }
     }, []);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
+
         window.addEventListener("scroll", handleScroll);
+
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     useEffect(() => {
-        const handleBeforeUnload = () => {
-            const consent = localStorage.getItem("cookie_consent");
-            if (consent === "accepted") {
-                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-                navigator.sendBeacon(
-                    "/api/track-visitor",
-                    new Blob([JSON.stringify({
-                        page: window.location.pathname,
-                        time_spent: elapsed,
-                        room_viewed: roomViewed,
-                    })], { type: "application/json" })
-                );
+        if (localStorage.getItem("cookie_consent") === "accepted") {
+            sendTracking();
+        }
+
+        const handlePageHide = () => {
+            sendTracking();
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "hidden") {
+                sendTracking();
             }
         };
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, [roomViewed]);
+
+        window.addEventListener("pagehide", handlePageHide);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener("pagehide", handlePageHide);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [sendTracking]);
 
     return (
         <div className="min-h-screen bg-white text-dark">
 
-            <nav className={`fixed top-0 left-0 right-0 z-40 transition-shadow ${
-                isScrolled ? "shadow-md bg-white" : "bg-white"
-            }`}>
+            <nav className={`fixed top-0 left-0 right-0 z-40 transition-shadow ${isScrolled ? "shadow-md bg-white" : "bg-white"
+                }`}>
                 <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold text-primary">Kost Bahagia</h1>
                     <div className="hidden md:flex items-center gap-6 text-sm font-medium text-dark">
@@ -115,15 +145,15 @@ const Landing = () => {
                             dan nyaman, cocok untuk mahasiswa dan karyawan.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                            
-                            <a 
+
+                            <a
                                 href="#kamar"
                                 className="px-6 py-3 bg-primary text-white rounded font-medium hover:bg-accent transition-colors text-center"
                             >
                                 Lihat Kamar
                             </a>
-                            
-                            <a 
+
+                            <a
                                 href="#kontak"
                                 className="px-6 py-3 border border-primary text-primary rounded font-medium hover:bg-secondary transition-colors text-center"
                             >
@@ -173,7 +203,6 @@ const Landing = () => {
                             <div
                                 key={room.id}
                                 className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
-                                onClick={() => setRoomViewed(room.name)}
                             >
                                 <div className="bg-gray-200 h-48 flex items-center justify-center">
                                     <p className="text-gray-400 text-sm">Foto Kamar</p>
@@ -181,11 +210,10 @@ const Landing = () => {
                                 <div className="p-5">
                                     <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-bold text-dark">{room.name}</h4>
-                                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                            room.status === "Tersedia"
-                                                ? "bg-green-100 text-green-600"
-                                                : "bg-red-100 text-red-500"
-                                        }`}>
+                                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${room.status === "Tersedia"
+                                            ? "bg-green-100 text-green-600"
+                                            : "bg-red-100 text-red-500"
+                                            }`}>
                                             {room.status}
                                         </span>
                                     </div>
@@ -201,7 +229,7 @@ const Landing = () => {
                                             </span>
                                         ))}
                                     </div>
-                                 
+
                                 </div>
                             </div>
                         ))}
@@ -278,13 +306,13 @@ const Landing = () => {
                         </div>
                     </div>
                     <div className="flex flex-col gap-3">
-                        <a 
-                        
+                        <a
+
                             href="https://wa.me/6281234567890"
                             target="_blank"
                             rel="noreferrer"
                             className="px-6 py-3 bg-white text-primary rounded font-medium hover:bg-secondary transition-colors text-center"
-                            >
+                        >
                             Chat WhatsApp
                         </a>
                         <Link
@@ -314,10 +342,7 @@ const Landing = () => {
                 </div>
             </footer>
 
-            <CookieConsent
-                timeSpent={timeSpent}
-                roomViewed={roomViewed}
-            />
+            <CookieConsent onAccept={sendTracking} />
         </div>
     );
 };

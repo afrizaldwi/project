@@ -3,7 +3,7 @@ import type {
   User,
   AuthContextType,
   LoginResponse,
-  ProfleResponse,
+  ProfileResponse,
 } from "../types";
 import api from "../api/axios";
 
@@ -18,16 +18,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const cached = sessionStorage.getItem("user");
     return cached ? JSON.parse(cached) : null;
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get<ProfleResponse>("/profile");
+        const response = await api.get<ProfileResponse>("/profile");
         setUser(response.data.user);
         sessionStorage.setItem("user", JSON.stringify(response.data.user));
-      } catch (error) {
-        console.log(error);
+      } catch {
         setUser(null);
         sessionStorage.removeItem("user");
       } finally {
@@ -48,7 +48,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       password,
     });
 
-    console.log("response:", response.data);
     setUser(response.data.user);
     sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
@@ -68,18 +67,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        role: user?.role || null,
-        isLoading,
-        isAuthenticated: !!user,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const value: AuthContextType = {
+    user,
+    role: user?.role ?? null,
+    isLoading,
+    isAuthenticated: Boolean(user),
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -21,11 +21,16 @@ class AuthController extends Controller
             ], 401);
         }
 
-        return response()->json([
+        $response = [
             'message' => 'Login Berhasil',
-            'token' => $result['token'],
-            'user' => $result['user']
-        ]);
+            'user' => $result['user'],
+        ];
+
+        if (!empty($result['token'])) {
+            $response['token'] = $result['token'];
+        }
+
+        return response()->json($response);
     }
 
     public function logout(Request $req): JsonResponse
