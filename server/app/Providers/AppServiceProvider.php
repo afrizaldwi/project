@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Keluhan;
+use App\Observers\KeluhanObserver;
 use App\Services\AuthService;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Mendaftarkan Observer untuk model Keluhan
+        Keluhan::observe(KeluhanObserver::class);
     }
 }

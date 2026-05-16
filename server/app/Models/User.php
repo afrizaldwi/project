@@ -41,6 +41,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function riwayatSewa()
+    {
+        return $this->hasMany(RiwayatSewa::class, 'id_user');
+    }
+
     protected function isAdmin(): bool
     {
         return $this->role === 'admin';
