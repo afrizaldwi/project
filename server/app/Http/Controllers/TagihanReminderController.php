@@ -55,6 +55,8 @@ class TagihanReminderController extends Controller
 
     public function whatsappMessage(Request $request, int $idTagihan): JsonResponse
     {
+        $this->authorizeAdmin($request);
+
         return response()->json(
             $this->tagihanReminderService->getWhatsAppMessage($idTagihan)
         );

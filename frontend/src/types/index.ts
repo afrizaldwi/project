@@ -144,4 +144,6 @@ export interface NotifikasiItem {
   is_read: boolean;
   created_at: string;
   tagihan: TagihanReminderItem | null;
+  last_reminded_at?: string | null;
+  reminder_count?: number;
 }
