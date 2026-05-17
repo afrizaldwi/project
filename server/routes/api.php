@@ -5,6 +5,7 @@ use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
+use App\Http\Controllers\TagihanReminderController;
 
 Route::get('/csrf-token', function () {
     return response()->json([
@@ -17,6 +18,20 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
+
+    Route::get('/notifikasi', [TagihanReminderController::class, 'notifications']);
+    Route::patch('/notifikasi/{idNotifikasi}/read', [TagihanReminderController::class, 'markNotificationAsRead']);
+    Route::post('/mobile/device-token', [TagihanReminderController::class, 'registerDeviceToken']);
+    Route::get('/tagihan/{idTagihan}/whatsapp-message', [TagihanReminderController::class, 'whatsappMessage']);
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/tagihan', [TagihanReminderController::class, 'adminTagihan']);
+        Route::post('/tagihan/check-jatuh-tempo', [TagihanReminderController::class, 'checkDueDate']);
+    });
+
+    Route::prefix('penyewa')->group(function () {
+        Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);
+    });
 });
 
 Route::post('/track-visitor', [VisitorController::class, 'track']);
