@@ -43,7 +43,7 @@ const AdminTambahPenghuni = () => {
         alamat_asal: "",
         id_kamar: "",
         tanggal_masuk: new Date().toISOString().slice(0, 10),
-        durasi_sewa_bulan: "12",
+        durasi_sewa_bulan: "1",
     });
 
     const credentialSuffixRef = useRef(
@@ -202,6 +202,7 @@ const AdminTambahPenghuni = () => {
                             No. HP
                         </label>
                         <input
+                            type="number"
                             name="no_hp"
                             value={form.no_hp}
                             onChange={handleChange}
