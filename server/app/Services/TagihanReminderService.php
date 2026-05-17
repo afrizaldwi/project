@@ -15,6 +15,46 @@ class TagihanReminderService
         private FcmPushNotificationService $fcmPushNotificationService
     ) {}
 
+    private function refreshNotification(
+        int $userId,
+        Tagihan $tagihan,
+        string $tipe,
+        string $roleTarget,
+        string $judul,
+        string $pesan
+    ): int {
+        $today = now()->toDateString();
+
+        $notifikasi = Notifikasi::firstOrNew([
+            'id_user' => $userId,
+            'id_tagihan' => $tagihan->id_tagihan,
+            'tipe' => $tipe,
+        ]);
+
+        if (
+            $notifikasi->exists &&
+            $notifikasi->last_reminded_at?->toDateString() === $today
+        ) {
+            return 0;
+        }
+
+        $notifikasi->fill([
+            'role_target' => $roleTarget,
+            'judul' => $judul,
+            'pesan' => $pesan,
+            'is_read' => false,
+            'read_at' => null,
+            'last_reminded_at' => $today,
+            'reminder_count' => ($notifikasi->reminder_count ?? 0) + 1,
+        ]);
+
+        $notifikasi->save();
+
+        $this->fcmPushNotificationService->sendToUser($userId, $notifikasi);
+
+        return 1;
+    }
+
     public function checkAndCreateNotifications(): int
     {
         $tagihanList = Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar'])
@@ -69,10 +109,14 @@ class TagihanReminderService
     {
         $query = Notifikasi::with(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar'])
             ->where('id_user', $userId)
-            ->orderByDesc('created_at');
+            ->orderByDesc('last_reminded_at')
+            ->orderByDesc('updated_at');
 
         if ($onlyUnread) {
-            $query->where('is_read', false);
+            $query->where('is_read', false)
+                ->whereHas('tagihan', function ($query) {
+                    $query->whereNotIn('status_tagihan', ['lunas', 'dibayar']);
+                });
         }
 
         return $query->get()->map(function (Notifikasi $notifikasi) {
@@ -84,6 +128,8 @@ class TagihanReminderService
                 'judul' => $notifikasi->judul,
                 'pesan' => $notifikasi->pesan,
                 'is_read' => $notifikasi->is_read,
+                'last_reminded_at' => $notifikasi->last_reminded_at,
+                'reminder_count' => $notifikasi->reminder_count,
                 'created_at' => $notifikasi->created_at,
                 'tagihan' => $notifikasi->tagihan
                     ? $this->formatTagihan($notifikasi->tagihan)
@@ -161,59 +207,36 @@ class TagihanReminderService
             return 0;
         }
 
-        $notifikasi = Notifikasi::firstOrCreate(
-            [
-                'id_user' => $user->id,
-                'id_tagihan' => $tagihan->id_tagihan,
-                'tipe' => $warning['status'],
-            ],
-            [
-                'role_target' => 'penyewa',
-                'judul' => $warning['judul'],
-                'pesan' => $warning['pesan'],
-                'is_read' => false,
-            ]
+        return $this->refreshNotification(
+            userId: $user->id,
+            tagihan: $tagihan,
+            tipe: 'tagihan_reminder',
+            roleTarget: 'penyewa',
+            judul: $warning['judul'],
+            pesan: $warning['pesan']
         );
-
-        if ($notifikasi->wasRecentlyCreated) {
-            $this->fcmPushNotificationService->sendToUser($user->id, $notifikasi);
-            return 1;
-        }
-
-        return 0;
     }
 
     private function createAdminNotifications(Tagihan $tagihan, array $warning): int
     {
         $admins = User::where('role', 'admin')->get();
-
-        $createdCount = 0;
+        $processedCount = 0;
 
         foreach ($admins as $admin) {
             $tenantName = $tagihan->riwayatSewa?->user?->nama_lengkap ?? 'Penyewa';
             $roomNumber = $tagihan->riwayatSewa?->kamar?->nomor_kamar ?? '-';
 
-            $notifikasi = Notifikasi::firstOrCreate(
-                [
-                    'id_user' => $admin->id,
-                    'id_tagihan' => $tagihan->id_tagihan,
-                    'tipe' => 'admin_' . $warning['status'],
-                ],
-                [
-                    'role_target' => 'admin',
-                    'judul' => $warning['judul'],
-                    'pesan' => "{$tenantName} kamar {$roomNumber}: {$warning['pesan']}",
-                    'is_read' => false,
-                ]
+            $processedCount += $this->refreshNotification(
+                userId: $admin->id,
+                tagihan: $tagihan,
+                tipe: 'admin_tagihan_reminder',
+                roleTarget: 'admin',
+                judul: $warning['judul'],
+                pesan: "{$tenantName} kamar {$roomNumber}: {$warning['pesan']}"
             );
-
-            if ($notifikasi->wasRecentlyCreated) {
-                $this->fcmPushNotificationService->sendToUser($admin->id, $notifikasi);
-                $createdCount++;
-            }
         }
 
-        return $createdCount;
+        return $processedCount;
     }
 
     private function formatTagihan(Tagihan $tagihan): array

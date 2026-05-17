@@ -19,12 +19,15 @@ class Notifikasi extends Model
         'is_read',
         'read_at',
         'pushed_at',
+        'last_reminded_at',
+        'reminder_count',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
         'pushed_at' => 'datetime',
+        'last_reminded_at' => 'date',
     ];
 
     public function user(): BelongsTo
