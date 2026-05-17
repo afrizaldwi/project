@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\LaporanKeuanganController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 
 Route::get('/csrf-token', function () {
     return response()->json([
@@ -32,3 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/track-visitor', [VisitorController::class, 'track']);
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
+});
+
+Route::middleware('auth:sanctum')->prefix('penyewa')->group(function () {
+    Route::get('/dashboard-summary', [PenyewaDashboardController::class, 'summary']);
+});

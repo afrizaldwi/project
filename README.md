@@ -2,8 +2,8 @@
 Buka terminal dan clone repository:
 
 ```
-git clone https://github.com/afrizaldwi/test11.git
-cd test11
+git clone <url-repository-web>
+cd <repository-web>
 ````
 
 ### 2\. Environment Configuration
