@@ -1,5 +1,13 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import {
+    type ChangeEvent,
+    type FormEvent,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
+
 import adminApi from "../../api/admin";
 import type { KamarTersedia } from "../../types";
 
@@ -27,10 +35,26 @@ const generateCredentialFromName = (name: string, suffix: string) => {
     };
 };
 
+const formatRupiah = (value: string | number) => {
+    const number = Number(value || 0);
+
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(number);
+};
+
+const getRoomType = (roomNumber: string) => {
+    const firstCharacter = roomNumber.trim().charAt(0).toUpperCase();
+    return firstCharacter || "LAINNYA";
+};
+
 const AdminTambahPenghuni = () => {
     const navigate = useNavigate();
 
     const [rooms, setRooms] = useState<KamarTersedia[]>([]);
+    const [selectedType, setSelectedType] = useState("");
     const [isLoadingRooms, setIsLoadingRooms] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -68,8 +92,62 @@ const AdminTambahPenghuni = () => {
         fetchRooms();
     }, []);
 
+    const roomTypes = useMemo(() => {
+        const groupedRooms = new Map<string, KamarTersedia[]>();
+
+        rooms.forEach((room) => {
+            const type = getRoomType(room.nomor_kamar);
+            const currentRooms = groupedRooms.get(type) || [];
+            groupedRooms.set(type, [...currentRooms, room]);
+        });
+
+        return Array.from(groupedRooms.entries())
+            .sort(([typeA], [typeB]) => typeA.localeCompare(typeB))
+            .map(([type, roomGroup]) => {
+                const prices = roomGroup.map((room) => Number(room.harga_bulanan || 0));
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+
+                return {
+                    id: type,
+                    name: `Tipe ${type}`,
+                    rooms: roomGroup,
+                    priceLabel:
+                        minPrice === maxPrice
+                            ? formatRupiah(minPrice)
+                            : `${formatRupiah(minPrice)} - ${formatRupiah(maxPrice)}`,
+                    description: roomGroup[0]?.fasilitas || `${roomGroup.length} kamar tersedia`,
+                };
+            });
+    }, [rooms]);
+
+    const selectedRoom = rooms.find((room) => String(room.id_kamar) === form.id_kamar);
+
+    const selectedTypeRooms = useMemo(() => {
+        if (!selectedType) return [];
+
+        return rooms.filter((room) => getRoomType(room.nomor_kamar) === selectedType);
+    }, [rooms, selectedType]);
+
+    const totalTagihan = selectedRoom
+        ? Number(selectedRoom.harga_bulanan || 0) * Number(form.durasi_sewa_bulan || 0)
+        : 0;
+
+    const estimasiCheckOut = useMemo(() => {
+        if (!form.tanggal_masuk || !form.durasi_sewa_bulan) return "-";
+
+        const date = new Date(form.tanggal_masuk);
+        date.setMonth(date.getMonth() + Number(form.durasi_sewa_bulan));
+
+        return date.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    }, [form.tanggal_masuk, form.durasi_sewa_bulan]);
+
     const handleChange = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         const { name, value } = event.target;
 
@@ -92,6 +170,21 @@ const AdminTambahPenghuni = () => {
         setForm((previous) => ({
             ...previous,
             [name]: value,
+        }));
+    };
+
+    const handleTypeSelect = (type: string) => {
+        setSelectedType(type);
+        setForm((previous) => ({
+            ...previous,
+            id_kamar: "",
+        }));
+    };
+
+    const handleRoomSelect = (roomId: number) => {
+        setForm((previous) => ({
+            ...previous,
+            id_kamar: String(roomId),
         }));
     };
 
@@ -133,183 +226,252 @@ const AdminTambahPenghuni = () => {
         }
     };
 
-    const selectedRoom = rooms.find((room) => String(room.id_kamar) === form.id_kamar);
-
     return (
-        <div className="space-y-6 p-4 md:p-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-800">Tambah Penghuni</h1>
-            </div>
-
-            {errorMessage && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {errorMessage}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border bg-white p-6 shadow-sm">
-                <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Nama Lengkap
-                        </label>
-                        <input
-                            name="nama_lengkap"
-                            value={form.nama_lengkap}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            name="email"
-                            type="email"
-                            value={form.email}
-                            disabled
-                            required
-                            className="w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm text-gray-600 focus:outline-none"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                            Email dibuat otomatis dari nama penghuni.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Password Akun
-                        </label>
-                        <input
-                            name="password"
-                            type="text"
-                            value={form.password}
-                            disabled
-                            required
-                            minLength={8}
-                            className="w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm text-gray-600 focus:outline-none"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                            Password dibuat otomatis. Berikan password ini kepada penghuni.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            No. HP
-                        </label>
-                        <input
-                            type="number"
-                            name="no_hp"
-                            value={form.no_hp}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
-
+        <div className="min-h-screen bg-light p-4 md:p-6">
+            <div className="mx-auto max-w-5xl space-y-6">
                 <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                        Alamat Asal
-                    </label>
-                    <textarea
-                        name="alamat_asal"
-                        value={form.alamat_asal}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                    />
+                    <h1 className="text-2xl font-black text-dark">Tambah Penghuni Baru</h1>
+                    <p className="mt-1 text-sm font-medium text-dark/50">
+                        Membuat akun penyewa sekaligus mencatat sewa kamar.
+                    </p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Kamar
-                        </label>
-                        <select
-                            name="id_kamar"
-                            value={form.id_kamar}
-                            onChange={handleChange}
-                            required
-                            disabled={isLoadingRooms}
-                            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                        >
-                            <option value="">
-                                {isLoadingRooms ? "Memuat kamar..." : "Pilih kamar"}
-                            </option>
-
-                            {rooms.map((room) => (
-                                <option key={room.id_kamar} value={room.id_kamar}>
-                                    {room.nomor_kamar} - Rp {Number(room.harga_bulanan).toLocaleString("id-ID")}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Tanggal Masuk
-                        </label>
-                        <input
-                            name="tanggal_masuk"
-                            type="date"
-                            value={form.tanggal_masuk}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Durasi Sewa
-                        </label>
-                        <input
-                            name="durasi_sewa_bulan"
-                            type="number"
-                            min={1}
-                            value={form.durasi_sewa_bulan}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
-
-                {selectedRoom && (
-                    <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-                        <p className="font-medium">Detail kamar terpilih</p>
-                        <p>Nomor: {selectedRoom.nomor_kamar}</p>
-                        <p>Luas: {selectedRoom.luas_kamar}</p>
-                        <p>Fasilitas: {selectedRoom.fasilitas}</p>
-                        <p>
-                            Harga bulanan: Rp {Number(selectedRoom.harga_bulanan).toLocaleString("id-ID")}
-                        </p>
+                {errorMessage && (
+                    <div className="rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold text-danger">
+                        {errorMessage}
                     </div>
                 )}
 
-                <div className="flex justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate("/admin/penghuni")}
-                        className="rounded-lg border px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                        Batal
-                    </button>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-5 text-lg font-black text-dark">Data Penghuni</h2>
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                        {isSubmitting ? "Menyimpan..." : "Simpan Penghuni"}
-                    </button>
-                </div>
-            </form>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    Nama Lengkap *
+                                </label>
+                                <input
+                                    name="nama_lengkap"
+                                    value={form.nama_lengkap}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    No. HP *
+                                </label>
+                                <input
+                                    name="no_hp"
+                                    type="number"
+                                    value={form.no_hp}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    Email *
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    disabled
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                                <p className="mt-1 text-xs font-medium text-dark/40">
+                                    Email dibuat otomatis dari nama, tapi masih bisa diedit.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    Password *
+                                </label>
+                                <input
+                                    name="password"
+                                    value={form.password}
+                                    onChange={handleChange}
+                                    disabled
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                                <p className="mt-1 text-xs font-medium text-dark/40">
+                                    Berikan password ini kepada penghuni.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="mb-1 block text-sm font-bold text-dark/70">
+                                Alamat Asal
+                            </label>
+                            <textarea
+                                name="alamat_asal"
+                                value={form.alamat_asal}
+                                onChange={handleChange}
+                                rows={3}
+                                className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+                    </section>
+
+                    {/* DATA SEWA */}
+                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-5 text-lg font-black text-dark">Data Sewa</h2>
+
+                        <div className="mb-6">
+                            <p className="mb-3 text-sm font-black text-dark">Pilih Tipe Kamar</p>
+
+                            {isLoadingRooms ? (
+                                <div className="rounded-xl bg-light p-4 text-sm font-semibold text-dark/50">
+                                    Memuat kamar tersedia...
+                                </div>
+                            ) : roomTypes.length === 0 ? (
+                                <div className="rounded-xl bg-light p-4 text-sm font-semibold text-dark/50">
+                                    Tidak ada kamar tersedia.
+                                </div>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    {roomTypes.map((type) => (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => handleTypeSelect(type.id)}
+                                            className={`rounded-2xl border-2 p-4 text-left transition-all ${selectedType === type.id
+                                                ? "border-primary bg-secondary shadow-sm"
+                                                : "border-gray-100 hover:border-primary/30"
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-black text-dark">{type.name}</p>
+                                                <span className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-black uppercase text-success">
+                                                    Tersedia
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-3 text-sm font-black text-primary">
+                                                {type.priceLabel} / bln
+                                            </p>
+                                            <p className="mt-1 line-clamp-2 text-xs font-medium text-dark/50">
+                                                {type.description}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="mb-3 text-sm font-black text-dark">Pilih Kamar *</p>
+
+                            {selectedType ? (
+                                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-8">
+                                    {selectedTypeRooms.map((room) => (
+                                        <button
+                                            key={room.id_kamar}
+                                            type="button"
+                                            onClick={() => handleRoomSelect(room.id_kamar)}
+                                            className={`rounded-xl border-2 p-3 text-xs font-black transition-all ${form.id_kamar === String(room.id_kamar)
+                                                ? "border-primary bg-primary text-white"
+                                                : "border-gray-100 text-dark/40 hover:border-primary/30 hover:text-primary"
+                                                }`}
+                                        >
+                                            {room.nomor_kamar}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="rounded-xl bg-light p-4 text-sm font-semibold text-dark/40">
+                                    Pilih tipe kamar terlebih dahulu
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    Tanggal Masuk *
+                                </label>
+                                <input
+                                    name="tanggal_masuk"
+                                    type="date"
+                                    value={form.tanggal_masuk}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-bold text-dark/70">
+                                    Durasi (Bulan) *
+                                </label>
+                                <input
+                                    name="durasi_sewa_bulan"
+                                    type="number"
+                                    min={1}
+                                    value={form.durasi_sewa_bulan}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-6 rounded-2xl bg-secondary p-5">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <p className="text-sm font-bold text-primary">Total Tagihan Awal</p>
+                                    <p className="mt-1 text-2xl font-black text-dark">
+                                        {formatRupiah(totalTagihan)}
+                                    </p>
+                                </div>
+
+                                <div className="text-left md:text-right">
+                                    <p className="text-sm font-bold text-primary">Estimasi Check-Out:</p>
+                                    <p className="mt-1 text-lg font-black text-dark">{estimasiCheckOut}</p>
+                                </div>
+                            </div>
+
+                            {selectedRoom && (
+                                <div className="mt-4 rounded-xl bg-white p-4 text-sm font-medium text-dark/70">
+                                    <p className="font-black text-dark">Detail kamar terpilih</p>
+                                    <p>Nomor: {selectedRoom.nomor_kamar}</p>
+                                    <p>Luas: {selectedRoom.luas_kamar}</p>
+                                    <p>Fasilitas: {selectedRoom.fasilitas}</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    <div className="flex justify-end gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/admin/penghuni")}
+                            className="px-8 py-2.5 text-sm font-black text-dark/40 transition-colors hover:text-dark"
+                        >
+                            Batal
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="rounded-xl bg-primary px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
+                        >
+                            {isSubmitting ? "Menyimpan..." : "Simpan Penghuni"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

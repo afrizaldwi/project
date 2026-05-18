@@ -1,22 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+
 import adminApi from "../../api/admin";
 import type { PenghuniItem } from "../../types";
 
-type StatusFilter = "aktif" | "selesai" | "all";
-
-const formatRupiah = (value: string | number) => {
-  const number = Number(value || 0);
-
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(number);
-};
+type StatusFilter = "aktif" | "selesai";
 
 const AdminPenghuni = () => {
   const [status, setStatus] = useState<StatusFilter>("aktif");
+  const [search, setSearch] = useState("");
   const [penghuni, setPenghuni] = useState<PenghuniItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -39,6 +31,20 @@ const AdminPenghuni = () => {
     fetchPenghuni();
   }, [status]);
 
+  const filteredPenghuni = useMemo(() => {
+    const keyword = search.toLowerCase().trim();
+
+    if (!keyword) return penghuni;
+
+    return penghuni.filter((item) => {
+      const nama = item.user?.nama_lengkap?.toLowerCase() || "";
+      const email = item.user?.email?.toLowerCase() || "";
+      const kamar = item.kamar?.nomor_kamar?.toLowerCase() || "";
+
+      return nama.includes(keyword) || email.includes(keyword) || kamar.includes(keyword);
+    });
+  }, [penghuni, search]);
+
   const handleSelesaikan = async (idSewa: number) => {
     const confirmed = window.confirm(
       "Arsipkan penghuni ini sebagai alumni? Status kamar akan diubah menjadi tersedia."
@@ -55,154 +61,163 @@ const AdminPenghuni = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 bg-light p-4 md:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Data Penghuni</h1>
-          <p className="text-sm text-gray-500">
-            Kelola penghuni aktif dan arsip alumni berdasarkan riwayat sewa.
+          <h1 className="text-2xl font-black text-dark">Data Penghuni</h1>
+          <p className="mt-1 text-sm font-medium text-dark/50">
+            Kelola data penghuni Kost Bahagia
           </p>
         </div>
 
         <Link
           to="/admin/penghuni/tambah"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 text-centerXSSSS max-w-42"
+          className="rounded-lg bg-primary px-4 py-2 text-center text-sm font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-accent"
         >
           + Tambah Penghuni
         </Link>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setStatus("aktif")}
-            className={`rounded-lg px-4 py-2 text-sm ${status === "aktif"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            Penghuni Aktif
-          </button>
+      {/* Tabs and Search */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex w-full rounded-xl bg-light p-1 md:w-auto">
+            <button
+              type="button"
+              onClick={() => setStatus("aktif")}
+              className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${status === "aktif"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
+            >
+              Penghuni Aktif
+            </button>
 
-          <button
-            onClick={() => setStatus("selesai")}
-            className={`rounded-lg px-4 py-2 text-sm ${status === "selesai"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            Alumni
-          </button>
+            <button
+              type="button"
+              onClick={() => setStatus("selesai")}
+              className={`rounded-lg px-6 py-2 text-sm font-bold transition-all ${status === "selesai"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
+            >
+              Riwayat / Alumni
+            </button>
+          </div>
 
-          <button
-            onClick={() => setStatus("all")}
-            className={`rounded-lg px-4 py-2 text-sm ${status === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            Semua Riwayat
-          </button>
+          <input
+            type="text"
+            placeholder="Cari nama penghuni atau kamar..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="w-full rounded-xl border border-gray-100 bg-light px-4 py-2 text-sm font-medium outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 md:max-w-xs"
+          />
         </div>
       </div>
 
       {errorMessage && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold text-danger">
           {errorMessage}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+      {/* Table */}
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <table className="min-w-[800px] w-full text-left text-sm">
+            <thead className="bg-light text-[11px] uppercase tracking-wider text-dark/50">
+              <tr>
+                <th className="px-5 py-4">Nama</th>
+                <th className="px-5 py-4">Kamar</th>
+                <th className="px-5 py-4">Tgl Masuk</th>
+                <th className="px-5 py-4">Tgl Keluar</th>
+                <th className="px-5 py-4">Pilih Status</th>
+                <th className="px-5 py-4">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-gray-100">
+              {isLoading ? (
                 <tr>
-                  <th className="px-4 py-3">Nama</th>
-                  <th className="px-4 py-3">Kontak</th>
-                  <th className="px-4 py-3">Kamar</th>
-                  <th className="px-4 py-3">Tanggal Masuk</th>
-                  <th className="px-4 py-3">Tanggal Keluar</th>
-                  <th className="px-4 py-3">Harga</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Aksi</th>
+                  <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={6}>
+                    Memuat data...
+                  </td>
                 </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr>
-                    <td className="px-4 py-6 text-center text-gray-500" colSpan={8}>
-                      Memuat data...
+              ) : filteredPenghuni.length === 0 ? (
+                <tr>
+                  <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={6}>
+                    Tidak ada data.
+                  </td>
+                </tr>
+              ) : (
+                filteredPenghuni.map((item) => (
+                  <tr key={item.id_sewa} className="transition-colors hover:bg-light/70">
+                    <td className="px-5 py-4">
+                      <p className="font-black text-dark">
+                        {item.user?.nama_lengkap || "-"}
+                      </p>
+                      <p className="text-xs font-medium text-dark/40">
+                        {item.user?.email || "-"}
+                      </p>
                     </td>
-                  </tr>
-                ) : penghuni.length === 0 ? (
-                  <tr>
-                    <td className="px-4 py-6 text-center text-gray-500" colSpan={8}>
-                      Tidak ada data penghuni.
+
+                    <td className="px-5 py-4">
+                      <p className="font-bold text-dark">
+                        {item.kamar?.nomor_kamar || "-"}
+                      </p>
+                      <p className="text-xs font-medium text-dark/40">
+                        {item.kamar?.luas_kamar || "-"}
+                      </p>
                     </td>
-                  </tr>
-                ) : (
-                  penghuni.map((item) => (
-                    <tr key={item.id_sewa} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-800">
-                          {item.user?.nama_lengkap || "-"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {item.user?.email || "-"}
-                        </p>
-                      </td>
 
-                      <td className="px-4 py-3">
-                        <p>{item.user?.no_hp || "-"}</p>
-                        <p className="text-xs text-gray-500">
-                          {item.user?.alamat_asal || "-"}
-                        </p>
-                      </td>
+                    <td className="px-5 py-4 font-medium text-dark/70">
+                      {item.tanggal_masuk}
+                    </td>
 
-                      <td className="px-4 py-3">
-                        <p className="font-medium">
-                          {item.kamar?.nomor_kamar || "-"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {item.kamar?.luas_kamar || "-"}
-                        </p>
-                      </td>
+                    <td className="px-5 py-4 font-medium text-dark/70">
+                      {item.tanggal_keluar || "-"}
+                    </td>
 
-                      <td className="px-4 py-3">{item.tanggal_masuk}</td>
-                      <td className="px-4 py-3">{item.tanggal_keluar || "-"}</td>
-                      <td className="px-4 py-3">{formatRupiah(item.harga_deal)}</td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.status_sewa === "aktif"
+                          ? "bg-success/10 text-success"
+                          : "bg-danger/10 text-danger"
+                          }`}
+                      >
+                        {item.status_sewa === "aktif" ? "Aktif" : "Non Aktif"}
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${item.status_sewa === "aktif"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                            }`}
-                        >
-                          {item.status_sewa}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {item.status_sewa === "aktif" ? (
+                    <td className="px-5 py-4">
+                      {item.status_sewa === "aktif" ? (
+                        <div className="flex flex-wrap items-center gap-3">
                           <button
+                            type="button"
+                            disabled
+                            title="Fitur perpanjangan sewa akan diintegrasikan dari fitur Falissa"
+                            className="cursor-not-allowed text-xs font-black text-dark/30"
+                          >
+                            Perpanjang
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => handleSelesaikan(item.id_sewa)}
-                            className="rounded-lg border border-orange-200 px-3 py-1 text-xs text-orange-700 hover:bg-orange-50"
+                            className="text-xs font-black text-danger underline underline-offset-4 transition-colors hover:text-danger/80"
                           >
                             Arsipkan
                           </button>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold text-dark/30">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
