@@ -97,6 +97,69 @@ class TagihanReminderController extends Controller
         ]);
     }
 
+    public function uploadPaymentProof(Request $request, int $idTagihan): JsonResponse
+    {
+        abort_unless($request->user()?->role === 'penyewa', 403, 'Akses hanya untuk penyewa.');
+
+        $validated = $request->validate([
+            'metode_pembayaran' => ['required', 'string', 'max:50'],
+            'bukti_bayar' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
+
+        return response()->json([
+            'message' => 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.',
+            'data' => $this->tagihanReminderService->uploadPaymentProof(
+                userId: $request->user()->id,
+                idTagihan: $idTagihan,
+                metodePembayaran: $validated['metode_pembayaran'],
+                buktiBayar: $request->file('bukti_bayar')
+            ),
+        ], 201);
+    }
+
+    public function pendingPayments(Request $request): JsonResponse
+    {
+        $this->authorizeAdmin($request);
+
+        return response()->json([
+            'data' => $this->tagihanReminderService->getPendingPayments(),
+        ]);
+    }
+
+    public function verifyPayment(Request $request, int $idPembayaran): JsonResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'catatan_admin' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        return response()->json([
+            'message' => 'Pembayaran berhasil diverifikasi.',
+            'data' => $this->tagihanReminderService->verifyPayment(
+                idPembayaran: $idPembayaran,
+                catatanAdmin: $validated['catatan_admin'] ?? null
+            ),
+        ]);
+    }
+
+    public function rejectPayment(Request $request, int $idPembayaran): JsonResponse
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'catatan_admin' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        return response()->json([
+            'message' => 'Pembayaran berhasil ditolak.',
+            'data' => $this->tagihanReminderService->rejectPayment(
+                idPembayaran: $idPembayaran,
+                catatanAdmin: $validated['catatan_admin'] ?? null
+            ),
+        ]);
+    }
+
     private function authorizeAdmin(Request $request): void
     {
         abort_unless($request->user()?->role === 'admin', 403, 'Akses hanya untuk admin.');

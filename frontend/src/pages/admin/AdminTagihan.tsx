@@ -1,7 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Eye,
+  Layers,
+  MessageCircle,
+  RefreshCw,
+  X,
+  XCircle,
+} from "lucide-react";
+
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
-import type { NotifikasiItem, TagihanReminderItem } from "../../types";
+import type {
+  NotifikasiItem,
+  PendingPembayaranItem,
+  TagihanReminderItem,
+} from "../../types";
 
 const formatRupiah = (value: string | number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -11,75 +27,93 @@ const formatRupiah = (value: string | number) => {
   }).format(Number(value || 0));
 };
 
-const getStatusBadge = (status: string) => {
-  if (status === "lunas" || status === "dibayar") {
-    return "bg-green-100 text-green-700";
-  }
+const formatDate = (value: string) => {
+  if (!value) return "-";
 
-  if (status === "telat") {
-    return "bg-red-100 text-red-700";
-  }
-
-  return "bg-yellow-100 text-yellow-700";
+  return new Date(value).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
-const getWarningBadge = (item: TagihanReminderItem) => {
-  if (!item.peringatan.aktif) {
-    return (
-      <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">
-        Tidak aktif
-      </span>
-    );
+const getStatusConfig = (item: TagihanReminderItem) => {
+  const paymentStatus = item.pembayaran_terbaru?.status_verifikasi;
+
+  if (item.status_tagihan === "lunas" || paymentStatus === "diterima") {
+    return {
+      label: "Lunas",
+      className: "bg-success/10 text-success",
+      icon: <CheckCircle size={14} />,
+    };
   }
 
-  if (item.peringatan.status === "terlambat") {
-    return (
-      <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
-        Terlambat
-      </span>
-    );
+  if (paymentStatus === "pending") {
+    return {
+      label: "Menunggu",
+      className: "bg-warning/10 text-warning",
+      icon: <Clock size={14} />,
+    };
   }
 
-  return (
-    <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700">
-      H-{item.peringatan.hari_tersisa}
-    </span>
-  );
+  if (paymentStatus === "ditolak") {
+    return {
+      label: "Ditolak",
+      className: "bg-danger/10 text-danger",
+      icon: <XCircle size={14} />,
+    };
+  }
+
+  if (item.status_tagihan === "telat") {
+    return {
+      label: "Telat",
+      className: "bg-danger/10 text-danger",
+      icon: <AlertTriangle size={14} />,
+    };
+  }
+
+  return {
+    label: "Belum Bayar",
+    className: "bg-danger/10 text-danger",
+    icon: <XCircle size={14} />,
+  };
 };
 
 const AdminTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<PendingPembayaranItem[]>([]);
   const [notifications, setNotifications] = useState<NotifikasiItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"semua" | "pending">("semua");
+  const [preview, setPreview] = useState<PendingPembayaranItem | null>(null);
+  const [catatan, setCatatan] = useState("");
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const summary = useMemo(() => {
+  const stats = useMemo(() => {
     return {
       total: tagihan.length,
-      aktif: tagihan.filter((item) => item.peringatan.aktif).length,
-      terlambat: tagihan.filter(
-        (item) => item.peringatan.status === "terlambat"
-      ).length,
-      belumBayar: tagihan.filter(
-        (item) =>
-          item.status_tagihan !== "lunas" && item.status_tagihan !== "dibayar"
-      ).length,
+      lunas: tagihan.filter((item) => item.status_tagihan === "lunas").length,
+      belum: tagihan.filter((item) => item.status_tagihan !== "lunas").length,
+      pending: pendingPayments.length,
     };
-  }, [tagihan]);
+  }, [tagihan, pendingPayments]);
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
       setErrorMessage("");
 
-      const [tagihanData, notificationData] = await Promise.all([
+      const [tagihanData, pendingData, notificationData] = await Promise.all([
         tagihanReminderApi.getAdminTagihan(),
+        tagihanReminderApi.getPendingPayments(),
         tagihanReminderApi.getNotifications(true),
       ]);
 
       setTagihan(tagihanData);
+      setPendingPayments(pendingData);
       setNotifications(notificationData);
       setShowNotificationModal(notificationData.length > 0);
     } catch {
@@ -105,6 +139,29 @@ const AdminTagihan = () => {
     }
   };
 
+  const handleVerify = async (
+    idPembayaran: number,
+    action: "diterima" | "ditolak"
+  ) => {
+    try {
+      setVerifyingId(idPembayaran);
+
+      if (action === "diterima") {
+        await tagihanReminderApi.verifyPayment(idPembayaran, catatan);
+      } else {
+        await tagihanReminderApi.rejectPayment(idPembayaran, catatan);
+      }
+
+      setPreview(null);
+      setCatatan("");
+      await fetchData();
+    } catch (error: any) {
+      alert(error?.response?.data?.message || "Gagal memproses pembayaran.");
+    } finally {
+      setVerifyingId(null);
+    }
+  };
+
   const handleMarkAsRead = async (id: number) => {
     await tagihanReminderApi.markNotificationAsRead(id);
 
@@ -121,9 +178,7 @@ const AdminTagihan = () => {
 
   const handleMarkAllAsRead = async () => {
     await Promise.all(
-      notifications.map((item) =>
-        tagihanReminderApi.markNotificationAsRead(item.id)
-      )
+      notifications.map((item) => tagihanReminderApi.markNotificationAsRead(item.id))
     );
 
     setNotifications([]);
@@ -131,245 +186,384 @@ const AdminTagihan = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 bg-light p-4 md:p-6">
       {showNotificationModal && (
         <NotificationModal
           notifications={notifications}
-          showWhatsAppButton={true}
           onClose={() => setShowNotificationModal(false)}
           onMarkAsRead={handleMarkAsRead}
           onMarkAllAsRead={handleMarkAllAsRead}
         />
       )}
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Tagihan</h1>
-          <p className="text-sm text-gray-500">
-            Kelola tagihan, notifikasi H-7, dan pesan WhatsApp penagihan.
+          <h1 className="text-2xl font-black text-dark">Manajemen Tagihan</h1>
+          <p className="mt-1 text-sm font-medium text-dark/50">
+            Status hunian, notifikasi jatuh tempo, dan validasi bukti bayar.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row">
           {notifications.length > 0 && (
             <button
+              type="button"
               onClick={() => setShowNotificationModal(true)}
-              className="rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100"
+              className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-2 text-sm font-bold text-warning hover:bg-warning/20"
             >
               Notifikasi ({notifications.length})
             </button>
           )}
 
           <button
+            type="button"
             onClick={handleRunDueDateCheck}
             disabled={isChecking}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:opacity-70"
           >
+            <RefreshCw size={16} className={isChecking ? "animate-spin" : ""} />
             {isChecking ? "Mengecek..." : "Cek Jatuh Tempo"}
           </button>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold text-danger">
           {errorMessage}
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Total Tagihan</p>
-          <p className="mt-2 text-2xl font-bold text-gray-800">{summary.total}</p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-3 inline-flex rounded-xl bg-primary/10 p-2 text-primary">
+            <Layers size={20} />
+          </div>
+          <p className="text-2xl font-black text-dark">{stats.total}</p>
+          <p className="text-sm font-bold text-dark/40">Total Tagihan</p>
         </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Belum Lunas</p>
-          <p className="mt-2 text-2xl font-bold text-yellow-600">
-            {summary.belumBayar}
-          </p>
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-3 inline-flex rounded-xl bg-success/10 p-2 text-success">
+            <CheckCircle size={20} />
+          </div>
+          <p className="text-2xl font-black text-dark">{stats.lunas}</p>
+          <p className="text-sm font-bold text-dark/40">Lunas</p>
         </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Peringatan Aktif</p>
-          <p className="mt-2 text-2xl font-bold text-orange-600">
-            {summary.aktif}
-          </p>
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-3 inline-flex rounded-xl bg-danger/10 p-2 text-danger">
+            <AlertTriangle size={20} />
+          </div>
+          <p className="text-2xl font-black text-dark">{stats.belum}</p>
+          <p className="text-sm font-bold text-dark/40">Belum Bayar</p>
         </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Terlambat</p>
-          <p className="mt-2 text-2xl font-bold text-red-600">
-            {summary.terlambat}
-          </p>
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-3 inline-flex rounded-xl bg-warning/10 p-2 text-warning">
+            <Clock size={20} />
+          </div>
+          <p className="text-2xl font-black text-dark">{stats.pending}</p>
+          <p className="text-sm font-bold text-dark/40">Menunggu</p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:hidden">
-        {isLoading ? (
-          <div className="rounded-xl border bg-white p-4 text-center text-sm text-gray-500">
-            Memuat data...
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-gray-100 p-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-black text-dark">Daftar Tagihan</h2>
+            <p className="text-sm font-medium text-dark/40">
+              Kelola tagihan dan pembayaran penyewa.
+            </p>
           </div>
-        ) : tagihan.length === 0 ? (
-          <div className="rounded-xl border bg-white p-4 text-center text-sm text-gray-500">
-            Tidak ada data tagihan.
+
+          <div className="grid w-full grid-cols-2 rounded-xl bg-light p-1 md:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab("semua")}
+              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "semua"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
+            >
+              Semua Tagihan
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("pending")}
+              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "pending"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
+            >
+              Perlu Validasi
+            </button>
+          </div>
+        </div>
+
+        {activeTab === "semua" ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full text-left text-sm">
+              <thead className="bg-light text-[11px] uppercase tracking-wider text-dark/50">
+                <tr>
+                  <th className="px-5 py-4">Penyewa / Kamar</th>
+                  <th className="px-5 py-4">Total Tagihan</th>
+                  <th className="px-5 py-4">Jatuh Tempo</th>
+                  <th className="px-5 py-4">Status</th>
+                  <th className="px-5 py-4">Aksi</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100">
+                {isLoading ? (
+                  <tr>
+                    <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={5}>
+                      Memuat data...
+                    </td>
+                  </tr>
+                ) : tagihan.length === 0 ? (
+                  <tr>
+                    <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={5}>
+                      Tidak ada data tagihan.
+                    </td>
+                  </tr>
+                ) : (
+                  tagihan.map((item) => {
+                    const status = getStatusConfig(item);
+
+                    return (
+                      <tr key={item.id_tagihan} className="transition-colors hover:bg-light/70">
+                        <td className="px-5 py-4">
+                          <p className="font-black text-dark">
+                            {item.penyewa.nama_lengkap || "-"}
+                          </p>
+                          <p className="text-xs font-medium text-dark/40">
+                            Kamar {item.kamar.nomor_kamar || "-"}
+                          </p>
+                        </td>
+
+                        <td className="px-5 py-4 font-black text-dark">
+                          {formatRupiah(item.total_tagihan)}
+                        </td>
+
+                        <td className="px-5 py-4 font-medium text-dark/70">
+                          {formatDate(item.tanggal_jatuh_tempo)}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase ${status.className}`}
+                          >
+                            {status.icon}
+                            {status.label}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4">
+                          {item.whatsapp.enabled && item.whatsapp.url ? (
+                            <a
+                              href={item.whatsapp.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2 text-xs font-black text-success hover:bg-success/20"
+                            >
+                              <MessageCircle size={14} />
+                              Kirim WA
+                            </a>
+                          ) : (
+                            <span className="text-xs font-bold text-dark/30">
+                              WA tidak tersedia
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         ) : (
-          tagihan.map((item) => (
-            <div key={item.id_tagihan} className="rounded-xl border bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-gray-800">{item.kode_invoice}</p>
-                  <p className="text-sm text-gray-500">
-                    {item.penyewa.nama_lengkap || "-"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Kamar {item.kamar.nomor_kamar || "-"}
-                  </p>
-                </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full text-left text-sm">
+              <thead className="bg-light text-[11px] uppercase tracking-wider text-dark/50">
+                <tr>
+                  <th className="px-5 py-4">Penyewa</th>
+                  <th className="px-5 py-4">Jumlah Bayar</th>
+                  <th className="px-5 py-4">Metode</th>
+                  <th className="px-5 py-4">Tanggal</th>
+                  <th className="px-5 py-4">Aksi</th>
+                </tr>
+              </thead>
 
-                {getWarningBadge(item)}
-              </div>
-
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Total</span>
-                  <span className="font-medium text-gray-800">
-                    {formatRupiah(item.total_tagihan)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Jatuh Tempo</span>
-                  <span className="font-medium text-gray-800">
-                    {item.tanggal_jatuh_tempo}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Status</span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(
-                      item.status_tagihan
-                    )}`}
-                  >
-                    {item.status_tagihan}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                {item.whatsapp.enabled && item.whatsapp.url ? (
-                  <a
-                    href={item.whatsapp.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block w-full rounded-lg bg-green-600 px-3 py-2 text-center text-sm font-medium text-white hover:bg-green-700"
-                  >
-                    Kirim WhatsApp
-                  </a>
+              <tbody className="divide-y divide-gray-100">
+                {isLoading ? (
+                  <tr>
+                    <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={5}>
+                      Memuat data...
+                    </td>
+                  </tr>
+                ) : pendingPayments.length === 0 ? (
+                  <tr>
+                    <td className="px-5 py-8 text-center font-medium text-dark/50" colSpan={5}>
+                      Tidak ada pembayaran yang menunggu validasi.
+                    </td>
+                  </tr>
                 ) : (
-                  <div className="rounded-lg bg-gray-100 px-3 py-2 text-center text-sm text-gray-400">
-                    WhatsApp tidak tersedia
-                  </div>
+                  pendingPayments.map((payment) => (
+                    <tr
+                      key={payment.id_pembayaran}
+                      className="transition-colors hover:bg-light/70"
+                    >
+                      <td className="px-5 py-4">
+                        <p className="font-black text-dark">
+                          {payment.tagihan?.penyewa.nama_lengkap || "-"}
+                        </p>
+                        <p className="text-xs font-medium text-dark/40">
+                          Kamar {payment.tagihan?.kamar.nomor_kamar || "-"}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4 font-black text-dark">
+                        {formatRupiah(payment.jumlah_bayar)}
+                      </td>
+
+                      <td className="px-5 py-4 font-medium capitalize text-dark/70">
+                        {payment.metode_pembayaran}
+                      </td>
+
+                      <td className="px-5 py-4 font-medium text-dark/70">
+                        {formatDate(payment.tanggal_bayar)}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreview(payment);
+                            setCatatan("");
+                          }}
+                          className="inline-flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-4 py-2 text-xs font-black text-warning hover:bg-warning/20"
+                        >
+                          <Eye size={14} />
+                          Periksa
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 )}
-              </div>
-            </div>
-          ))
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-xl border bg-white shadow-sm md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
-              <tr>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Penyewa</th>
-                <th className="px-4 py-3">Kamar</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Jatuh Tempo</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Peringatan</th>
-                <th className="px-4 py-3">WhatsApp</th>
-              </tr>
-            </thead>
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-black text-dark">Verifikasi Pembayaran</h3>
 
-            <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
-                    Memuat data...
-                  </td>
-                </tr>
-              ) : tagihan.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
-                    Tidak ada data tagihan.
-                  </td>
-                </tr>
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                className="rounded-full p-2 text-dark/40 hover:bg-light hover:text-dark"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-xl bg-light p-4">
+                <p className="text-xs font-bold uppercase text-dark/40">Penyewa</p>
+                <p className="mt-1 font-black text-dark">
+                  {preview.tagihan?.penyewa.nama_lengkap || "-"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-light p-4">
+                  <p className="text-xs font-bold uppercase text-dark/40">Nominal</p>
+                  <p className="mt-1 font-black text-dark">
+                    {formatRupiah(preview.jumlah_bayar)}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-light p-4">
+                  <p className="text-xs font-bold uppercase text-dark/40">Metode</p>
+                  <p className="mt-1 font-black capitalize text-dark">
+                    {preview.metode_pembayaran}
+                  </p>
+                </div>
+              </div>
+
+              {preview.bukti_bayar_url ? (
+                <div className="space-y-3">
+                  {/\.(jpg|jpeg|png|webp)$/i.test(preview.bukti_bayar_url) ? (
+                    <a href={preview.bukti_bayar_url} target="_blank" rel="noreferrer">
+                      <img
+                        src={preview.bukti_bayar_url}
+                        alt="Bukti pembayaran"
+                        className="max-h-72 w-full rounded-xl border border-gray-100 object-contain"
+                      />
+                    </a>
+                  ) : (
+                    <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm font-semibold text-primary">
+                      File bukti pembayaran bukan gambar. Buka file untuk melihat detail.
+                    </div>
+                  )}
+
+                  <a
+                    href={preview.bukti_bayar_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-xl border border-primary/20 bg-primary/10 p-4 text-center text-sm font-black text-primary hover:bg-primary/20"
+                  >
+                    Buka Bukti Pembayaran
+                  </a>
+                </div>
               ) : (
-                tagihan.map((item) => (
-                  <tr key={item.id_tagihan} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {item.kode_invoice}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800">
-                        {item.penyewa.nama_lengkap || "-"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {item.penyewa.no_hp || "-"}
-                      </p>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {item.kamar.nomor_kamar || "-"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {formatRupiah(item.total_tagihan)}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {item.tanggal_jatuh_tempo}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(
-                          item.status_tagihan
-                        )}`}
-                      >
-                        {item.status_tagihan}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">{getWarningBadge(item)}</td>
-
-                    <td className="px-4 py-3">
-                      {item.whatsapp.enabled && item.whatsapp.url ? (
-                        <a
-                          href={item.whatsapp.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700"
-                        >
-                          Kirim WA
-                        </a>
-                      ) : (
-                        <span className="text-xs text-gray-400">
-                          Tidak tersedia
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                <div className="rounded-xl border border-warning/20 bg-warning/10 p-4 text-sm font-semibold text-warning">
+                  Bukti pembayaran belum tersedia.
+                </div>
               )}
-            </tbody>
-          </table>
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-dark/70">
+                  Catatan Tambahan
+                </label>
+                <textarea
+                  value={catatan}
+                  onChange={(event) => setCatatan(event.target.value)}
+                  rows={3}
+                  className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  placeholder="Opsional..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={verifyingId === preview.id_pembayaran}
+                  onClick={() => handleVerify(preview.id_pembayaran, "ditolak")}
+                  className="rounded-xl border border-danger/20 px-4 py-3 text-xs font-black uppercase text-danger hover:bg-danger/10 disabled:opacity-60"
+                >
+                  Tolak
+                </button>
+
+                <button
+                  type="button"
+                  disabled={verifyingId === preview.id_pembayaran}
+                  onClick={() => handleVerify(preview.id_pembayaran, "diterima")}
+                  className="rounded-xl bg-success px-4 py-3 text-xs font-black uppercase text-white shadow-lg shadow-success/20 hover:bg-success/90 disabled:opacity-60"
+                >
+                  {verifyingId === preview.id_pembayaran ? "Memproses..." : "Terima"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

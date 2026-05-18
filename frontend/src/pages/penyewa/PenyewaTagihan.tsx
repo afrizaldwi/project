@@ -1,4 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  FileText,
+  Upload,
+  X,
+  XCircle,
+} from "lucide-react";
+
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
 import type { NotifikasiItem, TagihanReminderItem } from "../../types";
@@ -11,29 +22,85 @@ const formatRupiah = (value: string | number) => {
   }).format(Number(value || 0));
 };
 
-const getStatusClass = (status: string) => {
-  if (status === "lunas" || status === "dibayar") {
-    return "bg-green-100 text-green-700";
+const formatDate = (value: string) => {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const getStatusConfig = (item: TagihanReminderItem) => {
+  const paymentStatus = item.pembayaran_terbaru?.status_verifikasi;
+
+  if (item.status_tagihan === "lunas" || paymentStatus === "diterima") {
+    return {
+      label: "Lunas",
+      className: "bg-success/10 text-success",
+      icon: <CheckCircle size={14} />,
+    };
   }
 
-  if (status === "telat") {
-    return "bg-red-100 text-red-700";
+  if (paymentStatus === "pending") {
+    return {
+      label: "Menunggu",
+      className: "bg-warning/10 text-warning",
+      icon: <Clock size={14} />,
+    };
   }
 
-  return "bg-yellow-100 text-yellow-700";
+  if (paymentStatus === "ditolak") {
+    return {
+      label: "Ditolak",
+      className: "bg-danger/10 text-danger",
+      icon: <XCircle size={14} />,
+    };
+  }
+
+  if (item.status_tagihan === "telat") {
+    return {
+      label: "Telat",
+      className: "bg-danger/10 text-danger",
+      icon: <AlertTriangle size={14} />,
+    };
+  }
+
+  return {
+    label: "Belum Bayar",
+    className: "bg-danger/10 text-danger",
+    icon: <XCircle size={14} />,
+  };
+};
+
+const canPay = (item: TagihanReminderItem) => {
+  if (item.status_tagihan === "lunas") return false;
+  if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
+  return true;
 };
 
 const PenyewaTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
   const [notifications, setNotifications] = useState<NotifikasiItem[]>([]);
+  const [selected, setSelected] = useState<TagihanReminderItem | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [metode, setMetode] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const activeWarnings = useMemo(
-    () => tagihan.filter((item) => item.peringatan.aktif),
-    [tagihan]
-  );
+  const activeTagihan = useMemo(() => {
+    return tagihan.filter((item) => item.status_tagihan !== "lunas");
+  }, [tagihan]);
+
+  const riwayatPembayaran = useMemo(() => {
+    return tagihan.filter((item) => item.status_tagihan === "lunas");
+  }, [tagihan]);
 
   const fetchData = async () => {
     try {
@@ -59,6 +126,105 @@ const PenyewaTagihan = () => {
     fetchData();
   }, []);
 
+  const openPaymentModal = (item: TagihanReminderItem) => {
+    setSelected(item);
+    setShowPaymentModal(true);
+    setMetode("");
+    setFile(null);
+    setFilePreview(null);
+    setSuccessMessage("");
+  };
+
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+  const ALLOWED_FILE_TYPES = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+  ];
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) return;
+
+    if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
+      alert("Format file tidak valid. Gunakan JPG, PNG, atau PDF.");
+      event.target.value = "";
+      setFile(null);
+      setFilePreview(null);
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      alert(`Ukuran file terlalu besar. Maksimal ${MAX_FILE_SIZE_MB}MB.`);
+      event.target.value = "";
+      setFile(null);
+      setFilePreview(null);
+      return;
+    }
+
+    setFile(selectedFile);
+
+    if (selectedFile.type.startsWith("image/")) {
+      setFilePreview(URL.createObjectURL(selectedFile));
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const handleUploadPayment = async () => {
+    if (!selected) return;
+
+    if (!metode || !file) {
+      alert("Lengkapi metode pembayaran dan bukti bayar.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      const payload = new FormData();
+      payload.append("metode_pembayaran", metode);
+      payload.append("bukti_bayar", file);
+
+      await tagihanReminderApi.uploadPaymentProof(selected.id_tagihan, payload);
+
+      setSuccessMessage("Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.");
+      await fetchData();
+
+      setTimeout(() => {
+        setShowPaymentModal(false);
+        setSelected(null);
+        setMetode("");
+        setFile(null);
+        setFilePreview(null);
+        setSuccessMessage("");
+      }, 1200);
+    } catch (error: any) {
+      console.error("Upload payment proof error:", error);
+
+      const validationErrors = error?.response?.data?.errors;
+
+      if (validationErrors) {
+        const firstError = Object.values(validationErrors)[0] as string[];
+        alert(firstError?.[0] || "Validasi bukti pembayaran gagal.");
+      } else if (error?.response?.status === 413) {
+        alert("Ukuran file terlalu besar untuk diunggah.");
+      } else if (error?.response?.data?.message) {
+        alert(error.response.data.message);
+      } else if (error?.message) {
+        alert(`Gagal mengirim bukti pembayaran: ${error.message}`);
+      } else {
+        alert("Gagal mengirim bukti pembayaran.");
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleMarkAsRead = async (id: number) => {
     await tagihanReminderApi.markNotificationAsRead(id);
 
@@ -75,9 +241,7 @@ const PenyewaTagihan = () => {
 
   const handleMarkAllAsRead = async () => {
     await Promise.all(
-      notifications.map((item) =>
-        tagihanReminderApi.markNotificationAsRead(item.id)
-      )
+      notifications.map((item) => tagihanReminderApi.markNotificationAsRead(item.id))
     );
 
     setNotifications([]);
@@ -85,7 +249,7 @@ const PenyewaTagihan = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 bg-light p-4 md:p-6">
       {showNotificationModal && (
         <NotificationModal
           notifications={notifications}
@@ -97,16 +261,17 @@ const PenyewaTagihan = () => {
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Tagihan Saya</h1>
-          <p className="text-sm text-gray-500">
-            Lihat status tagihan dan peringatan jatuh tempo.
+          <h1 className="text-2xl font-black text-dark">Tagihan Saya</h1>
+          <p className="mt-1 text-sm font-medium text-dark/50">
+            Lihat dan bayar tagihan kost kamu.
           </p>
         </div>
 
         {notifications.length > 0 && (
           <button
+            type="button"
             onClick={() => setShowNotificationModal(true)}
-            className="rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100"
+            className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-2 text-sm font-bold text-warning hover:bg-warning/20"
           >
             Notifikasi ({notifications.length})
           </button>
@@ -114,208 +279,275 @@ const PenyewaTagihan = () => {
       </div>
 
       {errorMessage && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm font-semibold text-danger">
           {errorMessage}
         </div>
       )}
 
-      {activeWarnings.length > 0 && (
-        <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
-          <h2 className="font-bold text-orange-800">Peringatan Tagihan</h2>
-          <div className="mt-3 space-y-2">
-            {activeWarnings.map((item) => (
-              <div key={item.id_tagihan} className="text-sm text-orange-700">
-                <span className="font-medium">{item.kode_invoice}</span>:{" "}
-                {item.peringatan.pesan}
-              </div>
-            ))}
-          </div>
+      {isLoading ? (
+        <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm font-semibold text-dark/50 shadow-sm">
+          Memuat data tagihan...
         </div>
+      ) : (
+        <>
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-lg font-black text-dark">Tagihan Aktif</h2>
+              <p className="text-sm font-medium text-dark/40">
+                Tagihan yang belum lunas atau sedang menunggu verifikasi.
+              </p>
+            </div>
+
+            {activeTagihan.length === 0 ? (
+              <div className="rounded-2xl border border-success/20 bg-success/10 p-6 text-center shadow-sm">
+                <CheckCircle className="mx-auto mb-3 text-success" size={32} />
+                <p className="font-black text-dark">Semua tagihan sudah beres!</p>
+                <p className="mt-1 text-sm font-medium text-dark/50">
+                  Terima kasih telah membayar tepat waktu.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {activeTagihan.map((item) => {
+                  const status = getStatusConfig(item);
+
+                  return (
+                    <div
+                      key={item.id_tagihan}
+                      className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
+                    >
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wide text-dark/40">
+                            {item.kode_invoice}
+                          </p>
+                          <h3 className="mt-1 text-lg font-black text-dark">
+                            Kamar {item.kamar.nomor_kamar || "-"}
+                          </h3>
+                        </div>
+
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase ${status.className}`}
+                        >
+                          {status.icon}
+                          {status.label}
+                        </span>
+                      </div>
+
+                      <div className="grid gap-3 rounded-xl bg-light p-4 sm:grid-cols-2">
+                        <div>
+                          <p className="text-xs font-bold uppercase text-dark/40">
+                            Total Tagihan
+                          </p>
+                          <p className="mt-1 text-xl font-black text-dark">
+                            {formatRupiah(item.total_tagihan)}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-bold uppercase text-dark/40">
+                            Jatuh Tempo
+                          </p>
+                          <p className="mt-1 font-black text-dark">
+                            {formatDate(item.tanggal_jatuh_tempo)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {item.pembayaran_terbaru?.status_verifikasi === "ditolak" &&
+                        item.pembayaran_terbaru.catatan_admin && (
+                          <div className="mt-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm font-semibold text-danger">
+                            Catatan admin: {item.pembayaran_terbaru.catatan_admin}
+                          </div>
+                        )}
+
+                      <button
+                        type="button"
+                        disabled={!canPay(item)}
+                        onClick={() => openPaymentModal(item)}
+                        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:bg-dark/20 disabled:shadow-none"
+                      >
+                        <Upload size={16} />
+                        {item.pembayaran_terbaru?.status_verifikasi === "pending"
+                          ? "Menunggu Verifikasi"
+                          : "Bayar Sekarang"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-lg font-black text-dark">Riwayat Pembayaran</h2>
+              <p className="text-sm font-medium text-dark/40">
+                Daftar tagihan yang sudah lunas.
+              </p>
+            </div>
+
+            {riwayatPembayaran.length === 0 ? (
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center text-sm font-semibold text-dark/50 shadow-sm">
+                Belum ada riwayat pembayaran.
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="min-w-[700px] w-full text-left text-sm">
+                    <thead className="bg-light text-[11px] uppercase tracking-wider text-dark/50">
+                      <tr>
+                        <th className="px-5 py-4">Invoice</th>
+                        <th className="px-5 py-4">Jatuh Tempo</th>
+                        <th className="px-5 py-4">Total</th>
+                        <th className="px-5 py-4">Status</th>
+                      </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-gray-100">
+                      {riwayatPembayaran.map((item) => {
+                        const status = getStatusConfig(item);
+
+                        return (
+                          <tr key={item.id_tagihan} className="hover:bg-light/70">
+                            <td className="px-5 py-4">
+                              <p className="font-black text-dark">{item.kode_invoice}</p>
+                              <p className="text-xs font-medium text-dark/40">
+                                Kamar {item.kamar.nomor_kamar || "-"}
+                              </p>
+                            </td>
+
+                            <td className="px-5 py-4 font-medium text-dark/70">
+                              {formatDate(item.tanggal_jatuh_tempo)}
+                            </td>
+
+                            <td className="px-5 py-4 font-black text-dark">
+                              {formatRupiah(item.total_tagihan)}
+                            </td>
+
+                            <td className="px-5 py-4">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase ${status.className}`}
+                              >
+                                {status.icon}
+                                {status.label}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Total Tagihan</p>
-          <p className="mt-2 text-2xl font-bold text-gray-800">
-            {tagihan.length}
-          </p>
-        </div>
+      {showPaymentModal && selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setShowPaymentModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-lg font-black text-dark">Konfirmasi Bayar</h3>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Peringatan Aktif</p>
-          <p className="mt-2 text-2xl font-bold text-orange-600">
-            {activeWarnings.length}
-          </p>
-        </div>
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="rounded-full p-2 text-dark/40 hover:bg-light hover:text-dark"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Belum Lunas</p>
-          <p className="mt-2 text-2xl font-bold text-yellow-600">
-            {
-              tagihan.filter(
-                (item) =>
-                  item.status_tagihan !== "lunas" &&
-                  item.status_tagihan !== "dibayar"
-              ).length
-            }
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:hidden">
-        {isLoading ? (
-          <div className="rounded-xl border bg-white p-4 text-center text-sm text-gray-500">
-            Memuat data...
-          </div>
-        ) : tagihan.length === 0 ? (
-          <div className="rounded-xl border bg-white p-4 text-center text-sm text-gray-500">
-            Belum ada tagihan.
-          </div>
-        ) : (
-          tagihan.map((item) => (
-            <div key={item.id_tagihan} className="rounded-xl border bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-gray-800">{item.kode_invoice}</p>
-                  <p className="text-xs text-gray-400">
-                    Kamar {item.kamar.nomor_kamar || "-"}
+            {successMessage ? (
+              <div className="rounded-xl border border-success/20 bg-success/10 p-5 text-center">
+                <CheckCircle className="mx-auto mb-3 text-success" size={32} />
+                <p className="font-black text-dark">{successMessage}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-xl bg-light p-4">
+                  <p className="text-xs font-bold uppercase text-dark/40">
+                    Total Tagihan
+                  </p>
+                  <p className="mt-1 text-2xl font-black text-dark">
+                    {formatRupiah(selected.total_tagihan)}
                   </p>
                 </div>
 
-                {item.peringatan.aktif ? (
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-medium ${item.peringatan.status === "terlambat"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-orange-100 text-orange-700"
-                      }`}
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-dark/70">
+                    Metode Pembayaran
+                  </label>
+                  <select
+                    value={metode}
+                    onChange={(event) => setMetode(event.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm font-semibold outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   >
-                    {item.peringatan.status === "terlambat"
-                      ? "Terlambat"
-                      : `H-${item.peringatan.hari_tersisa}`}
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                    Aman
-                  </span>
-                )}
+                    <option value="">Pilih Metode Pembayaran</option>
+                    <option value="transfer bank">Transfer Bank</option>
+                    <option value="e-wallet">E-Wallet</option>
+                    <option value="cash">Cash</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-dark/70">
+                    Upload Bukti Bayar
+                  </label>
+
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-light p-6 text-center transition-all hover:border-primary/40">
+                    <CreditCard className="mb-2 text-primary" size={28} />
+                    <p className="text-sm font-black text-dark">
+                      {file ? file.name : "Pilih file bukti bayar"}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-dark/40">
+                      JPG, PNG, atau PDF maksimal 5MB
+                    </p>
+
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {filePreview ? (
+                  <img
+                    src={filePreview}
+                    alt="Preview bukti bayar"
+                    className="max-h-48 w-full rounded-xl object-cover"
+                  />
+                ) : file ? (
+                  <div className="flex items-center gap-3 rounded-xl bg-light p-4">
+                    <FileText className="text-primary" size={24} />
+                    <p className="text-sm font-bold text-dark">{file.name}</p>
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleUploadPayment}
+                  disabled={isUploading}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:opacity-70"
+                >
+                  <Upload size={16} />
+                  {isUploading ? "Memproses..." : "Kirim Bukti Bayar"}
+                </button>
               </div>
-
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Total</span>
-                  <span className="font-medium text-gray-800">
-                    {formatRupiah(item.total_tagihan)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Jatuh Tempo</span>
-                  <span className="font-medium text-gray-800">
-                    {item.tanggal_jatuh_tempo}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span className="text-gray-500">Status</span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusClass(
-                      item.status_tagihan
-                    )}`}
-                  >
-                    {item.status_tagihan}
-                  </span>
-                </div>
-              </div>
-
-              {item.peringatan.aktif && (
-                <div className="mt-4 rounded-lg bg-orange-50 p-3 text-sm text-orange-700">
-                  {item.peringatan.pesan}
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="hidden overflow-hidden rounded-xl border bg-white shadow-sm md:block">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
-              <tr>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Kamar</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Jatuh Tempo</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Peringatan</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
-                    Memuat data...
-                  </td>
-                </tr>
-              ) : tagihan.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
-                    Belum ada tagihan.
-                  </td>
-                </tr>
-              ) : (
-                tagihan.map((item) => (
-                  <tr key={item.id_tagihan} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {item.kode_invoice}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {item.kamar.nomor_kamar || "-"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {formatRupiah(item.total_tagihan)}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {item.tanggal_jatuh_tempo}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusClass(
-                          item.status_tagihan
-                        )}`}
-                      >
-                        {item.status_tagihan}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {item.peringatan.aktif ? (
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${item.peringatan.status === "terlambat"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-orange-100 text-orange-700"
-                            }`}
-                        >
-                          {item.peringatan.status === "terlambat"
-                            ? "Terlambat"
-                            : `H-${item.peringatan.hari_tersisa}`}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,10 @@ use App\Models\Tagihan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use App\Models\Pembayaran;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class TagihanReminderService
 {
@@ -103,6 +107,131 @@ class TagihanReminderService
             ->findOrFail($idTagihan);
 
         return $this->whatsAppMessageService->generate($tagihan);
+    }
+
+    public function uploadPaymentProof(
+        int $userId,
+        int $idTagihan,
+        string $metodePembayaran,
+        UploadedFile $buktiBayar
+    ): array {
+        return DB::transaction(function () use ($userId, $idTagihan, $metodePembayaran, $buktiBayar) {
+            $tagihan = Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar', 'pembayaran'])
+                ->where('id_tagihan', $idTagihan)
+                ->whereHas('riwayatSewa', function ($query) use ($userId) {
+                    $query->where('id_user', $userId);
+                })
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_if(
+                $tagihan->status_tagihan === 'lunas',
+                422,
+                'Tagihan ini sudah lunas.'
+            );
+
+            $hasPendingPayment = Pembayaran::where('id_tagihan', $tagihan->id_tagihan)
+                ->where('status_verifikasi', 'pending')
+                ->exists();
+
+            abort_if(
+                $hasPendingPayment,
+                422,
+                'Bukti pembayaran sebelumnya masih menunggu verifikasi admin.'
+            );
+
+            $path = $buktiBayar->store('bukti-pembayaran', 'public');
+
+            Pembayaran::create([
+                'id_tagihan' => $tagihan->id_tagihan,
+                'tanggal_bayar' => now()->toDateString(),
+                'jumlah_bayar' => $tagihan->total_tagihan,
+                'metode_pembayaran' => $metodePembayaran,
+                'bukti_bayar' => $path,
+                'status_verifikasi' => 'pending',
+                'catatan_admin' => null,
+            ]);
+
+            $tagihan->refresh();
+            $tagihan->load(['riwayatSewa.user', 'riwayatSewa.kamar', 'pembayaran']);
+
+            return $this->formatTagihan($tagihan);
+        });
+    }
+
+    public function getPendingPayments(): Collection
+    {
+        return Pembayaran::with(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar'])
+            ->where('status_verifikasi', 'pending')
+            ->latest('tanggal_bayar')
+            ->get()
+            ->map(fn(Pembayaran $pembayaran) => $this->formatPembayaran($pembayaran));
+    }
+
+    public function verifyPayment(int $idPembayaran, ?string $catatanAdmin = null): array
+    {
+        return DB::transaction(function () use ($idPembayaran, $catatanAdmin) {
+            $pembayaran = Pembayaran::with('tagihan')
+                ->where('id_pembayaran', $idPembayaran)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                $pembayaran->status_verifikasi === 'pending',
+                422,
+                'Pembayaran ini sudah diproses.'
+            );
+
+            $pembayaran->update([
+                'status_verifikasi' => 'diterima',
+                'catatan_admin' => $catatanAdmin,
+            ]);
+
+            $pembayaran->tagihan->update([
+                'status_tagihan' => 'lunas',
+            ]);
+
+            $pembayaran->refresh();
+            $pembayaran->load(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar']);
+
+            return $this->formatPembayaran($pembayaran);
+        });
+    }
+
+    public function rejectPayment(int $idPembayaran, ?string $catatanAdmin = null): array
+    {
+        return DB::transaction(function () use ($idPembayaran, $catatanAdmin) {
+            $pembayaran = Pembayaran::with('tagihan')
+                ->where('id_pembayaran', $idPembayaran)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                $pembayaran->status_verifikasi === 'pending',
+                422,
+                'Pembayaran ini sudah diproses.'
+            );
+
+            $tagihan = $pembayaran->tagihan;
+
+            $nextTagihanStatus = Carbon::parse($tagihan->tanggal_jatuh_tempo)->isPast()
+                ? 'telat'
+                : 'belum_bayar';
+
+            $pembayaran->update([
+                'status_verifikasi' => 'ditolak',
+                'catatan_admin' => $catatanAdmin,
+            ]);
+
+            $tagihan->update([
+                'status_tagihan' => $nextTagihanStatus,
+            ]);
+
+            $pembayaran->refresh();
+            $pembayaran->load(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar']);
+
+            return $this->formatPembayaran($pembayaran);
+        });
     }
 
     public function getUserNotifications(int $userId, bool $onlyUnread = false): Collection
@@ -239,12 +368,36 @@ class TagihanReminderService
         return $processedCount;
     }
 
+    private function formatPembayaran(Pembayaran $pembayaran): array
+    {
+        $pembayaran->loadMissing(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar']);
+
+        $buktiBayar = $pembayaran->bukti_bayar;
+
+        return [
+            'id_pembayaran' => $pembayaran->id_pembayaran,
+            'id_tagihan' => $pembayaran->id_tagihan,
+            'tanggal_bayar' => $pembayaran->tanggal_bayar,
+            'jumlah_bayar' => $pembayaran->jumlah_bayar,
+            'metode_pembayaran' => $pembayaran->metode_pembayaran,
+            'bukti_bayar' => $buktiBayar,
+            'bukti_bayar_url' => $buktiBayar ? url(Storage::url($buktiBayar)) : null,
+            'status_verifikasi' => $pembayaran->status_verifikasi,
+            'catatan_admin' => $pembayaran->catatan_admin,
+            'tagihan' => $pembayaran->tagihan ? $this->formatTagihan($pembayaran->tagihan) : null,
+        ];
+    }
+
     private function formatTagihan(Tagihan $tagihan): array
     {
         $tagihan->loadMissing(['riwayatSewa.user', 'riwayatSewa.kamar', 'pembayaran']);
 
         $warning = $this->calculateWarning($tagihan);
         $whatsapp = $this->whatsAppMessageService->generate($tagihan);
+
+        $latestPayment = $tagihan->pembayaran
+            ->sortByDesc('created_at')
+            ->first();
 
         return [
             'id_tagihan' => $tagihan->id_tagihan,
@@ -254,6 +407,19 @@ class TagihanReminderService
             'tanggal_jatuh_tempo' => $tagihan->tanggal_jatuh_tempo,
             'total_tagihan' => $tagihan->total_tagihan,
             'status_tagihan' => $tagihan->status_tagihan,
+
+            'pembayaran_terbaru' => $latestPayment ? [
+                'id_pembayaran' => $latestPayment->id_pembayaran,
+                'tanggal_bayar' => $latestPayment->tanggal_bayar,
+                'jumlah_bayar' => $latestPayment->jumlah_bayar,
+                'metode_pembayaran' => $latestPayment->metode_pembayaran,
+                'bukti_bayar' => $latestPayment->bukti_bayar,
+                'bukti_bayar_url' => $latestPayment->bukti_bayar
+                    ? url(Storage::url($latestPayment->bukti_bayar))
+                    : null,
+                'status_verifikasi' => $latestPayment->status_verifikasi,
+                'catatan_admin' => $latestPayment->catatan_admin,
+            ] : null,
 
             'penyewa' => [
                 'id' => $tagihan->riwayatSewa?->user?->id,

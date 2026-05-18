@@ -27,10 +27,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('/tagihan', [TagihanReminderController::class, 'adminTagihan']);
         Route::post('/tagihan/check-jatuh-tempo', [TagihanReminderController::class, 'checkDueDate']);
+
+        Route::get('/pembayaran/pending', [TagihanReminderController::class, 'pendingPayments']);
+        Route::patch('/pembayaran/{idPembayaran}/verify', [TagihanReminderController::class, 'verifyPayment']);
+        Route::patch('/pembayaran/{idPembayaran}/reject', [TagihanReminderController::class, 'rejectPayment']);
     });
 
     Route::prefix('penyewa')->group(function () {
         Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);
+        Route::post('/tagihan/{idTagihan}/bayar', [TagihanReminderController::class, 'uploadPaymentProof']);
     });
 });
 

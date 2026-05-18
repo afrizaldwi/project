@@ -104,6 +104,7 @@ export interface TagihanReminderItem {
   tanggal_jatuh_tempo: string;
   total_tagihan: string | number;
   status_tagihan: string;
+  pembayaran_terbaru?: PembayaranTerbaru | null;
   penyewa: {
     id: number | null;
     nama_lengkap: string | null;
@@ -146,4 +147,28 @@ export interface NotifikasiItem {
   tagihan: TagihanReminderItem | null;
   last_reminded_at?: string | null;
   reminder_count?: number;
+}
+
+export interface PembayaranTerbaru {
+  id_pembayaran: number;
+  tanggal_bayar: string;
+  jumlah_bayar: string | number;
+  metode_pembayaran: string;
+  bukti_bayar: string | null;
+  bukti_bayar_url: string | null;
+  status_verifikasi: "pending" | "diterima" | "ditolak";
+  catatan_admin: string | null;
+}
+
+export interface PendingPembayaranItem {
+  id_pembayaran: number;
+  id_tagihan: number;
+  tanggal_bayar: string;
+  jumlah_bayar: string | number;
+  metode_pembayaran: string;
+  bukti_bayar: string | null;
+  bukti_bayar_url: string | null;
+  status_verifikasi: "pending" | "diterima" | "ditolak";
+  catatan_admin: string | null;
+  tagihan: TagihanReminderItem | null;
 }
