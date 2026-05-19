@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             AdminPenghuniLaporanSeeder::class,
             NotificationDemoSeeder::class,
             InvoiceDemoSeeder::class,
+            KamarSeeder::class,
+            SewaExtensionDemoSeeder::class,
         ]);
     }
 }

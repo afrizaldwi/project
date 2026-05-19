@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import adminApi from "../../api/admin";
 import type { PenghuniItem } from "../../types";
@@ -12,6 +12,8 @@ const AdminPenghuni = () => {
   const [penghuni, setPenghuni] = useState<PenghuniItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const navigate = useNavigate()
 
   const fetchPenghuni = async () => {
     try {
@@ -185,9 +187,10 @@ const AdminPenghuni = () => {
                     <div className="mt-1 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        disabled
-                        title="Fitur perpanjangan sewa akan diintegrasikan dari fitur Falissa"
-                        className="cursor-not-allowed text-xs font-black text-dark/30"
+                        onClick={() =>
+                          navigate(`/admin/penghuni/perpanjang/${item.id_sewa}`)
+                        }
+                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
                       >
                         Perpanjang
                       </button>
@@ -283,9 +286,8 @@ const AdminPenghuni = () => {
                         <div className="flex flex-wrap items-center gap-3">
                           <button
                             type="button"
-                            disabled
-                            title="Fitur perpanjangan sewa akan diintegrasikan dari fitur Falissa"
-                            className="cursor-not-allowed text-xs font-black text-dark/30"
+                            onClick={() => navigate(`/admin/penghuni/perpanjang/${item.id_sewa}`)}
+                            className="text-xs font-black text-primary underline underline-offset-4 transition-colors hover:text-accent"
                           >
                             Perpanjang
                           </button>
