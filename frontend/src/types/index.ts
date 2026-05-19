@@ -330,3 +330,59 @@ export interface SewaExtensionResponse {
     tagihan: unknown;
   };
 }
+
+// ======================================================
+// Buku Tamu Types - Yudis
+// ======================================================
+
+export interface Tamu {
+  id_tamu: number;
+  nama_tamu: string;
+  no_hp_tamu: string;
+  keperluan: string;
+  waktu_berkunjung: string;
+  id_user: number;
+  nama_penghuni: string;
+  nomor_kamar: string;
+}
+
+export interface PenghuniAktifOption {
+  id_user: number;
+  nama_penghuni: string;
+  email: string;
+  nomor_kamar: string;
+}
+
+export interface TamuPayload {
+  nama_tamu: string;
+  no_hp_tamu: string;
+  keperluan: string;
+  id_user?: number | string;
+}
+
+// ======================================================
+// Keluhan / Laporan Kerusakan Types - Yudis
+// ======================================================
+
+export type KeluhanStatus = "pending" | "proses" | "selesai";
+
+export interface Keluhan {
+  id_keluhan: number;
+  id_sewa: number;
+  judul_keluhan: string;
+  deskripsi_keluhan: string;
+  foto_kerusakan: string | null;
+  foto_kerusakan_url: string | null;
+  status_keluhan: KeluhanStatus;
+  tanggal_lapor: string;
+  tanggal_selesai: string | null;
+  nama_penghuni: string;
+  email_penghuni: string;
+  nomor_kamar: string;
+}
+
+export interface KeluhanPayload {
+  judul_keluhan: string;
+  deskripsi_keluhan: string;
+  foto_kerusakan?: File | null;
+}
