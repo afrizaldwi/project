@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tagihan extends Model
 {
@@ -19,9 +20,13 @@ class Tagihan extends Model
         'status_tagihan',      //
     ];
 
-    // Relasi kembali ke Riwayat Sewa
     public function riwayatSewa(): BelongsTo
     {
         return $this->belongsTo(RiwayatSewa::class, 'id_sewa', 'id_sewa');
+    }
+
+    public function pembayaran(): HasMany
+    {
+        return $this->hasMany(Pembayaran::class, 'id_tagihan', 'id_tagihan');
     }
 }
