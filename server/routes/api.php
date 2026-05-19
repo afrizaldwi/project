@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminPenghuniController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LaporanKeuanganController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Http\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
@@ -47,6 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pembayaran/pending', [TagihanReminderController::class, 'pendingPayments']);
         Route::patch('/pembayaran/{idPembayaran}/verify', [TagihanReminderController::class, 'verifyPayment']);
         Route::patch('/pembayaran/{idPembayaran}/reject', [TagihanReminderController::class, 'rejectPayment']);
+
+        Route::get('/invoices', [InvoiceController::class, 'adminIndex']);
+        Route::get('/invoices/{idPembayaran}/pdf', [InvoiceController::class, 'adminDownload']);
     });
 
     Route::prefix('penyewa')->group(function () {
@@ -54,5 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);
         Route::post('/tagihan/{idTagihan}/bayar', [TagihanReminderController::class, 'uploadPaymentProof']);
+
+        Route::get('/invoices', [InvoiceController::class, 'penyewaIndex']);
+        Route::get('/invoices/{idPembayaran}/pdf', [InvoiceController::class, 'penyewaDownload']);
     });
 });

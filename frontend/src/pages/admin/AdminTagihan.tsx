@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Download,
   Eye,
   Layers,
   MessageCircle,
@@ -13,6 +14,7 @@ import {
 
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
+import { downloadPdfBlob, invoiceApi } from "../../api/invoice";
 import type {
   NotifikasiItem,
   PendingPembayaranItem,
@@ -90,6 +92,7 @@ const AdminTagihan = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const stats = useMemo(() => {
@@ -159,6 +162,22 @@ const AdminTagihan = () => {
       alert(error?.response?.data?.message || "Gagal memproses pembayaran.");
     } finally {
       setVerifyingId(null);
+    }
+  };
+
+  const handleDownloadInvoicePdf = async (
+    idPembayaran: number,
+    idTagihan: number
+  ) => {
+    try {
+      setDownloadingInvoiceId(idPembayaran);
+
+      const blob = await invoiceApi.downloadAdminInvoicePdf(idPembayaran);
+      downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
+    } catch {
+      alert("Gagal download invoice PDF.");
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   };
 
@@ -330,6 +349,10 @@ const AdminTagihan = () => {
                 ) : (
                   tagihan.map((item) => {
                     const status = getStatusConfig(item);
+                    const acceptedPayment =
+                      item.pembayaran_terbaru?.status_verifikasi === "diterima"
+                        ? item.pembayaran_terbaru
+                        : null;
 
                     return (
                       <tr key={item.id_tagihan} className="transition-colors hover:bg-light/70">
@@ -359,7 +382,7 @@ const AdminTagihan = () => {
                           </span>
                         </td>
 
-                        <td className="px-5 py-4">
+                        <td className="flex flex-wrap gap-2">
                           {item.whatsapp.enabled && item.whatsapp.url ? (
                             <a
                               href={item.whatsapp.url}
@@ -374,6 +397,23 @@ const AdminTagihan = () => {
                             <span className="text-xs font-bold text-dark/30">
                               WA tidak tersedia
                             </span>
+                          )}
+
+                          {acceptedPayment && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDownloadInvoicePdf(
+                                  acceptedPayment.id_pembayaran,
+                                  item.id_tagihan
+                                )
+                              }
+                              disabled={downloadingInvoiceId === acceptedPayment.id_pembayaran}
+                              className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <Download size={14} />
+                              {downloadingInvoiceId === acceptedPayment.id_pembayaran ? "..." : "PDF"}
+                            </button>
                           )}
                         </td>
                       </tr>
