@@ -2,10 +2,8 @@
 
 namespace App\Services\Admin;
 
-use App\Models\Kamar;
 use App\Models\RiwayatSewa;
-use App\Models\Tagihan;
-use App\Models\User;
+use App\Repositories\Admin\PenghuniRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -13,20 +11,13 @@ use Illuminate\Validation\ValidationException;
 
 class AdminPenghuniService
 {
+    public function __construct(
+        private PenghuniRepository $penghuniRepo
+    ) {}
+
     public function getPenghuni(?string $status = 'aktif'): Collection
     {
-        $query = RiwayatSewa::with(['user', 'kamar'])
-            ->whereHas('user', function ($query) {
-                $query->where('role', 'penyewa');
-            });
-
-        if ($status && $status !== 'all') {
-            $query->where('status_sewa', $status);
-        }
-
-        return $query
-            ->orderByDesc('tanggal_masuk')
-            ->get()
+        return $this->penghuniRepo->getPenghuniByStatus($status)
             ->map(function (RiwayatSewa $sewa) {
                 return [
                     'id_sewa' => $sewa->id_sewa,
@@ -60,18 +51,13 @@ class AdminPenghuniService
 
     public function getKamarTersedia(): Collection
     {
-        return Kamar::where('status_kamar', 'tersedia')
-            ->orderBy('nomor_kamar')
-            ->get();
+        return $this->penghuniRepo->getKamarTersedia();
     }
 
     public function createPenghuni(array $data): array
     {
         return DB::transaction(function () use ($data) {
-            $kamar = Kamar::where('id_kamar', $data['id_kamar'])
-                ->where('status_kamar', 'tersedia')
-                ->lockForUpdate()
-                ->first();
+            $kamar = $this->penghuniRepo->findKamarTersediaForUpdate($data['id_kamar']);
 
             if (! $kamar) {
                 throw ValidationException::withMessages([
@@ -83,32 +69,23 @@ class AdminPenghuniService
             $durasiSewa = (int) $data['durasi_sewa_bulan'];
             $tanggalKeluar = $tanggalMasuk->copy()->addMonths($durasiSewa);
 
-            $user = User::create([
-                'nama_lengkap' => $data['nama_lengkap'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'role' => 'penyewa',
-                'no_hp' => $data['no_hp'],
-                'alamat_asal' => $data['alamat_asal'] ?? null,
-            ]);
+            $user = $this->penghuniRepo->createUser($data);
 
-            $sewa = RiwayatSewa::create([
+            $sewa = $this->penghuniRepo->createSewa([
                 'id_user' => $user->id,
                 'id_kamar' => $kamar->id_kamar,
                 'tanggal_masuk' => $tanggalMasuk->toDateString(),
                 'tanggal_keluar' => $tanggalKeluar->toDateString(),
                 'harga_deal' => $kamar->harga_bulanan,
                 'durasi_sewa_bulan' => $durasiSewa,
-                'status_sewa' => 'aktif',
             ]);
 
-            Tagihan::create([
+            $this->penghuniRepo->createTagihan([
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($user->id),
                 'tanggal_tagihan' => $tanggalMasuk->toDateString(),
                 'tanggal_jatuh_tempo' => $tanggalMasuk->copy()->addDays(7)->toDateString(),
                 'total_tagihan' => $kamar->harga_bulanan,
-                'status_tagihan' => 'belum_bayar',
             ]);
 
             $kamar->status_kamar = 'terisi';
@@ -125,11 +102,7 @@ class AdminPenghuniService
     public function finishSewa(int $idSewa, ?string $tanggalKeluar = null): array
     {
         return DB::transaction(function () use ($idSewa, $tanggalKeluar) {
-            $sewa = RiwayatSewa::with(['kamar', 'user'])
-                ->where('id_sewa', $idSewa)
-                ->where('status_sewa', 'aktif')
-                ->lockForUpdate()
-                ->first();
+            $sewa = $this->penghuniRepo->findActiveSewaForUpdate($idSewa);
 
             if (! $sewa) {
                 throw ValidationException::withMessages([

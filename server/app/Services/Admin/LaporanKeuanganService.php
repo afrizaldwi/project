@@ -3,30 +3,23 @@
 namespace App\Services\Admin;
 
 use App\Models\Pembayaran;
-use App\Models\Pengeluaran;
-use App\Models\Tagihan;
+use App\Repositories\Admin\KeuanganRepository;
 use Illuminate\Support\Collection;
 
 class LaporanKeuanganService
 {
+    public function __construct(
+        private KeuanganRepository $keuanganRepo
+    ) {}
+
     public function getSummary(?int $bulan = null, ?int $tahun = null): array
     {
         $bulan ??= (int) now()->format('m');
         $tahun ??= (int) now()->format('Y');
 
-        $totalPemasukan = (float) Pembayaran::where('status_verifikasi', 'diterima')
-            ->whereMonth('tanggal_bayar', $bulan)
-            ->whereYear('tanggal_bayar', $tahun)
-            ->sum('jumlah_bayar');
-
-        $totalPengeluaran = (float) Pengeluaran::whereMonth('tanggal_pengeluaran', $bulan)
-            ->whereYear('tanggal_pengeluaran', $tahun)
-            ->sum('jumlah_pengeluaran');
-
-        $tagihanBelumBayar = (float) Tagihan::whereIn('status_tagihan', ['belum_bayar', 'telat'])
-            ->whereMonth('tanggal_tagihan', $bulan)
-            ->whereYear('tanggal_tagihan', $tahun)
-            ->sum('total_tagihan');
+        $totalPemasukan = $this->keuanganRepo->getTotalPemasukan($bulan, $tahun);
+        $totalPengeluaran = $this->keuanganRepo->getTotalPengeluaran($bulan, $tahun);
+        $tagihanBelumBayar = $this->keuanganRepo->getTagihanBelumBayar($bulan, $tahun);
 
         return [
             'periode' => [
@@ -49,28 +42,12 @@ class LaporanKeuanganService
         $bulan ??= (int) now()->format('m');
         $tahun ??= (int) now()->format('Y');
 
-        $query = Pengeluaran::with('pencatat')
-            ->whereMonth('tanggal_pengeluaran', $bulan)
-            ->whereYear('tanggal_pengeluaran', $tahun)
-            ->orderByDesc('tanggal_pengeluaran');
-
-        if ($limit !== null) {
-            $query->limit($limit);
-        }
-
-        return $query->get();
+        return $this->keuanganRepo->getPengeluaranList($bulan, $tahun, $limit);
     }
 
     public function createPengeluaran(array $data): array
     {
-        $pengeluaran = Pengeluaran::create([
-            'judul_pengeluaran' => $data['judul_pengeluaran'],
-            'deskripsi' => $data['deskripsi'] ?? null,
-            'jumlah_pengeluaran' => $data['jumlah_pengeluaran'],
-            'tanggal_pengeluaran' => $data['tanggal_pengeluaran'],
-            'bukti_foto' => $data['bukti_foto'] ?? null,
-            'dibuat_oleh' => $data['dibuat_oleh'],
-        ]);
+        $pengeluaran = $this->keuanganRepo->createPengeluaran($data);
 
         return [
             'id_pengeluaran' => $pengeluaran->id_pengeluaran,
@@ -80,11 +57,11 @@ class LaporanKeuanganService
 
     public function deletePengeluaran(int $idPengeluaran): array
     {
-        $pengeluaran = Pengeluaran::find($idPengeluaran);
+        $pengeluaran = $this->keuanganRepo->findPengeluaran($idPengeluaran);
 
         abort_unless($pengeluaran, 404, 'Pengeluaran tidak ditemukan.');
 
-        $pengeluaran->delete();
+        $this->keuanganRepo->deletePengeluaran($pengeluaran);
 
         return [
             'message' => 'Pengeluaran berhasil dihapus.',
@@ -93,12 +70,7 @@ class LaporanKeuanganService
 
     private function getPembayaranTerbaru(int $bulan, int $tahun): Collection
     {
-        return Pembayaran::with(['tagihan.riwayatSewa.user'])
-            ->whereMonth('tanggal_bayar', $bulan)
-            ->whereYear('tanggal_bayar', $tahun)
-            ->orderByDesc('tanggal_bayar')
-            ->limit(10)
-            ->get()
+        return $this->keuanganRepo->getPembayaranTerbaru($bulan, $tahun, 10)
             ->map(function (Pembayaran $pembayaran) {
                 return [
                     'id_pembayaran' => $pembayaran->id_pembayaran,
