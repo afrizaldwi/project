@@ -28,21 +28,17 @@ class KeluhanReportService implements ReportServiceInterface
     public function exportJson(array $filters = []): string
     {
         $report = $this->generateReport($filters);
-        // Pastikan format JSON rapi (Pretty Print)
         return json_encode($report, JSON_PRETTY_PRINT);
     }
 
     public function exportCsv(array $filters = []): string
     {
         $data = $this->generateReport($filters)['data'];
-        
-        // Membuat temporary stream di memory untuk CSV
         $output = fopen('php://temp', 'w');
         
-        // Header CSV
         fputcsv($output, ['ID Keluhan', 'ID Sewa', 'Judul Keluhan', 'Status', 'Tanggal Lapor', 'Kamar']);
         
-        // Isi Data CSV
+
         foreach ($data as $item) {
             fputcsv($output, [
                 $item->id_keluhan,
@@ -50,7 +46,7 @@ class KeluhanReportService implements ReportServiceInterface
                 $item->judul_keluhan,
                 $item->status_keluhan,
                 $item->tanggal_lapor,
-                $item->riwayatSewa ? $item->riwayatSewa->id_kamar : '-' // Relasi dari riwayat sewa (jika ada)
+                $item->riwayatSewa ? $item->riwayatSewa->id_kamar : '-'
             ]);
         }
         

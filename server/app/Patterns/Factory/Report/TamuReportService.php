@@ -8,10 +8,8 @@ class TamuReportService implements ReportServiceInterface
 {
     public function generateReport(array $filters = []): array
     {
-        // Query model BukuTamu
         $query = BukuTamu::with('dikunjungi');
 
-        // Contoh filter tanggal kunjungan
         if (isset($filters['tanggal'])) {
             $query->whereDate('waktu_berkunjung', $filters['tanggal']);
         }
@@ -37,16 +35,14 @@ class TamuReportService implements ReportServiceInterface
         
         $output = fopen('php://temp', 'w');
         
-        // Header CSV
         fputcsv($output, ['ID Tamu', 'Nama Tamu', 'No HP', 'Bertemu Dengan', 'Keperluan', 'Waktu Berkunjung']);
         
-        // Isi Data CSV
         foreach ($data as $item) {
             fputcsv($output, [
                 $item->id_tamu,
                 $item->nama_tamu,
                 $item->no_hp_tamu,
-                $item->dikunjungi ? $item->dikunjungi->name : $item->bertemu_dengan, // Relasi user
+                $item->dikunjungi ? $item->dikunjungi->name : $item->bertemu_dengan,
                 $item->keperluan,
                 $item->waktu_berkunjung
             ]);

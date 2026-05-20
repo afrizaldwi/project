@@ -6,9 +6,6 @@ use InvalidArgumentException;
 
 class ReportServiceFactory
 {
-    /**
-     * Factory Method untuk membuat tipe Laporan yang diminta Admin
-     */
     public static function create(string $type): ReportServiceInterface
     {
         switch (strtolower($type)) {
