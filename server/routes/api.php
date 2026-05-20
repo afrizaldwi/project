@@ -3,12 +3,14 @@
 use App\Http\Controllers\Admin\AdminPenghuniController;
 use App\Http\Controllers\Admin\LaporanKeuanganController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KamarController;
 use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Http\Controllers\TagihanReminderController;
+use App\Http\Controllers\SewaExtensionController;
 
 Route::get('/csrf-token', function () {
     return response()->json([
@@ -31,6 +33,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
+
+        Route::apiResource('kamar', KamarController::class);
+
+        Route::get('/sewa', [SewaExtensionController::class, 'index']);
+        Route::get('/sewa/{id}', [SewaExtensionController::class, 'show']);
+        Route::patch('/sewa/{id}/perpanjang', [SewaExtensionController::class, 'perpanjang']);
 
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);
         Route::post('/penghuni', [AdminPenghuniController::class, 'store']);

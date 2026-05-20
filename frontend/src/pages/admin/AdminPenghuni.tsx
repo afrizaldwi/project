@@ -5,6 +5,7 @@ import PenghuniHeader from "../../components/admin/PenghuniHeader";
 import PenghuniFilter from "../../components/admin/PenghuniFilter";
 import PenghuniCardMobile from "../../components/admin/PenghuniCardMobile";
 import PenghuniTableDesktop from "../../components/admin/PenghuniTableDesktop";
+import { useNavigate } from "react-router-dom";
 
 type StatusFilter = "aktif" | "selesai";
 
@@ -14,6 +15,7 @@ const AdminPenghuni = () => {
   const [penghuni, setPenghuni] = useState<PenghuniItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const fetchPenghuni = async () => {
     try {
@@ -59,6 +61,10 @@ const AdminPenghuni = () => {
     }
   };
 
+  const handlePerpanjang = (idSewa: number) => {
+    navigate(`/admin/penghuni/perpanjang/${idSewa}`);
+  };
+
   return (
     <div className="space-y-6 bg-light p-4 md:p-6">
       <PenghuniHeader />
@@ -80,12 +86,16 @@ const AdminPenghuni = () => {
         isLoading={isLoading}
         filteredPenghuni={filteredPenghuni}
         handleSelesaikan={handleSelesaikan}
+        handlePerpanjang={handlePerpanjang}
+
       />
 
       <PenghuniTableDesktop
         isLoading={isLoading}
         filteredPenghuni={filteredPenghuni}
         handleSelesaikan={handleSelesaikan}
+        handlePerpanjang={handlePerpanjang}
+
       />
     </div>
   );

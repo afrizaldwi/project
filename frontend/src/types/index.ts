@@ -309,3 +309,80 @@ export interface InvoiceItem {
   kamar: InvoiceKamar;
   sewa: InvoiceSewa;
 }
+
+export type KamarStatus = "tersedia" | "terisi" | "perbaikan";
+
+export interface Kamar {
+  id_kamar: number;
+  nomor_kamar: string;
+  luas_kamar: string;
+  fasilitas: string;
+  harga_bulanan: number;
+  foto_kamar: string | null;
+  status_kamar: KamarStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KamarStats {
+  total: number;
+  tersedia: number;
+  terisi: number;
+  perbaikan: number;
+}
+
+export interface KamarListResponse {
+  data: Kamar[];
+  total: number;
+  tersedia: number;
+  terisi: number;
+  perbaikan: number;
+}
+
+export interface KamarFormData {
+  nomor_kamar: string;
+  luas_kamar: string;
+  fasilitas: string;
+  harga_bulanan: string;
+  status_kamar: KamarStatus;
+  foto_kamar: File | null;
+}
+
+export const defaultKamarForm = (): KamarFormData => ({
+  nomor_kamar: "",
+  luas_kamar: "",
+  fasilitas: "",
+  harga_bulanan: "",
+  status_kamar: "tersedia",
+  foto_kamar: null,
+});
+
+export interface SewaExtensionDetail {
+  id_sewa: number;
+  id_user: number;
+  id_kamar: number;
+  nama: string;
+  email: string;
+  no_hp: string;
+  nomor_kamar: string;
+  harga_bulanan: number;
+  harga_deal: number;
+  tanggal_masuk: string;
+  tanggal_keluar: string;
+  durasi_sewa_bulan: number;
+  status_sewa: "aktif" | "selesai" | "batal";
+}
+
+export interface SewaExtensionPayload {
+  tanggal_mulai: string;
+  durasi_sewa_bulan: number;
+  harga_deal: number;
+}
+
+export interface SewaExtensionResponse {
+  message: string;
+  data: {
+    sewa: unknown;
+    tagihan: unknown;
+  };
+}

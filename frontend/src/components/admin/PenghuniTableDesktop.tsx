@@ -4,12 +4,14 @@ interface PenghuniTableDesktopProps {
   isLoading: boolean;
   filteredPenghuni: PenghuniItem[];
   handleSelesaikan: (idSewa: number) => void;
+  handlePerpanjang: (idSewa: number) => void;
 }
 
 const PenghuniTableDesktop = ({
   isLoading,
   filteredPenghuni,
   handleSelesaikan,
+  handlePerpanjang
 }: PenghuniTableDesktopProps) => {
   return (
     <div className="hidden overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:block">
@@ -70,11 +72,10 @@ const PenghuniTableDesktop = ({
 
                   <td className="px-5 py-4">
                     <span
-                      className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${
-                        item.status_sewa === "aktif"
-                          ? "bg-success/10 text-success"
-                          : "bg-danger/10 text-danger"
-                      }`}
+                      className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.status_sewa === "aktif"
+                        ? "bg-success/10 text-success"
+                        : "bg-danger/10 text-danger"
+                        }`}
                     >
                       {item.status_sewa === "aktif" ? "Aktif" : "Non Aktif"}
                     </span>
@@ -83,14 +84,15 @@ const PenghuniTableDesktop = ({
                   <td className="px-5 py-4">
                     {item.status_sewa === "aktif" ? (
                       <div className="flex flex-wrap items-center gap-3">
-                        <button
-                          type="button"
-                          disabled
-                          title="Fitur perpanjangan sewa akan diintegrasikan dari fitur Falissa"
-                          className="cursor-not-allowed text-xs font-black text-dark/30"
-                        >
-                          Perpanjang
-                        </button>
+                        {item.status_sewa === "aktif" && (
+                          <button
+                            type="button"
+                            onClick={() => handlePerpanjang(item.id_sewa)}
+                            className="text-xs font-black text-primary underline underline-offset-4 transition-colors hover:text-accent"
+                          >
+                            Perpanjang
+                          </button>
+                        )}
 
                         <button
                           type="button"

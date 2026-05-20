@@ -4,12 +4,14 @@ interface PenghuniCardMobileProps {
   isLoading: boolean;
   filteredPenghuni: PenghuniItem[];
   handleSelesaikan: (idSewa: number) => void;
+  handlePerpanjang: (idSewa: number) => void;
 }
 
 const PenghuniCardMobile = ({
   isLoading,
   filteredPenghuni,
   handleSelesaikan,
+  handlePerpanjang
 }: PenghuniCardMobileProps) => {
   return (
     <div className="space-y-3 md:hidden">
@@ -38,11 +40,10 @@ const PenghuniCardMobile = ({
               </div>
 
               <span
-                className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black uppercase ${
-                  item.status_sewa === "aktif"
-                    ? "bg-success/10 text-success"
-                    : "bg-danger/10 text-danger"
-                }`}
+                className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black uppercase ${item.status_sewa === "aktif"
+                  ? "bg-success/10 text-success"
+                  : "bg-danger/10 text-danger"
+                  }`}
               >
                 {item.status_sewa === "aktif" ? "Aktif" : "Non Aktif"}
               </span>
@@ -77,9 +78,8 @@ const PenghuniCardMobile = ({
                   <div className="mt-1 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      disabled
-                      title="Fitur perpanjangan sewa akan diintegrasikan dari fitur Falissa"
-                      className="cursor-not-allowed text-xs font-black text-dark/30"
+                      onClick={() => handlePerpanjang(item.id_sewa)}
+                      className="text-xs font-black text-primary underline underline-offset-4 transition-colors hover:text-accent"
                     >
                       Perpanjang
                     </button>
