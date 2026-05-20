@@ -3,12 +3,15 @@
 namespace App\Services\Admin;
 
 use App\Models\Kamar;
+use App\Models\Pembayaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AdminPenghuniService
@@ -69,9 +72,9 @@ class AdminPenghuniService
             ->get();
     }
 
-    public function createPenghuni(array $data): array
+    public function createPenghuni(array $data, ?UploadedFile $buktiBayar = null): array
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $buktiBayar) {
             $kamar = Kamar::where('id_kamar', $data['id_kamar'])
                 ->where('status_kamar', 'tersedia')
                 ->lockForUpdate()
@@ -88,21 +91,27 @@ class AdminPenghuniService
                 ->exists();
 
             if ($hasActiveSewa) {
-                throw new \Exception('Kamar sudah memiliki penghuni aktif.');
+                throw ValidationException::withMessages([
+                    'id_kamar' => 'Kamar sudah memiliki penghuni aktif.',
+                ]);
             }
 
             if ($kamar->status_kamar !== 'tersedia') {
-                throw new \Exception('Kamar tidak tersedia.');
+                throw ValidationException::withMessages([
+                    'id_kamar' => 'Kamar tidak tersedia.',
+                ]);
             }
 
-            $tanggalMasuk = Carbon::parse($data['tanggal_masuk']);
+            $tanggalMasuk = Carbon::parse($data['tanggal_masuk'])->startOfDay();
             $durasiSewa = (int) $data['durasi_sewa_bulan'];
-            $tanggalKeluar = $tanggalMasuk->copy()->addMonths($durasiSewa);
+            $tanggalKeluar = $tanggalMasuk->copy()->addMonthsNoOverflow($durasiSewa);
+
+            $totalTagihanAwal = (float) $data['harga_deal'];
 
             $user = User::create([
                 'nama_lengkap' => $data['nama_lengkap'],
                 'email' => $data['email'],
-                'password' => $data['password'],
+                'password' => Hash::make($data['password']),
                 'role' => 'penyewa',
                 'no_hp' => $data['no_hp'],
                 'alamat_asal' => $data['alamat_asal'] ?? null,
@@ -113,18 +122,36 @@ class AdminPenghuniService
                 'id_kamar' => $kamar->id_kamar,
                 'tanggal_masuk' => $tanggalMasuk->toDateString(),
                 'tanggal_keluar' => $tanggalKeluar->toDateString(),
-                'harga_deal' => $kamar->harga_bulanan,
+                'harga_deal' => $totalTagihanAwal,
                 'durasi_sewa_bulan' => $durasiSewa,
                 'status_sewa' => 'aktif',
             ]);
 
-            Tagihan::create([
+            $tagihan = Tagihan::create([
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($user->id),
                 'tanggal_tagihan' => $tanggalMasuk->toDateString(),
-                'tanggal_jatuh_tempo' => $tanggalMasuk->copy()->addDays(7)->toDateString(),
-                'total_tagihan' => $kamar->harga_bulanan,
-                'status_tagihan' => 'belum_bayar',
+                'tanggal_jatuh_tempo' => $tanggalMasuk->toDateString(),
+                'total_tagihan' => $totalTagihanAwal,
+                'status_tagihan' => 'lunas',
+            ]);
+
+            $buktiBayarPath = null;
+
+            if ($buktiBayar) {
+                $buktiBayarPath = $buktiBayar->store('bukti-bayar', 'public');
+            }
+
+            Pembayaran::create([
+                'id_tagihan' => $tagihan->id_tagihan,
+                'tanggal_bayar' => now()->toDateString(),
+                'jumlah_bayar' => $totalTagihanAwal,
+                'metode_pembayaran' => $data['metode_pembayaran'],
+                'bukti_bayar' => $buktiBayarPath,
+                'status_verifikasi' => 'diterima',
+                'catatan_admin' => $buktiBayarPath
+                    ? 'Pembayaran awal diverifikasi saat penghuni dibuat oleh admin.'
+                    : 'Pembayaran awal diterima langsung oleh admin tanpa bukti transfer.',
             ]);
 
             $kamar->status_kamar = 'terisi';
@@ -133,7 +160,8 @@ class AdminPenghuniService
             return [
                 'id_user' => $user->id,
                 'id_sewa' => $sewa->id_sewa,
-                'message' => 'Penghuni berhasil ditambahkan.',
+                'id_tagihan' => $tagihan->id_tagihan,
+                'message' => 'Penghuni berhasil ditambahkan dan tagihan awal otomatis lunas.',
             ];
         });
     }

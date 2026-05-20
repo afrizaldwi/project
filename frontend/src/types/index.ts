@@ -78,6 +78,8 @@ export interface CreatePenghuniPayload {
   id_kamar: number;
   tanggal_masuk: string;
   durasi_sewa_bulan: number;
+  metode_pembayaran: string;
+  bukti_bayar?: File | null;
 }
 
 export interface PengeluaranItem {

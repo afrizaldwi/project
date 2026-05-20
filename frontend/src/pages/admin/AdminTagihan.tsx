@@ -390,9 +390,7 @@ const AdminTagihan = () => {
                               Kirim WA
                             </a>
                           ) : (
-                            <span className="text-xs font-bold text-dark/30">
-                              WA tidak tersedia
-                            </span>
+                            <div></div>
                           )}
                           {item.pembayaran_terbaru?.status_verifikasi === "diterima" &&
                             item.pembayaran_terbaru?.id_pembayaran ? (

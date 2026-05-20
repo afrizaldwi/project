@@ -1,7 +1,6 @@
 import api from "./axios";
 import type {
     CreatePengeluaranPayload,
-    CreatePenghuniPayload,
     KamarTersedia,
     LaporanKeuanganResponse,
     PengeluaranItem,
@@ -27,8 +26,13 @@ const adminApi = {
         return response.data.data;
     },
 
-    async createPenghuni(payload: CreatePenghuniPayload) {
-        const response = await api.post("/admin/penghuni", payload);
+    createPenghuni: async (payload: FormData) => {
+        const response = await api.post("/admin/penghuni", payload, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
         return response.data;
     },
 

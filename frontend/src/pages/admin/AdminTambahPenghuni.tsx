@@ -30,7 +30,7 @@ const generateCredentialFromName = (name: string, suffix: string) => {
     }
 
     return {
-        email: `${slug}@kost.com`,
+        email: `${slug}.${suffix}@kost.com`,
         password: `Kost@${suffix}`,
     };
 };
@@ -68,6 +68,8 @@ const AdminTambahPenghuni = () => {
         id_kamar: "",
         tanggal_masuk: new Date().toISOString().slice(0, 10),
         durasi_sewa_bulan: "1",
+        metode_pembayaran: "",
+        bukti_bayar: null as File | null,
     });
 
     const credentialSuffixRef = useRef(
@@ -200,17 +202,24 @@ const AdminTambahPenghuni = () => {
         try {
             setIsSubmitting(true);
 
-            await adminApi.createPenghuni({
-                nama_lengkap: form.nama_lengkap,
-                email: form.email,
-                password: form.password,
-                no_hp: form.no_hp,
-                alamat_asal: form.alamat_asal || undefined,
-                id_kamar: Number(form.id_kamar),
-                tanggal_masuk: form.tanggal_masuk,
-                durasi_sewa_bulan: Number(form.durasi_sewa_bulan),
-            });
+            const payload = new FormData();
 
+            payload.append("nama_lengkap", form.nama_lengkap);
+            payload.append("email", form.email);
+            payload.append("password", form.password);
+            payload.append("no_hp", form.no_hp);
+            payload.append("alamat_asal", form.alamat_asal || "");
+            payload.append("id_kamar", String(form.id_kamar));
+            payload.append("tanggal_masuk", form.tanggal_masuk);
+            payload.append("durasi_sewa_bulan", String(form.durasi_sewa_bulan));
+            payload.append("harga_deal", String(totalTagihan));
+            payload.append("metode_pembayaran", form.metode_pembayaran);
+
+            if (form.bukti_bayar) {
+                payload.append("bukti_bayar", form.bukti_bayar);
+            }
+
+            await adminApi.createPenghuni(payload);
             navigate("/admin/penghuni");
         } catch (error: any) {
             const validationErrors = error?.response?.data?.errors;
@@ -266,7 +275,7 @@ const AdminTambahPenghuni = () => {
                                 </label>
                                 <input
                                     name="no_hp"
-                                    type="number"
+                                    type="tel"
                                     value={form.no_hp}
                                     onChange={handleChange}
                                     required
@@ -288,7 +297,7 @@ const AdminTambahPenghuni = () => {
                                     className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                                 />
                                 <p className="mt-1 text-xs font-medium text-dark/40">
-                                    Email dibuat otomatis dari nama, tapi masih bisa diedit.
+                                    Email dibuat otomatis dari nama penghuni.
                                 </p>
                             </div>
 
@@ -321,6 +330,46 @@ const AdminTambahPenghuni = () => {
                                 rows={3}
                                 className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-bold text-dark">
+                                Metode Pembayaran Awal
+                            </label>
+                            <select
+                                value={form.metode_pembayaran}
+                                onChange={(event) =>
+                                    setForm((previous) => ({
+                                        ...previous,
+                                        metode_pembayaran: event.target.value,
+                                    }))
+                                }
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                                required
+                            >
+                                <option value="">Pilih metode pembayaran</option>
+                                <option value="Tunai">Tunai</option>
+                                <option value="Transfer Bank">Transfer Bank</option>
+                                <option value="E-Wallet">E-Wallet</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-bold text-dark">
+                                Bukti Pembayaran Awal <span className="text-dark/40">(Opsional)</span>
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,application/pdf"
+                                onChange={(event) =>
+                                    setForm((previous) => ({
+                                        ...previous,
+                                        bukti_bayar: event.target.files?.[0] || null,
+                                    }))
+                                }
+                                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                            />
+                            <p className="mt-1 text-xs font-medium text-dark/40">
+                                Kosongkan jika pembayaran diterima langsung/tunai. Maksimal 5MB.
+                            </p>
                         </div>
                     </section>
 
