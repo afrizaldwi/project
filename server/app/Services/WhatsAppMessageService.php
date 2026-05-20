@@ -15,6 +15,15 @@ class WhatsAppMessageService
 
         $phone = $this->normalizePhone($user?->no_hp ?? '');
 
+        if (in_array($tagihan->status_tagihan, ['lunas', 'dibatalkan'], true)) {
+            return [
+                'enabled' => false,
+                'phone' => '',
+                'message' => '',
+                'url' => null,
+            ];
+        }
+
         $message = sprintf(
             "Halo %s, kami mengingatkan bahwa tagihan kost Anda dengan invoice %s untuk kamar %s sebesar Rp %s akan jatuh tempo pada %s. Mohon segera melakukan pembayaran. Terima kasih.",
             $user?->nama_lengkap ?? 'Penyewa',

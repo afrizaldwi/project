@@ -69,6 +69,14 @@ const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
+  if (item.status_tagihan === "dibatalkan") {
+    return {
+      label: "Dibatalkan",
+      className: "bg-dark/10 text-dark/50",
+      icon: <XCircle size={14} />,
+    };
+  }
+
   return {
     label: "Belum Bayar",
     className: "bg-danger/10 text-danger",
@@ -77,7 +85,7 @@ const getStatusConfig = (item: TagihanReminderItem) => {
 };
 
 const canPay = (item: TagihanReminderItem) => {
-  if (item.status_tagihan === "lunas") return false;
+  if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
   if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
   return true;
 };
@@ -98,7 +106,9 @@ const PenyewaTagihan = () => {
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
 
   const activeTagihan = useMemo(() => {
-    return tagihan.filter((item) => item.status_tagihan !== "lunas");
+    return tagihan.filter(
+      (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
+    );
   }, [tagihan]);
 
   const riwayatPembayaran = useMemo(() => {

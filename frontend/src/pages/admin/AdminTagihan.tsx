@@ -74,6 +74,14 @@ const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
+  if (item.status_tagihan === "dibatalkan") {
+    return {
+      label: "Dibatalkan",
+      className: "bg-dark/10 text-dark/50",
+      icon: <XCircle size={14} />,
+    };
+  }
+
   return {
     label: "Belum Bayar",
     className: "bg-danger/10 text-danger",
@@ -99,7 +107,9 @@ const AdminTagihan = () => {
     return {
       total: tagihan.length,
       lunas: tagihan.filter((item) => item.status_tagihan === "lunas").length,
-      belum: tagihan.filter((item) => item.status_tagihan !== "lunas").length,
+      belum: tagihan.filter((item) =>
+        !["lunas", "dibatalkan"].includes(item.status_tagihan)
+      ).length,
       pending: pendingPayments.length,
     };
   }, [tagihan, pendingPayments]);
@@ -379,7 +389,9 @@ const AdminTagihan = () => {
                         </td>
 
                         <td className="px-5 py-4">
-                          {item.whatsapp.enabled && item.whatsapp.url ? (
+                          {item.status_tagihan !== "dibatalkan" &&
+                            item.whatsapp.enabled &&
+                            item.whatsapp.url ? (
                             <a
                               href={item.whatsapp.url}
                               target="_blank"
