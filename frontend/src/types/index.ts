@@ -386,3 +386,52 @@ export interface SewaExtensionResponse {
     tagihan: unknown;
   };
 }
+
+export interface Tamu {
+  id_tamu: number;
+  nama_tamu: string;
+  no_hp_tamu: string;
+  keperluan: string;
+  waktu_berkunjung: string;
+  id_user: number;
+  nama_penghuni: string;
+  nomor_kamar: string;
+}
+
+export interface PenghuniAktifOption {
+  id_user: number;
+  nama_penghuni: string;
+  email: string;
+  nomor_kamar: string;
+}
+
+export interface TamuPayload {
+  nama_tamu: string;
+  no_hp_tamu: string;
+  keperluan: string;
+  id_user?: number | string;
+}
+
+export type KeluhanStatus = "pending" | "proses" | "selesai";
+
+export interface Keluhan {
+  id_keluhan: number;
+  id_sewa: number;
+  judul_keluhan: string;
+  deskripsi_keluhan: string;
+  foto_kerusakan: string | null;
+  foto_kerusakan_url: string | null;
+  foto_kerusakan_urls?: string[];
+  status_keluhan: KeluhanStatus;
+  tanggal_lapor: string;
+  tanggal_selesai: string | null;
+  nama_penghuni: string;
+  email_penghuni: string;
+  nomor_kamar: string;
+}
+
+export interface KeluhanPayload {
+  judul_keluhan: string;
+  deskripsi_keluhan: string;
+  foto_kerusakan?: File[] | null;
+}

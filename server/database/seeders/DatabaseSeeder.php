@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             InvoiceDemoSeeder::class,
             KamarSeeder::class,
             SewaSeeder::class,
+            BukuTamuSeeder::class,
+            KeluhanSeeder::class,
         ]);
     }
 }
