@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Api\BukuTamuController;
 use App\Http\Controllers\Api\KeluhanController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 
 Route::get('/csrf-token', function () {
@@ -33,6 +34,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/keluhan', [KeluhanController::class, 'index']);
     Route::patch('/keluhan/{id}/status', [KeluhanController::class, 'updateStatus']);
     Route::delete('/keluhan/{id}', [KeluhanController::class, 'destroy']);
+
+    Route::get('/laporan/{jenis}', [LaporanController::class, 'getLaporan']);
 });
 
 Route::middleware('auth:sanctum')->prefix('penyewa')->group(function () {
