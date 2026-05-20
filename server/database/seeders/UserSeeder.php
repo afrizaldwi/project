@@ -19,13 +19,5 @@ class UserSeeder extends Seeder
             'alamat_asal' => 'Surabaya',
         ]);
 
-        User::create([
-            'email' => 'penyewa@kost.com',
-            'password' => Hash::make('password123'),
-            'role' => 'penyewa',
-            'nama_lengkap' => 'Budi Santoso',
-            'no_hp' => '089876543210',
-            'alamat_asal' => 'Jakarta',
-        ]);
     }
 }

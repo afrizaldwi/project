@@ -17,6 +17,9 @@ import AdminTamu from "./pages/admin/AdminTamu";
 import AdminKeluhan from "./pages/admin/AdminKeluhan";
 import AdminProfil from "./pages/admin/AdminProfil";
 import AdminTambahPenghuni from "./pages/admin/AdminTambahPenghuni";
+import AdminKamarTambah from "./pages/admin/AdminKamarTambah";
+import AdminKamarEdit from "./pages/admin/AdminKamarEdit";
+import AdminPenghuniPerpanjang from "./pages/admin/AdminPenghuniPerpanjang";
 
 function App() {
   return (
@@ -25,7 +28,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
-    
+
           <Route path="/admin" element={
             <ProtectedRoute role="admin">
               <Outlet />
@@ -34,8 +37,11 @@ function App() {
 
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="kamar" element={<AdminKamar />} />
+            <Route path="kamar/tambah" element={<AdminKamarTambah />} />
+            <Route path="kamar/edit/:id" element={<AdminKamarEdit />} />
             <Route path="penghuni" element={<AdminPenghuni />} />
             <Route path="penghuni/tambah" element={<AdminTambahPenghuni />} />
+            <Route path="penghuni/perpanjang/:id" element={<AdminPenghuniPerpanjang />} />
             <Route path="laporan" element={<AdminLaporanKeuangan />} />
             <Route path="tagihan" element={<AdminTagihan />} />
             <Route path="tamu" element={<AdminTamu />} />

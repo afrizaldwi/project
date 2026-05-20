@@ -5,7 +5,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LaporanKeuanganController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\KamarController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
+use App\Http\Controllers\SewaExtensionController;
 use App\Http\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);
         Route::post('/penghuni', [AdminPenghuniController::class, 'store']);
         Route::get('/kamar/tersedia', [AdminPenghuniController::class, 'availableRooms']);
+        Route::apiResource('kamar', KamarController::class);
+
         Route::patch('/penghuni/{idSewa}/selesaikan', [AdminPenghuniController::class, 'finishSewa']);
+
+        Route::get('/sewa', [SewaExtensionController::class, 'index']);
+        Route::get('/sewa/{id}', [SewaExtensionController::class, 'show']);
+        Route::patch('/sewa/{id}/perpanjang', [SewaExtensionController::class, 'perpanjang']);
 
         Route::get('/laporan-keuangan', [LaporanKeuanganController::class, 'summary']);
         Route::get('/pengeluaran', [LaporanKeuanganController::class, 'pengeluaran']);
