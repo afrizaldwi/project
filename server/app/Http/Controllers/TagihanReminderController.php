@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\MobileDeviceToken;
-use App\Services\TagihanReminderService;
+use App\Patterns\Facade\TagihanReminderFacade;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TagihanReminderController extends Controller
 {
     public function __construct(
-        private TagihanReminderService $tagihanReminderService
+        private TagihanReminderFacade $tagihanReminderFacade
     ) {}
 
     public function adminTagihan(Request $request): JsonResponse
@@ -18,7 +18,7 @@ class TagihanReminderController extends Controller
         $this->authorizeAdmin($request);
 
         return response()->json([
-            'data' => $this->tagihanReminderService->getAdminTagihan(),
+            'data' => $this->tagihanReminderFacade->getAdminTagihan(),
         ]);
     }
 
@@ -27,7 +27,7 @@ class TagihanReminderController extends Controller
         abort_unless($request->user()?->role === 'penyewa', 403, 'Akses hanya untuk penyewa.');
 
         return response()->json([
-            'data' => $this->tagihanReminderService->getPenyewaTagihan($request->user()->id),
+            'data' => $this->tagihanReminderFacade->getPenyewaTagihan($request->user()->id),
         ]);
     }
 
@@ -36,7 +36,7 @@ class TagihanReminderController extends Controller
         $onlyUnread = $request->boolean('unread');
 
         return response()->json([
-            'data' => $this->tagihanReminderService->getUserNotifications(
+            'data' => $this->tagihanReminderFacade->getUserNotifications(
                 $request->user()->id,
                 $onlyUnread
             ),
@@ -46,7 +46,7 @@ class TagihanReminderController extends Controller
     public function markNotificationAsRead(Request $request, int $idNotifikasi): JsonResponse
     {
         return response()->json(
-            $this->tagihanReminderService->markAsRead(
+            $this->tagihanReminderFacade->markAsRead(
                 $request->user()->id,
                 $idNotifikasi
             )
@@ -58,7 +58,7 @@ class TagihanReminderController extends Controller
         $this->authorizeAdmin($request);
 
         return response()->json(
-            $this->tagihanReminderService->getWhatsAppMessage($idTagihan)
+            $this->tagihanReminderFacade->getWhatsAppReminderData($idTagihan)
         );
     }
 
@@ -89,7 +89,7 @@ class TagihanReminderController extends Controller
     {
         $this->authorizeAdmin($request);
 
-        $createdCount = $this->tagihanReminderService->checkAndCreateNotifications();
+        $createdCount = $this->tagihanReminderFacade->checkAndProcessDueReminders();
 
         return response()->json([
             'message' => 'Pengecekan jatuh tempo berhasil dijalankan.',
@@ -108,7 +108,7 @@ class TagihanReminderController extends Controller
 
         return response()->json([
             'message' => 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.',
-            'data' => $this->tagihanReminderService->uploadPaymentProof(
+            'data' => $this->tagihanReminderFacade->uploadPaymentProof(
                 userId: $request->user()->id,
                 idTagihan: $idTagihan,
                 metodePembayaran: $validated['metode_pembayaran'],
@@ -122,7 +122,7 @@ class TagihanReminderController extends Controller
         $this->authorizeAdmin($request);
 
         return response()->json([
-            'data' => $this->tagihanReminderService->getPendingPayments(),
+            'data' => $this->tagihanReminderFacade->getPendingPayments(),
         ]);
     }
 
@@ -136,7 +136,7 @@ class TagihanReminderController extends Controller
 
         return response()->json([
             'message' => 'Pembayaran berhasil diverifikasi.',
-            'data' => $this->tagihanReminderService->verifyPayment(
+            'data' => $this->tagihanReminderFacade->verifyPayment(
                 idPembayaran: $idPembayaran,
                 catatanAdmin: $validated['catatan_admin'] ?? null
             ),
@@ -153,7 +153,7 @@ class TagihanReminderController extends Controller
 
         return response()->json([
             'message' => 'Pembayaran berhasil ditolak.',
-            'data' => $this->tagihanReminderService->rejectPayment(
+            'data' => $this->tagihanReminderFacade->rejectPayment(
                 idPembayaran: $idPembayaran,
                 catatanAdmin: $validated['catatan_admin'] ?? null
             ),

@@ -59,6 +59,16 @@ class TagihanReminderService
         return 1;
     }
 
+    public function createPenyewaNotificationDirect(Tagihan $tagihan, array $warning): int
+    {
+        return $this->createPenyewaNotification($tagihan, $warning);
+    }
+
+    public function createAdminNotificationsDirect(Tagihan $tagihan, array $warning): int
+    {
+        return $this->createAdminNotifications($tagihan, $warning);
+    }
+
     public function checkAndCreateNotifications(): int
     {
         $tagihanList = Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar'])
@@ -66,7 +76,12 @@ class TagihanReminderService
             ->whereDate('tanggal_jatuh_tempo', '<=', now()->copy()->addDays(7)->toDateString())
             ->get();
 
-        $createdCount = 0;
+        // Instantiate the Subject (Observer pattern)
+        $subject = new \App\Patterns\Observer\DueCheckSubject();
+
+        // Attach system observer strictly for warning notifications on the system
+        $systemObserver = new \App\Patterns\Observer\SystemNotificationObserver($this);
+        $subject->attach($systemObserver);
 
         foreach ($tagihanList as $tagihan) {
             $warning = $this->calculateWarning($tagihan);
@@ -75,11 +90,11 @@ class TagihanReminderService
                 continue;
             }
 
-            $createdCount += $this->createPenyewaNotification($tagihan, $warning);
-            $createdCount += $this->createAdminNotifications($tagihan, $warning);
+            // Notify observer
+            $subject->notify($tagihan, $warning);
         }
 
-        return $createdCount;
+        return $systemObserver->getCreatedCount();
     }
 
     public function getAdminTagihan(): Collection
@@ -176,20 +191,9 @@ class TagihanReminderService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_unless(
-                $pembayaran->status_verifikasi === 'pending',
-                422,
-                'Pembayaran ini sudah diproses.'
-            );
-
-            $pembayaran->update([
-                'status_verifikasi' => 'diterima',
-                'catatan_admin' => $catatanAdmin,
-            ]);
-
-            $pembayaran->tagihan->update([
-                'status_tagihan' => 'lunas',
-            ]);
+            // Delegate state transition logic to PaymentContext (State pattern)
+            $context = new \App\Patterns\State\PaymentContext($pembayaran);
+            $context->verify($pembayaran, $catatanAdmin);
 
             $pembayaran->refresh();
             $pembayaran->load(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar']);
@@ -206,26 +210,9 @@ class TagihanReminderService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_unless(
-                $pembayaran->status_verifikasi === 'pending',
-                422,
-                'Pembayaran ini sudah diproses.'
-            );
-
-            $tagihan = $pembayaran->tagihan;
-
-            $nextTagihanStatus = Carbon::parse($tagihan->tanggal_jatuh_tempo)->isPast()
-                ? 'telat'
-                : 'belum_bayar';
-
-            $pembayaran->update([
-                'status_verifikasi' => 'ditolak',
-                'catatan_admin' => $catatanAdmin,
-            ]);
-
-            $tagihan->update([
-                'status_tagihan' => $nextTagihanStatus,
-            ]);
+            // Delegate state transition logic to PaymentContext (State pattern)
+            $context = new \App\Patterns\State\PaymentContext($pembayaran);
+            $context->reject($pembayaran, $catatanAdmin);
 
             $pembayaran->refresh();
             $pembayaran->load(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar']);
