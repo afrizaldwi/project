@@ -1,7 +1,8 @@
-import React from "react";
-import { MessageCircle } from "lucide-react";
+import React, { useState } from "react";
+import { Download, MessageCircle } from "lucide-react";
 import type { TagihanReminderItem } from "../../../types";
 import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
+import { downloadPdfBlob, invoiceApi } from "../../../api/invoice";
 
 interface TagihanTableProps {
   tagihan: TagihanReminderItem[];
@@ -9,6 +10,22 @@ interface TagihanTableProps {
 }
 
 const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
+  const handleDownloadInvoicePdf = async (
+    idPembayaran: number,
+    idTagihan: number
+  ) => {
+    try {
+      setDownloadingInvoiceId(idPembayaran);
+
+      const blob = await invoiceApi.downloadAdminInvoicePdf(idPembayaran);
+      downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
+    } catch {
+      alert("Gagal download invoice PDF.");
+    } finally {
+      setDownloadingInvoiceId(null);
+    }
+  };
   return (
     <div className="overflow-x-auto">
       <table className="min-w-[900px] w-full text-left text-sm">
@@ -79,9 +96,22 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
                         Kirim WA
                       </a>
                     ) : (
-                      <span className="text-xs font-bold text-dark/30">
-                        WA tidak tersedia
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownloadInvoicePdf(
+                            item.pembayaran_terbaru!.id_pembayaran,
+                            item.id_tagihan
+                          )
+                        }
+                        disabled={downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran}
+                        className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Download size={14} />
+                        {downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran
+                          ? "..."
+                          : "PDF"}
+                      </button>
                     )}
                   </td>
                 </tr>

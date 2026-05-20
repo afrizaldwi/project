@@ -31,7 +31,9 @@ const AdminTagihan = () => {
     return {
       total: tagihan.length,
       lunas: tagihan.filter((item) => item.status_tagihan === "lunas").length,
-      belum: tagihan.filter((item) => item.status_tagihan !== "lunas").length,
+      belum: tagihan.filter(
+        (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
+      ).length,
       pending: pendingPayments.length,
     };
   }, [tagihan, pendingPayments]);
@@ -183,11 +185,10 @@ const AdminTagihan = () => {
             <button
               type="button"
               onClick={() => setActiveTab("semua")}
-              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${
-                activeTab === "semua"
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-dark/40 hover:text-dark"
-              }`}
+              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "semua"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
             >
               Semua Tagihan
             </button>
@@ -195,11 +196,10 @@ const AdminTagihan = () => {
             <button
               type="button"
               onClick={() => setActiveTab("pending")}
-              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${
-                activeTab === "pending"
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-dark/40 hover:text-dark"
-              }`}
+              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "pending"
+                ? "bg-primary text-white shadow-sm"
+                : "text-dark/40 hover:text-dark"
+                }`}
             >
               Perlu Validasi
             </button>

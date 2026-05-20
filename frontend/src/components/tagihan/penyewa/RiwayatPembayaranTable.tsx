@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import type { TagihanReminderItem } from "../../../types";
 import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
+import { Download } from "lucide-react";
+import { downloadPdfBlob, invoiceApi } from "../../../api/invoice";
 
 interface RiwayatPembayaranTableProps {
   riwayatPembayaran: TagihanReminderItem[];
@@ -9,6 +11,22 @@ interface RiwayatPembayaranTableProps {
 const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
   riwayatPembayaran,
 }) => {
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
+  const handleDownloadInvoicePdf = async (
+    idPembayaran: number,
+    idTagihan: number
+  ) => {
+    try {
+      setDownloadingInvoiceId(idPembayaran);
+
+      const blob = await invoiceApi.downloadPenyewaInvoicePdf(idPembayaran);
+      downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
+    } catch {
+      alert("Gagal download invoice PDF.");
+    } finally {
+      setDownloadingInvoiceId(null);
+    }
+  };
   return (
     <>
       {riwayatPembayaran.length === 0 ? (
@@ -25,6 +43,7 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
                   <th className="px-5 py-4">Jatuh Tempo</th>
                   <th className="px-5 py-4">Total</th>
                   <th className="px-5 py-4">Status</th>
+                  <th className="px-5 py-4">Aksi</th>
                 </tr>
               </thead>
 
@@ -56,6 +75,24 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
                           {status.icon}
                           {status.label}
                         </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDownloadInvoicePdf(
+                              item.pembayaran_terbaru!.id_pembayaran,
+                              item.id_tagihan
+                            )
+                          }
+                          disabled={downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran}
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <Download size={14} />
+                          {downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran
+                            ? "..."
+                            : "PDF"}
+                        </button>
                       </td>
                     </tr>
                   );

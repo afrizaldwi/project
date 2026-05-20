@@ -198,15 +198,17 @@ const AdminLaporanKeuangan = () => {
 
       <LaporanSummaryCards summary={summary} formatRupiah={formatRupiah} />
 
-      {showExpenseForm && (
-        <FormPengeluaran
-          form={form}
-          setForm={setForm}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          onCancel={() => setShowExpenseForm(false)}
-        />
-      )}
+      {
+        showExpenseForm && (
+          <FormPengeluaran
+            form={form}
+            setForm={setForm}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onCancel={() => setShowExpenseForm(false)}
+          />
+        )
+      }
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TabelPengeluaran
@@ -222,7 +224,7 @@ const AdminLaporanKeuangan = () => {
           formatRupiah={formatRupiah}
         />
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -23,7 +23,9 @@ const PenyewaTagihan = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const activeTagihan = useMemo(() => {
-    return tagihan.filter((item) => item.status_tagihan !== "lunas");
+    return tagihan.filter(
+      (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
+    );
   }, [tagihan]);
 
   const riwayatPembayaran = useMemo(() => {
@@ -54,7 +56,15 @@ const PenyewaTagihan = () => {
     fetchData();
   }, []);
 
+  const canPay = (item: TagihanReminderItem) => {
+    if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
+    if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
+    return true;
+  };
+
   const openPaymentModal = (item: TagihanReminderItem) => {
+    if (!canPay(item)) return;
+
     setSelected(item);
     setShowPaymentModal(true);
     setMetode("");
@@ -132,8 +142,6 @@ const PenyewaTagihan = () => {
         setSuccessMessage("");
       }, 1200);
     } catch (error: any) {
-      console.error("Upload payment proof error:", error);
-
       const validationErrors = error?.response?.data?.errors;
 
       if (validationErrors) {
@@ -226,7 +234,10 @@ const PenyewaTagihan = () => {
               </p>
             </div>
 
-            <ActiveTagihanCard activeTagihan={activeTagihan} onPay={openPaymentModal} />
+            <ActiveTagihanCard
+              activeTagihan={activeTagihan}
+              onPay={openPaymentModal}
+            />
           </section>
 
           <section className="space-y-4">

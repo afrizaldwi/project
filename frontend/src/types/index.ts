@@ -268,3 +268,44 @@ export interface PendingPembayaranItem {
   catatan_admin: string | null;
   tagihan: TagihanReminderItem | null;
 }
+
+export interface InvoiceUser {
+  id: number | null;
+  nama_lengkap: string | null;
+  email: string | null;
+  no_hp: string | null;
+  alamat_asal: string | null;
+}
+
+export interface InvoiceKamar {
+  id_kamar: number | null;
+  nomor_kamar: string | null;
+  luas_kamar: string | null;
+  fasilitas: string | null;
+  harga_bulanan: string | number | null;
+}
+
+export interface InvoiceSewa {
+  id_sewa: number | null;
+  tanggal_masuk: string | null;
+  tanggal_keluar: string | null;
+  durasi_sewa_bulan: number | null;
+  harga_deal: string | number | null;
+}
+
+export interface InvoiceItem {
+  id_pembayaran: number;
+  id_tagihan: number;
+  kode_invoice: string | null;
+  tanggal_tagihan: string | null;
+  tanggal_jatuh_tempo: string | null;
+  tanggal_bayar: string | null;
+  jumlah_bayar: string | number;
+  total_tagihan: string | number;
+  metode_pembayaran: string | null;
+  status_verifikasi: "pending" | "diterima" | "ditolak";
+  catatan_admin: string | null;
+  penyewa: InvoiceUser;
+  kamar: InvoiceKamar;
+  sewa: InvoiceSewa;
+}
