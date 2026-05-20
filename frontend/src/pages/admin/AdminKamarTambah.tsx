@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import kamarService from "../../services/kamarService";
 import { type KamarFormData, defaultKamarForm } from "../../types";
+import KamarForm from "../../components/kamar/KamarForm";
 
 const AdminKamarTambah = () => {
   const navigate = useNavigate();
@@ -77,97 +78,13 @@ const AdminKamarTambah = () => {
           <p className="text-xs text-gray-400 mt-0.5">Semua field bertanda * wajib diisi</p>
         </div>
 
-        <div className="px-6 py-6">
-          <div className="grid grid-cols-2 gap-5 mb-5">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5">Nomor Kamar *</label>
-              <input
-                name="nomor_kamar"
-                value={form.nomor_kamar}
-                onChange={handleChange}
-                placeholder="cth: A1"
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary ${errors.nomor_kamar ? "border-red-400" : "border-gray-200"}`}
-              />
-              {errors.nomor_kamar && <p className="text-xs text-red-500 mt-1">{errors.nomor_kamar}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5">Ukuran Kamar *</label>
-              <input
-                name="luas_kamar"
-                value={form.luas_kamar}
-                onChange={handleChange}
-                placeholder="cth: 3x4 m"
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary ${errors.luas_kamar ? "border-red-400" : "border-gray-200"}`}
-              />
-              {errors.luas_kamar && <p className="text-xs text-red-500 mt-1">{errors.luas_kamar}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5">Harga / Bulan *</label>
-              <input
-                name="harga_bulanan"
-                type="number"
-                value={form.harga_bulanan}
-                onChange={handleChange}
-                placeholder="cth: 800000"
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary ${errors.harga_bulanan ? "border-red-400" : "border-gray-200"}`}
-              />
-              {errors.harga_bulanan && <p className="text-xs text-red-500 mt-1">{errors.harga_bulanan}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5">Status Kamar *</label>
-              <select
-                name="status_kamar"
-                value={form.status_kamar}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary"
-              >
-                <option value="tersedia">Tersedia</option>
-                <option value="terisi">Terisi</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Fasilitas */}
-          <div className="mb-5">
-            <label className="block text-xs font-bold text-gray-500 mb-1.5">Fasilitas Kamar *</label>
-            <input
-              name="fasilitas"
-              value={form.fasilitas}
-              onChange={handleChange}
-              placeholder="cth: AC, Kasur, WiFi, Lemari"
-              className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary ${errors.fasilitas ? "border-red-400" : "border-gray-200"}`}
-            />
-            {errors.fasilitas && <p className="text-xs text-red-500 mt-1">{errors.fasilitas}</p>}
-            <p className="text-xs text-gray-400 mt-1">Pisahkan setiap fasilitas dengan koma. cth: AC, Kasur, WiFi</p>
-          </div>
-
-          {/* Foto */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1.5">Foto Kamar</label>
-            <label className={`block border-2 border-dashed rounded-xl cursor-pointer overflow-hidden transition ${preview ? "border-primary" : "border-gray-200 hover:border-primary"}`}>
-              {preview ? (
-                <div className="w-full relative">
-                  <img src={preview} alt="Preview" className="w-full h-auto object-contain bg-gray-100" />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition flex items-center justify-center">
-                    <span className="bg-white text-dark text-sm font-semibold px-4 py-2 rounded-lg">Ganti Foto</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-14 flex flex-col items-center bg-gray-50">
-                  <span className="text-4xl text-gray-300 mb-3">☁</span>
-                  <span className="text-sm text-gray-500">
-                    <span className="text-primary font-bold">Klik untuk upload</span> atau drag & drop
-                  </span>
-                  <span className="text-xs text-gray-300 mt-1">PNG, JPG, JPEG maks. 2MB</span>
-                </div>
-              )}
-              <input type="file" accept="image/*" onChange={handleFotoChange} className="hidden" />
-            </label>
-          </div>
-        </div>
+        <KamarForm
+          form={form}
+          errors={errors}
+          preview={preview}
+          onChange={handleChange}
+          onFotoChange={handleFotoChange}
+        />
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">

@@ -3,29 +3,33 @@
 namespace App\Services;
 
 use App\Models\Kamar;
-use App\Models\RiwayatSewa;
+use App\Repositories\Contracts\KamarRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class KamarService
 {
+    public function __construct(
+        private readonly KamarRepositoryInterface $kamarRepository
+    ) {}
+
     public function getAll(): array
     {
-        $kamar = Kamar::orderBy('nomor_kamar')->get();
+        $kamar = $this->kamarRepository->all();
 
         return [
             'data' => $kamar,
             'total' => $kamar->count(),
-            'tersedia' => $kamar->where('status_kamar', 'tersedia')->count(),
-            'terisi' => $kamar->where('status_kamar', 'terisi')->count(),
-            'perbaikan' => $kamar->where('status_kamar', 'perbaikan')->count(),
+            'tersedia' => $this->kamarRepository->countByStatus('tersedia'),
+            'terisi' => $this->kamarRepository->countByStatus('terisi'),
+            'perbaikan' => $this->kamarRepository->countByStatus('perbaikan'),
         ];
     }
 
     public function getById(int $id): Kamar
     {
-        return Kamar::findOrFail($id);
+        return $this->kamarRepository->findByIdOrFail($id);
     }
 
     public function create(array $data, ?UploadedFile $foto = null): Kamar
@@ -36,7 +40,7 @@ class KamarService
             $kamarData['foto_kamar'] = $foto->store('kamar', 'public');
         }
 
-        return Kamar::create($kamarData);
+        return $this->kamarRepository->create($kamarData);
     }
 
     public function update(int $id, array $data, ?UploadedFile $foto = null): Kamar
@@ -52,18 +56,14 @@ class KamarService
             $kamarData['foto_kamar'] = $foto->store('kamar', 'public');
         }
 
-        $kamar->update($kamarData);
-
-        return $kamar->fresh();
+        return $this->kamarRepository->update($id, $kamarData);
     }
 
     public function delete(int $id): void
     {
         $kamar = $this->getById($id);
 
-        $hasRentalHistory = RiwayatSewa::where('id_kamar', $id)->exists();
-
-        if ($hasRentalHistory) {
+        if ($this->kamarRepository->hasRentalHistory($id)) {
             throw new RuntimeException(
                 'Kamar memiliki riwayat sewa, sehingga tidak boleh dihapus. Ubah status kamar menjadi perbaikan jika kamar tidak ingin dipakai sementara.'
             );
@@ -73,7 +73,7 @@ class KamarService
             Storage::disk('public')->delete($kamar->foto_kamar);
         }
 
-        $kamar->delete();
+        $this->kamarRepository->delete($id);
     }
 
     private function onlyKamarFields(array $data): array

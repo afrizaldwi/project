@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\DTO\SewaDetailDTO;
+use App\DTO\SewaExtensionDTO;
 use App\Models\RiwayatSewa;
-use App\Models\Tagihan;
+use App\Repositories\Contracts\RiwayatSewaRepositoryInterface;
+use App\Repositories\Contracts\TagihanRepositoryInterface;
+use App\Services\Strategies\Contracts\DateCalculationStrategy;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -11,29 +15,37 @@ use RuntimeException;
 
 class SewaExtensionService
 {
+    public function __construct(
+        private readonly RiwayatSewaRepositoryInterface $sewaRepository,
+        private readonly TagihanRepositoryInterface $tagihanRepository,
+        private readonly DateCalculationStrategy $dateCalculation
+    ) {}
+
     public function getActiveSewaList(): array
     {
-        $sewaList = RiwayatSewa::with(['user', 'kamar'])
-            ->where('status_sewa', 'aktif')
-            ->orderByDesc('tanggal_masuk')
-            ->get();
+        $sewaList = $this->sewaRepository->getActiveSewaWithRelations(['user', 'kamar']);
 
         return $sewaList->map(function (RiwayatSewa $sewa) {
-            return $this->formatSewaDetail($sewa);
+            $tanggalKeluar = $this->resolveTanggalKeluar($sewa);
+
+            return SewaDetailDTO::fromModel($sewa, $tanggalKeluar?->toDateString())->toArray();
         })->toArray();
     }
 
     public function getSewaForExtension(int $id): array
     {
-        $sewa = RiwayatSewa::with(['user', 'kamar'])->findOrFail($id);
+        $sewa = $this->sewaRepository->findByIdWithRelations($id, ['user', 'kamar']);
+        $tanggalKeluar = $this->resolveTanggalKeluar($sewa);
 
-        return $this->formatSewaDetail($sewa);
+        return SewaDetailDTO::fromModel($sewa, $tanggalKeluar?->toDateString())->toArray();
     }
 
     public function perpanjang(int $id, array $data): array
     {
-        return DB::transaction(function () use ($id, $data) {
-            $sewa = RiwayatSewa::with(['user', 'kamar'])->lockForUpdate()->findOrFail($id);
+        $extensionDTO = SewaExtensionDTO::fromArray($data);
+
+        return DB::transaction(function () use ($id, $extensionDTO) {
+            $sewa = $this->sewaRepository->lockForUpdate($id);
 
             if ($sewa->status_sewa !== 'aktif') {
                 throw new RuntimeException('Sewa tidak dapat diperpanjang karena statusnya tidak aktif.');
@@ -45,58 +57,39 @@ class SewaExtensionService
                 throw new RuntimeException('Tanggal keluar sewa tidak dapat dihitung.');
             }
 
-            $tanggalMulai = Carbon::parse($data['tanggal_mulai'])->startOfDay();
-
-            if (! $tanggalMulai->equalTo($tanggalKeluarLama)) {
+            if (! $extensionDTO->tanggal_mulai->equalTo($tanggalKeluarLama)) {
                 throw new RuntimeException('Tanggal mulai perpanjangan harus sama dengan tanggal keluar sewa saat ini.');
             }
 
-            $durasiTambahan = (int) $data['durasi_sewa_bulan'];
-            $hargaTambahan = (float) $data['harga_deal'];
-            $tanggalKeluarBaru = $tanggalKeluarLama->copy()->addMonthsNoOverflow($durasiTambahan);
+            $tanggalKeluarBaru = $this->dateCalculation->calculate(
+                $tanggalKeluarLama,
+                $extensionDTO->durasi_sewa_bulan
+            );
 
-            $sewa->update([
+            $sewa = $this->sewaRepository->update($sewa->id_sewa, [
                 'tanggal_keluar' => $tanggalKeluarBaru->toDateString(),
-                'durasi_sewa_bulan' => ((int) $sewa->durasi_sewa_bulan) + $durasiTambahan,
-                'harga_deal' => ((float) $sewa->harga_deal) + $hargaTambahan,
+                'durasi_sewa_bulan' => ((int) $sewa->durasi_sewa_bulan) + $extensionDTO->durasi_sewa_bulan,
+                'harga_deal' => ((float) $sewa->harga_deal) + $extensionDTO->harga_deal,
                 'status_sewa' => 'aktif',
             ]);
 
-            $tagihan = Tagihan::create([
+            $tagihan = $this->tagihanRepository->create([
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($sewa->id_sewa),
                 'tanggal_tagihan' => now()->toDateString(),
                 'tanggal_jatuh_tempo' => now()->addDays(7)->toDateString(),
-                'total_tagihan' => $hargaTambahan,
+                'total_tagihan' => $extensionDTO->harga_deal,
                 'status_tagihan' => 'belum_bayar',
             ]);
 
+            $sewaFresh = $this->sewaRepository->findByIdWithRelations($sewa->id_sewa, ['user', 'kamar']);
+            $tanggalKeluarFresh = $this->resolveTanggalKeluar($sewaFresh);
+
             return [
-                'sewa' => $this->formatSewaDetail($sewa->fresh(['user', 'kamar'])),
+                'sewa' => SewaDetailDTO::fromModel($sewaFresh, $tanggalKeluarFresh?->toDateString())->toArray(),
                 'tagihan' => $tagihan,
             ];
         });
-    }
-
-    private function formatSewaDetail(RiwayatSewa $sewa): array
-    {
-        $tanggalKeluar = $this->resolveTanggalKeluar($sewa);
-
-        return [
-            'id_sewa' => $sewa->id_sewa,
-            'id_user' => $sewa->id_user,
-            'id_kamar' => $sewa->id_kamar,
-            'nama' => $sewa->user->nama_lengkap ?? '-',
-            'email' => $sewa->user->email ?? '-',
-            'no_hp' => $sewa->user->no_hp ?? '-',
-            'nomor_kamar' => $sewa->kamar->nomor_kamar ?? '-',
-            'harga_bulanan' => $sewa->kamar->harga_bulanan ?? 0,
-            'harga_deal' => $sewa->harga_deal,
-            'tanggal_masuk' => $this->formatDate($sewa->tanggal_masuk),
-            'tanggal_keluar' => $tanggalKeluar?->toDateString(),
-            'durasi_sewa_bulan' => $sewa->durasi_sewa_bulan,
-            'status_sewa' => $sewa->status_sewa,
-        ];
     }
 
     private function resolveTanggalKeluar(RiwayatSewa $sewa): ?Carbon
@@ -109,25 +102,17 @@ class SewaExtensionService
             return null;
         }
 
-        return Carbon::parse($sewa->tanggal_masuk)
-            ->startOfDay()
-            ->addMonthsNoOverflow((int) $sewa->durasi_sewa_bulan);
-    }
-
-    private function formatDate($value): ?string
-    {
-        if (empty($value)) {
-            return null;
-        }
-
-        return Carbon::parse($value)->toDateString();
+        return $this->dateCalculation->calculate(
+            Carbon::parse($sewa->tanggal_masuk)->startOfDay(),
+            (int) $sewa->durasi_sewa_bulan
+        );
     }
 
     private function generateInvoiceCode(int $idSewa): string
     {
         do {
             $code = 'INV-EXT-' . now()->format('Ymd') . '-' . $idSewa . '-' . Str::upper(Str::random(6));
-        } while (Tagihan::where('kode_invoice', $code)->exists());
+        } while ($this->tagihanRepository->invoiceCodeExists($code));
 
         return $code;
     }
