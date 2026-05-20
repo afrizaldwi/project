@@ -6,11 +6,13 @@ import {
   Eye,
   Layers,
   MessageCircle,
+  Download,
   RefreshCw,
   X,
   XCircle,
 } from "lucide-react";
 
+import { downloadPdfBlob, invoiceApi } from "../../api/invoice";
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
 import type {
@@ -91,6 +93,7 @@ const AdminTagihan = () => {
   const [isChecking, setIsChecking] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
 
   const stats = useMemo(() => {
     return {
@@ -183,6 +186,22 @@ const AdminTagihan = () => {
 
     setNotifications([]);
     setShowNotificationModal(false);
+  };
+
+  const handleDownloadInvoicePdf = async (
+    idPembayaran: number,
+    idTagihan: number
+  ) => {
+    try {
+      setDownloadingInvoiceId(idPembayaran);
+
+      const blob = await invoiceApi.downloadAdminInvoicePdf(idPembayaran);
+      downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
+    } catch {
+      alert("Gagal download invoice PDF.");
+    } finally {
+      setDownloadingInvoiceId(null);
+    }
   };
 
   return (
@@ -375,6 +394,25 @@ const AdminTagihan = () => {
                               WA tidak tersedia
                             </span>
                           )}
+                          {item.pembayaran_terbaru?.status_verifikasi === "diterima" &&
+                            item.pembayaran_terbaru?.id_pembayaran ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDownloadInvoicePdf(
+                                  item.pembayaran_terbaru!.id_pembayaran,
+                                  item.id_tagihan
+                                )
+                              }
+                              disabled={downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran}
+                              className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <Download size={14} />
+                              {downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran
+                                ? "..."
+                                : "PDF"}
+                            </button>
+                          ) : null}
                         </td>
                       </tr>
                     );
