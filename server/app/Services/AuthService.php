@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\RiwayatSewa;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,19 @@ class AuthService
             ];
         }
         $token = null;
+
+        if ($user->role === 'penyewa') {
+            $hasActiveSewa = RiwayatSewa::where('id_user', $user->id)
+                ->where('status_sewa', 'aktif')
+                ->exists();
+
+            if (! $hasActiveSewa) {
+                return [
+                    'success' => false,
+                    'message' => 'Akun penyewa sudah tidak aktif.',
+                ];
+            }
+        }
 
         if ($request->hasSession()) {
             Auth::login($user);

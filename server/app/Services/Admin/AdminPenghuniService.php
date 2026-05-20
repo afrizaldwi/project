@@ -185,6 +185,16 @@ class AdminPenghuniService
             $sewa->tanggal_keluar = $tanggalKeluar ?? now()->toDateString();
             $sewa->save();
 
+            Tagihan::where('id_sewa', $sewa->id_sewa)
+                ->whereIn('status_tagihan', ['belum_bayar', 'telat'])
+                ->update([
+                    'status_tagihan' => 'dibatalkan',
+                ]);
+
+            if ($sewa->user) {
+                $sewa->user->tokens()->delete();
+            }
+
             if ($sewa->kamar) {
                 $sewa->kamar->status_kamar = 'tersedia';
                 $sewa->kamar->save();
