@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,8 +47,13 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    protected function isPeyewa(): bool
+    protected function isPenyewa(): bool
     {
         return $this->role === 'penyewa';
+    }
+
+    public function riwayatSewa(): HasMany
+    {
+        return $this->hasMany(RiwayatSewa::class, 'id_user', 'id');
     }
 }
