@@ -52,6 +52,14 @@ class KamarService
             $kamarData['foto_kamar'] = $foto->store('kamar', 'public');
         }
 
+        if (
+            isset($data['status_kamar']) &&
+            $data['status_kamar'] === 'tersedia' &&
+            $this->hasActiveSewa($kamar->id_kamar)
+        ) {
+            throw new \Exception('Kamar masih memiliki penghuni aktif, status tidak dapat diubah menjadi tersedia.');
+        }
+
         $kamar->update($kamarData);
 
         return $kamar->fresh();
@@ -87,5 +95,12 @@ class KamarService
                 'status_kamar',
             ])
             ->toArray();
+    }
+
+    private function hasActiveSewa(int $idKamar): bool
+    {
+        return RiwayatSewa::where('id_kamar', $idKamar)
+            ->where('status_sewa', 'aktif')
+            ->exists();
     }
 }

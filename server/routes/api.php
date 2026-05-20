@@ -26,7 +26,7 @@ Route::post('/track-visitor', [VisitorController::class, 'track']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile', [AuthController::class, 'profile'])->middleware('penyewa.active');
 
     Route::get('/notifikasi', [TagihanReminderController::class, 'notifications']);
     Route::patch('/notifikasi/{idNotifikasi}/read', [TagihanReminderController::class, 'markNotificationAsRead']);
@@ -72,7 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/keluhan/{id}', [KeluhanController::class, 'destroy']);
     });
 
-    Route::prefix('penyewa')->group(function () {
+    Route::prefix('penyewa')->middleware('penyewa.active')->group(function () {
         Route::get('/dashboard-summary', [PenyewaDashboardController::class, 'summary']);
 
         Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);

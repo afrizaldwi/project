@@ -62,9 +62,9 @@ const RecentKeluhanTable = ({ keluhanList }: RecentKeluhanTableProps) => {
 
                     <tbody className="divide-y divide-gray-100">
                         {keluhanList.length > 0 ? (
-                            keluhanList.map((keluhan) => (
+                            keluhanList.map((keluhan, i) => (
                                 <tr
-                                    key={`${keluhan.judul}-${keluhan.tanggal}`}
+                                    key={`${i}`}
                                     className="transition hover:bg-gray-50"
                                 >
                                     <td className="px-4 py-3">

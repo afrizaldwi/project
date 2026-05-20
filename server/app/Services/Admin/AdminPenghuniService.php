@@ -60,7 +60,11 @@ class AdminPenghuniService
 
     public function getKamarTersedia(): Collection
     {
-        return Kamar::where('status_kamar', 'tersedia')
+        return Kamar::query()
+            ->where('status_kamar', 'tersedia')
+            ->whereDoesntHave('riwayatSewa', function ($query) {
+                $query->where('status_sewa', 'aktif');
+            })
             ->orderBy('nomor_kamar')
             ->get();
     }
@@ -77,6 +81,18 @@ class AdminPenghuniService
                 throw ValidationException::withMessages([
                     'id_kamar' => 'Kamar tidak ditemukan atau sudah terisi.',
                 ]);
+            }
+
+            $hasActiveSewa = RiwayatSewa::where('id_kamar', $kamar->id_kamar)
+                ->where('status_sewa', 'aktif')
+                ->exists();
+
+            if ($hasActiveSewa) {
+                throw new \Exception('Kamar sudah memiliki penghuni aktif.');
+            }
+
+            if ($kamar->status_kamar !== 'tersedia') {
+                throw new \Exception('Kamar tidak tersedia.');
             }
 
             $tanggalMasuk = Carbon::parse($data['tanggal_masuk']);
