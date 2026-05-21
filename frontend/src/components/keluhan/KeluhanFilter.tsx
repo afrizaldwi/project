@@ -19,7 +19,6 @@ interface KeluhanFilterProps {
   setSearch: (value: string) => void;
   statusFilter: KeluhanStatus | "semua";
   setStatusFilter: (value: KeluhanStatus | "semua") => void;
-  onExport: (format: "csv" | "json") => void;
 }
 
 export const KeluhanFilter = ({
@@ -27,7 +26,6 @@ export const KeluhanFilter = ({
   setSearch,
   statusFilter,
   setStatusFilter,
-  onExport,
 }: KeluhanFilterProps) => {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -60,23 +58,6 @@ export const KeluhanFilter = ({
             </option>
           ))}
         </select>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => onExport("csv")}
-            className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-100 transition-colors cursor-pointer"
-            title="Unduh Laporan CSV"
-          >
-            CSV
-          </button>
-          <button
-            onClick={() => onExport("json")}
-            className="rounded-xl border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-100 transition-colors cursor-pointer"
-            title="Unduh Laporan JSON"
-          >
-            JSON
-          </button>
-        </div>
       </div>
     </div>
   );

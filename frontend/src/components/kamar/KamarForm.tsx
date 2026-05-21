@@ -53,15 +53,7 @@ const KamarForm = ({ form, errors, preview, existingFoto, onChange, onFotoChange
 
         <div>
           <label className="block text-xs font-bold text-gray-500 mb-1.5">Status Kamar *</label>
-          <select
-            name="status_kamar"
-            value={form.status_kamar}
-            onChange={onChange}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary"
-          >
-            <option value="tersedia">Tersedia</option>
-            <option value="terisi">Terisi</option>
-          </select>
+          <span>{form.status_kamar}</span>
         </div>
       </div>
 

@@ -151,9 +151,6 @@ export const PenyewaKeluhanForm = ({
                 </button>
               )}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Format JPG/PNG, maksimal 20MB per foto. Maksimal 3 foto.
-            </p>
           </div>
         </div>
 

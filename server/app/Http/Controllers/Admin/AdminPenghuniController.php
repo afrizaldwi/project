@@ -52,10 +52,16 @@ class AdminPenghuniController extends Controller
             'id_kamar' => ['required', 'integer', Rule::exists('kamar', 'id_kamar')],
             'tanggal_masuk' => ['required', 'date'],
             'durasi_sewa_bulan' => ['required', 'integer', 'min:1'],
+
+            'metode_pembayaran' => ['required', 'string', 'max:50'],
+            'bukti_bayar' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
 
         return response()->json(
-            $this->adminPenghuniService->createPenghuni($validated),
+            $this->adminPenghuniService->createPenghuni(
+                $validated,
+                $request->file('bukti_bayar')
+            ),
             201
         );
     }

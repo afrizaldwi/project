@@ -9,6 +9,8 @@ interface FormState {
   id_kamar: string;
   tanggal_masuk: string;
   durasi_sewa_bulan: string;
+  metode_pembayaran: string;
+  bukti_bayar: File | null;
 }
 
 interface FormDataPenghuniProps {
@@ -41,7 +43,7 @@ const FormDataPenghuni = ({ form, onChange }: FormDataPenghuniProps) => {
           </label>
           <input
             name="no_hp"
-            type="number"
+            type="tel"
             value={form.no_hp}
             onChange={onChange}
             required
@@ -96,6 +98,40 @@ const FormDataPenghuni = ({ form, onChange }: FormDataPenghuniProps) => {
           rows={3}
           className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
+      </div>
+
+      <div className="mt-4">
+        <label className="mb-2 block text-sm font-bold text-dark">
+          Metode Pembayaran Awal
+        </label>
+        <select
+          name="metode_pembayaran"
+          value={form.metode_pembayaran}
+          onChange={onChange}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+          required
+        >
+          <option value="">Pilih metode pembayaran</option>
+          <option value="Tunai">Tunai</option>
+          <option value="Transfer Bank">Transfer Bank</option>
+          <option value="E-Wallet">E-Wallet</option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <label className="mb-2 block text-sm font-bold text-dark">
+          Bukti Pembayaran Awal <span className="text-dark/40">(Opsional)</span>
+        </label>
+        <input
+          type="file"
+          name="bukti_bayar"
+          accept="image/jpeg,image/jpg,image/png,application/pdf"
+          onChange={onChange}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+        />
+        <p className="mt-1 text-xs font-medium text-dark/40">
+          Kosongkan jika pembayaran diterima langsung/tunai. Maksimal 5MB.
+        </p>
       </div>
     </section>
   );

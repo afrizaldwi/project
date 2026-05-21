@@ -85,11 +85,11 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
                               item.id_tagihan
                             )
                           }
-                          disabled={downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran}
+                          disabled={downloadingInvoiceId === item.pembayaran_terbaru?.id_pembayaran}
                           className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <Download size={14} />
-                          {downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran
+                          {downloadingInvoiceId === item.pembayaran_terbaru?.id_pembayaran
                             ? "..."
                             : "PDF"}
                         </button>

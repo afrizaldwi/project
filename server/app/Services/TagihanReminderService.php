@@ -72,7 +72,7 @@ class TagihanReminderService
     public function checkAndCreateNotifications(): int
     {
         $tagihanList = Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar'])
-            ->whereNotIn('status_tagihan', ['lunas', 'dibayar'])
+            ->whereIn('status_tagihan', ['belum_bayar', 'telat'])
             ->whereDate('tanggal_jatuh_tempo', '<=', now()->copy()->addDays(7)->toDateString())
             ->get();
 
@@ -140,9 +140,9 @@ class TagihanReminderService
                 ->firstOrFail();
 
             abort_if(
-                $tagihan->status_tagihan === 'lunas',
+                in_array($tagihan->status_tagihan, ['lunas', 'dibatalkan'], true),
                 422,
-                'Tagihan ini sudah lunas.'
+                'Tagihan ini sudah tidak dapat dibayar.'
             );
 
             $hasPendingPayment = Pembayaran::where('id_tagihan', $tagihan->id_tagihan)
@@ -231,7 +231,7 @@ class TagihanReminderService
         if ($onlyUnread) {
             $query->where('is_read', false)
                 ->whereHas('tagihan', function ($query) {
-                    $query->whereNotIn('status_tagihan', ['lunas', 'dibayar']);
+                    $query->whereIn('status_tagihan', ['belum_bayar', 'telat']);
                 });
         }
 
@@ -271,7 +271,7 @@ class TagihanReminderService
 
     public function calculateWarning(Tagihan $tagihan): array
     {
-        if (in_array($tagihan->status_tagihan, ['lunas', 'dibayar'], true)) {
+        if (in_array($tagihan->status_tagihan, ['lunas', 'dibatalkan'], true)) {
             return [
                 'aktif' => false,
                 'status' => null,

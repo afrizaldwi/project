@@ -12,12 +12,31 @@ use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardControll
 use App\Http\Controllers\SewaExtensionController;
 use App\Http\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
+use App\Models\Kamar;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/csrf-token', function () {
     return response()->json([
         'token' => csrf_token(),
     ]);
+});
+
+Route::get('/public/kamar', function () {
+    return Kamar::query()
+        ->orderBy('nomor_kamar')
+        ->get()
+        ->map(function ($kamar) {
+            return [
+                'id_kamar' => $kamar->id_kamar,
+                'nomor_kamar' => $kamar->nomor_kamar,
+                'harga_bulanan' => $kamar->harga_bulanan,
+                'status_kamar' => $kamar->status_kamar,
+                'foto_url' => $kamar->foto
+                    ? url(Storage::url($kamar->foto))
+                    : null,
+            ];
+        });
 });
 
 Route::post('/track-visitor', [VisitorController::class, 'track']);

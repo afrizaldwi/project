@@ -72,7 +72,7 @@ class PenghuniRepository
             'tanggal_tagihan' => $data['tanggal_tagihan'],
             'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
             'total_tagihan' => $data['total_tagihan'],
-            'status_tagihan' => 'belum_bayar',
+            'status_tagihan' => $data['status_tagihan'] ?? 'belum_bayar',
         ]);
     }
 

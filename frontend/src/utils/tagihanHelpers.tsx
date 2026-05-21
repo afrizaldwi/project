@@ -47,6 +47,13 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
+  if (item.status_tagihan === "dibatalkan") {
+    return {
+      label: "Dibatalkan",
+      className: "bg-gray-100 text-gray-700",
+    };
+  }
+
   if (item.status_tagihan === "telat") {
     return {
       label: "Telat",

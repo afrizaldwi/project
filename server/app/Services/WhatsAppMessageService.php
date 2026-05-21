@@ -17,6 +17,15 @@ class WhatsAppMessageService
 
     public function generate(Tagihan $tagihan): array
     {
+        if (in_array($tagihan->status_tagihan, ['lunas', 'dibatalkan'], true)) {
+            return [
+                'enabled' => false,
+                'message' => null,
+                'url' => null,
+                'reason' => 'Tagihan sudah lunas atau dibatalkan.',
+            ];
+        }
+
         return $this->context->generate($tagihan);
     }
 }

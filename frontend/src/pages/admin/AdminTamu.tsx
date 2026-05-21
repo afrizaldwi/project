@@ -105,11 +105,6 @@ const AdminTamu = () => {
     }
   };
 
-  const handleExport = (format: "csv" | "json") => {
-    const url = `/api/admin/laporan/tamu?format=${format}`;
-    window.location.href = url;
-  };
-
   const stats = useMemo(() => {
     return {
       totalTamu: data.length,
@@ -151,7 +146,7 @@ const AdminTamu = () => {
       )}
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <TamuFilter search={search} setSearch={setSearch} onExport={handleExport} />
+        <TamuFilter search={search} setSearch={setSearch} />
 
         {isLoading ? (
           <div className="mt-5 rounded-xl border border-gray-100 p-6 text-center text-sm text-gray-500">

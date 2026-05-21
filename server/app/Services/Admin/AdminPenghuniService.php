@@ -2,7 +2,9 @@
 
 namespace App\Services\Admin;
 
+use App\Models\Pembayaran;
 use App\Models\RiwayatSewa;
+use App\Models\Tagihan;
 use App\Repositories\Admin\PenghuniRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -54,9 +56,9 @@ class AdminPenghuniService
         return $this->penghuniRepo->getKamarTersedia();
     }
 
-    public function createPenghuni(array $data): array
+    public function createPenghuni(array $data, $buktiBayar = null): array
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $buktiBayar) {
             $kamar = $this->penghuniRepo->findKamarTersediaForUpdate($data['id_kamar']);
 
             if (! $kamar) {
@@ -76,16 +78,32 @@ class AdminPenghuniService
                 'id_kamar' => $kamar->id_kamar,
                 'tanggal_masuk' => $tanggalMasuk->toDateString(),
                 'tanggal_keluar' => $tanggalKeluar->toDateString(),
-                'harga_deal' => $kamar->harga_bulanan,
+                'harga_deal' => $kamar->harga_bulanan * $durasiSewa,
                 'durasi_sewa_bulan' => $durasiSewa,
             ]);
 
-            $this->penghuniRepo->createTagihan([
+            $tagihan = $this->penghuniRepo->createTagihan([
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($user->id),
                 'tanggal_tagihan' => $tanggalMasuk->toDateString(),
                 'tanggal_jatuh_tempo' => $tanggalMasuk->copy()->addDays(7)->toDateString(),
-                'total_tagihan' => $kamar->harga_bulanan,
+                'total_tagihan' => $kamar->harga_bulanan * $durasiSewa,
+                'status_tagihan' => 'lunas',
+            ]);
+
+            $buktiBayarPath = null;
+
+            if ($buktiBayar) {
+                $buktiBayarPath = $buktiBayar->store('bukti-bayar', 'public');
+            }
+
+            Pembayaran::create([
+                'id_tagihan' => $tagihan->id_tagihan,
+                'tanggal_bayar' => $tanggalMasuk->toDateString(),
+                'jumlah_bayar' => $kamar->harga_bulanan * $durasiSewa,
+                'metode_pembayaran' => $data['metode_pembayaran'],
+                'bukti_bayar' => $buktiBayarPath,
+                'status_verifikasi' => 'diterima',
             ]);
 
             $kamar->status_kamar = 'terisi';
@@ -117,6 +135,16 @@ class AdminPenghuniService
             if ($sewa->kamar) {
                 $sewa->kamar->status_kamar = 'tersedia';
                 $sewa->kamar->save();
+            }
+
+            Tagihan::where('id_sewa', $sewa->id_sewa)
+                ->whereIn('status_tagihan', ['belum_bayar', 'telat'])
+                ->update([
+                    'status_tagihan' => 'dibatalkan',
+                ]);
+
+            if ($sewa->user) {
+                $sewa->user->tokens()->delete();
             }
 
             return [

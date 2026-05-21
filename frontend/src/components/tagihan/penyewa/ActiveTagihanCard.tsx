@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle, Upload } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import type { TagihanReminderItem } from "../../../types";
 import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
 
@@ -9,7 +9,7 @@ interface ActiveTagihanCardProps {
 }
 
 const canPay = (item: TagihanReminderItem) => {
-  if (item.status_tagihan === "lunas") return false;
+  if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
   if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
   return true;
 };
@@ -83,17 +83,19 @@ const ActiveTagihanCard: React.FC<ActiveTagihanCardProps> = ({
                     </div>
                   )}
 
-                <button
-                  type="button"
-                  disabled={!canPay(item)}
-                  onClick={() => onPay(item)}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:bg-dark/20 disabled:shadow-none"
-                >
-                  <Upload size={16} />
-                  {item.pembayaran_terbaru?.status_verifikasi === "pending"
-                    ? "Menunggu Verifikasi"
-                    : "Bayar Sekarang"}
-                </button>
+                {canPay(item) ? (
+                  <button
+                    type="button"
+                    onClick={() => onPay(item)}
+                    className="..."
+                  >
+                    Bayar Sekarang
+                  </button>
+                ) : item.pembayaran_terbaru?.status_verifikasi === "pending" ? (
+                  <p className="text-sm font-semibold text-yellow-600">
+                    Menunggu Verifikasi
+                  </p>
+                ) : null}
               </div>
             );
           })}

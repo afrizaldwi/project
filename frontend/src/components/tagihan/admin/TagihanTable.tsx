@@ -11,6 +11,7 @@ interface TagihanTableProps {
 
 const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
+
   const handleDownloadInvoicePdf = async (
     idPembayaran: number,
     idTagihan: number
@@ -26,6 +27,7 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
       setDownloadingInvoiceId(null);
     }
   };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-[900px] w-full text-left text-sm">
@@ -55,6 +57,17 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
           ) : (
             tagihan.map((item) => {
               const status = getStatusConfig(item);
+              const pembayaranTerbaru = item.pembayaran_terbaru;
+
+              const canDownloadPdf =
+                item.status_tagihan !== "dibatalkan" &&
+                pembayaranTerbaru?.status_verifikasi === "diterima";
+
+              const isClosedTagihan = ["lunas", "dibatalkan"].includes(item.status_tagihan);
+              const canSendWhatsApp =
+                !isClosedTagihan &&
+                item.whatsapp.enabled &&
+                Boolean(item.whatsapp.url);
 
               return (
                 <tr key={item.id_tagihan} className="transition-colors hover:bg-light/70">
@@ -85,34 +98,51 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
                   </td>
 
                   <td className="px-5 py-4">
-                    {item.whatsapp.enabled && item.whatsapp.url ? (
-                      <a
-                        href={item.whatsapp.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2 text-xs font-black text-success hover:bg-success/20"
-                      >
-                        <MessageCircle size={14} />
-                        Kirim WA
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDownloadInvoicePdf(
-                            item.pembayaran_terbaru!.id_pembayaran,
-                            item.id_tagihan
-                          )
-                        }
-                        disabled={downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran}
-                        className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Download size={14} />
-                        {downloadingInvoiceId === item.pembayaran_terbaru.id_pembayaran
-                          ? "..."
-                          : "PDF"}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {/* {item.whatsapp.enabled &&
+                          item.whatsapp.url &&
+                          !["lunas", "dibatalkan"].includes(item.status_tagihan) && (
+                            <a
+                              href={item.whatsapp.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <MessageCircle size={14} />
+                              Kirim WA
+                            </a>
+                          )} */}
+
+                      {canSendWhatsApp ? (
+                        <a
+                          href={item.whatsapp.url ?? "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 px-3 py-2 text-xs font-black text-success hover:bg-success/20 transition-colors"
+                        >
+                          <MessageCircle size={14} />
+                          WhatsApp
+                        </a>
+                      ) : null}
+
+                      {canDownloadPdf && pembayaranTerbaru && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDownloadInvoicePdf(
+                              pembayaranTerbaru.id_pembayaran,
+                              item.id_tagihan
+                            )
+                          }
+                          disabled={downloadingInvoiceId === pembayaranTerbaru.id_pembayaran}
+                          className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Download size={14} />
+                          {downloadingInvoiceId === pembayaranTerbaru.id_pembayaran
+                            ? "Mengunduh..."
+                            : "PDF"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

@@ -3,7 +3,6 @@ import {
     type FormEvent,
     useEffect,
     useMemo,
-    useRef,
     useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +21,7 @@ const makeSlug = (value: string) => {
         .replace(/\s+/g, ".");
 };
 
-const generateCredentialFromName = (name: string, suffix: string) => {
+const generateCredentialFromName = (name: string) => {
     const slug = makeSlug(name);
 
     if (!slug) {
@@ -34,7 +33,7 @@ const generateCredentialFromName = (name: string, suffix: string) => {
 
     return {
         email: `${slug}@kost.com`,
-        password: `Kost@${suffix}`,
+        password: `${slug}`,
     };
 };
 
@@ -71,11 +70,13 @@ const AdminTambahPenghuni = () => {
         id_kamar: "",
         tanggal_masuk: new Date().toISOString().slice(0, 10),
         durasi_sewa_bulan: "1",
+        metode_pembayaran: "",
+        bukti_bayar: null as File | null,
     });
 
-    const credentialSuffixRef = useRef(
-        Math.floor(100000 + Math.random() * 900000).toString()
-    );
+    // const credentialSuffixRef = useRef(
+    //     Math.floor(100000 + Math.random() * 900000).toString()
+    // );
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -157,7 +158,7 @@ const AdminTambahPenghuni = () => {
         if (name === "nama_lengkap") {
             const generatedCredential = generateCredentialFromName(
                 value,
-                credentialSuffixRef.current
+                // credentialSuffixRef.current
             );
 
             setForm((previous) => ({
@@ -203,16 +204,23 @@ const AdminTambahPenghuni = () => {
         try {
             setIsSubmitting(true);
 
-            await adminApi.createPenghuni({
-                nama_lengkap: form.nama_lengkap,
-                email: form.email,
-                password: form.password,
-                no_hp: form.no_hp,
-                alamat_asal: form.alamat_asal || undefined,
-                id_kamar: Number(form.id_kamar),
-                tanggal_masuk: form.tanggal_masuk,
-                durasi_sewa_bulan: Number(form.durasi_sewa_bulan),
-            });
+            const payload = new FormData();
+
+            payload.append("nama_lengkap", form.nama_lengkap);
+            payload.append("email", form.email);
+            payload.append("password", form.password);
+            payload.append("no_hp", form.no_hp);
+            payload.append("alamat_asal", form.alamat_asal || "");
+            payload.append("id_kamar", String(form.id_kamar));
+            payload.append("tanggal_masuk", form.tanggal_masuk);
+            payload.append("durasi_sewa_bulan", String(form.durasi_sewa_bulan));
+            payload.append("metode_pembayaran", form.metode_pembayaran);
+
+            if (form.bukti_bayar) {
+                payload.append("bukti_bayar", form.bukti_bayar);
+            }
+
+            await adminApi.createPenghuni(payload);
 
             navigate("/admin/penghuni");
         } catch (error: any) {

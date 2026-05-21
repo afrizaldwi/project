@@ -87,11 +87,6 @@ const AdminKeluhan = () => {
     }
   };
 
-  const handleExport = (format: "csv" | "json") => {
-    const url = `/api/admin/laporan/keluhan?format=${format}${statusFilter !== 'semua' ? `&status=${statusFilter}` : ''}`;
-    window.location.href = url;
-  };
-
   return (
     <main className="space-y-6 p-6">
       <KeluhanHeader />
@@ -115,7 +110,6 @@ const AdminKeluhan = () => {
           setSearch={setSearch}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
-          onExport={handleExport}
         />
 
         <KeluhanTable
