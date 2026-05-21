@@ -32,8 +32,8 @@ Route::get('/public/kamar', function () {
                 'nomor_kamar' => $kamar->nomor_kamar,
                 'harga_bulanan' => $kamar->harga_bulanan,
                 'status_kamar' => $kamar->status_kamar,
-                'foto_url' => $kamar->foto
-                    ? url(Storage::url($kamar->foto))
+                'foto_url' => $kamar->foto_kamar
+                    ? url(Storage::url($kamar->foto_kamar))
                     : null,
             ];
         });
