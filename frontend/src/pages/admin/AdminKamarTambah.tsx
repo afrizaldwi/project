@@ -4,6 +4,8 @@ import kamarService from "../../services/kamarService";
 import { type KamarFormData, defaultKamarForm } from "../../types";
 import KamarForm from "../../components/kamar/KamarForm";
 
+type KamarValidationErrors = Partial<Record<keyof KamarFormData, string[]>>;
+
 const AdminKamarTambah = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<KamarFormData>(defaultKamarForm());
@@ -32,6 +34,19 @@ const AdminKamarTambah = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const applyBackendErrors = (validationErrors?: KamarValidationErrors) => {
+    if (!validationErrors) return false;
+
+    const nextErrors: Partial<Record<keyof KamarFormData, string>> = {};
+
+    Object.entries(validationErrors).forEach(([field, messages]) => {
+      nextErrors[field as keyof KamarFormData] = messages?.[0];
+    });
+
+    setErrors(nextErrors);
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!validate()) return;
     setIsSubmitting(true);
@@ -39,7 +54,10 @@ const AdminKamarTambah = () => {
       await kamarService.create(form);
       navigate("/admin/kamar");
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: KamarValidationErrors } } };
+
+      if (applyBackendErrors(axiosErr?.response?.data?.errors)) return;
+
       alert(axiosErr?.response?.data?.message || "Gagal menyimpan kamar.");
     } finally {
       setIsSubmitting(false);

@@ -35,6 +35,7 @@ const KamarFilters = ({
         <option value="semua">Semua Status</option>
         <option value="tersedia">Tersedia</option>
         <option value="terisi">Terisi</option>
+        <option value="perbaikan">Perbaikan</option>
       </select>
       <div className="flex border border-gray-200 rounded-lg overflow-hidden">
         <button

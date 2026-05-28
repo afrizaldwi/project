@@ -6,6 +6,7 @@ use App\Models\Kamar;
 use App\Repositories\Contracts\KamarRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class KamarService
@@ -47,6 +48,22 @@ class KamarService
     {
         $kamar = $this->getById($id);
         $kamarData = $this->onlyKamarFields($data);
+        $requestedStatus = $kamarData['status_kamar'] ?? null;
+        $hasActiveSewa = $kamar->riwayatSewa()
+            ->where('status_sewa', 'aktif')
+            ->exists();
+
+        if ($requestedStatus !== null && $hasActiveSewa && $requestedStatus !== 'terisi') {
+            throw ValidationException::withMessages([
+                'status_kamar' => 'Kamar masih memiliki sewa aktif, status kamar harus tetap terisi.',
+            ]);
+        }
+
+        if ($requestedStatus === 'terisi' && ! $hasActiveSewa) {
+            throw ValidationException::withMessages([
+                'status_kamar' => 'Status terisi hanya dapat digunakan untuk kamar dengan sewa aktif.',
+            ]);
+        }
 
         if ($foto) {
             if ($kamar->foto_kamar) {
@@ -65,7 +82,7 @@ class KamarService
 
         if ($this->kamarRepository->hasRentalHistory($id)) {
             throw new RuntimeException(
-                'Kamar memiliki riwayat sewa, sehingga tidak boleh dihapus. Ubah status kamar menjadi perbaikan jika kamar tidak ingin dipakai sementara.'
+                'Kamar tidak dapat dihapus karena sudah memiliki riwayat sewa.'
             );
         }
 

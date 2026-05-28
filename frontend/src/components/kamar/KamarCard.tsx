@@ -1,4 +1,5 @@
 import type { Kamar } from "../../types";
+import { getKamarStatusDisplay } from "./kamarStatusDisplay";
 
 interface KamarCardProps {
   kamar: Kamar;
@@ -7,6 +8,7 @@ interface KamarCardProps {
 }
 
 const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
+  const status = getKamarStatusDisplay(kamar.status_kamar);
   const formatRupiah = (num: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 
@@ -31,12 +33,8 @@ const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
         ) : (
           <span className="text-4xl text-gray-300">🛏</span>
         )}
-        <span
-          className={`absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full ${
-            kamar.status_kamar === "tersedia" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-          }`}
-        >
-          {kamar.status_kamar === "tersedia" ? "Tersedia" : "Terisi"}
+        <span className={`absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full ${status.className}`}>
+          {status.label}
         </span>
       </div>
 

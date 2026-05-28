@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CookieConsent from "../components/CookieConsent";
+import type { KamarStatus } from "../types";
 
 type LandingKamar = {
     id_kamar: number;
     nomor_kamar: string;
     harga_bulanan: number | string;
-    status_kamar: "tersedia" | "terisi" | string;
+    status_kamar: KamarStatus;
     foto_url?: string | null;
 };
 
@@ -234,14 +235,6 @@ const Landing = () => {
                                 <div className="p-5">
                                     <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-bold text-dark">{room.nomor_kamar}</h4>
-                                        <span
-                                            className={`text-xs px-2 py-1 rounded-full font-medium ${room.status_kamar === "tersedia"
-                                                ? "bg-green-100 text-green-600"
-                                                : "bg-red-100 text-red-500"
-                                                }`}
-                                        >
-                                            {room.status_kamar}
-                                        </span>
                                     </div>
                                     <p className="text-primary font-bold text-lg mb-1">
                                         {formatRupiah(room.harga_bulanan)}

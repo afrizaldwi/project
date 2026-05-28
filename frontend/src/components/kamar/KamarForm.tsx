@@ -1,4 +1,4 @@
-import type { KamarFormData } from "../../types";
+import type { KamarFormData, KamarStatus } from "../../types";
 import KamarImageUpload from "./KamarImageUpload";
 
 interface KamarFormProps {
@@ -10,7 +10,15 @@ interface KamarFormProps {
   onFotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+const statusLabels: Record<KamarStatus, string> = {
+  tersedia: "Tersedia",
+  terisi: "Terisi",
+  perbaikan: "Perbaikan",
+};
+
 const KamarForm = ({ form, errors, preview, existingFoto, onChange, onFotoChange }: KamarFormProps) => {
+  const isStatusReadOnly = form.status_kamar === "terisi";
+
   return (
     <div className="px-6 py-6">
       <div className="grid grid-cols-2 gap-5 mb-5">
@@ -53,7 +61,22 @@ const KamarForm = ({ form, errors, preview, existingFoto, onChange, onFotoChange
 
         <div>
           <label className="block text-xs font-bold text-gray-500 mb-1.5">Status Kamar *</label>
-          <span>{form.status_kamar}</span>
+          {isStatusReadOnly ? (
+            <span className="inline-flex min-h-[42px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm font-bold text-gray-600">
+              {statusLabels[form.status_kamar]}
+            </span>
+          ) : (
+            <select
+              name="status_kamar"
+              value={form.status_kamar}
+              onChange={onChange}
+              className={`w-full border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary ${errors.status_kamar ? "border-red-400" : "border-gray-200"}`}
+            >
+              <option value="tersedia">{statusLabels.tersedia}</option>
+              <option value="perbaikan">{statusLabels.perbaikan}</option>
+            </select>
+          )}
+          {errors.status_kamar && <p className="text-xs text-red-500 mt-1">{errors.status_kamar}</p>}
         </div>
       </div>
 
