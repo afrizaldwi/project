@@ -20,6 +20,17 @@ class AuthService
                 'message' => 'Email atau password salah.',
             ];
         }
+
+        if (
+            $user->role === 'penyewa' &&
+            ! $user->riwayatSewa()->where('status_sewa', 'aktif')->exists()
+        ) {
+            return [
+                'success' => false,
+                'message' => 'Akun penyewa sudah tidak aktif.',
+            ];
+        }
+
         $token = null;
 
         if ($request->hasSession()) {

@@ -235,7 +235,7 @@ const Landing = () => {
                                     <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-bold text-dark">{room.nomor_kamar}</h4>
                                         <span
-                                            className={`text-xs px-2 py-1 rounded-full font-medium ${room.status_kamar === "Tersedia"
+                                            className={`text-xs px-2 py-1 rounded-full font-medium ${room.status_kamar === "tersedia"
                                                 ? "bg-green-100 text-green-600"
                                                 : "bg-red-100 text-red-500"
                                                 }`}

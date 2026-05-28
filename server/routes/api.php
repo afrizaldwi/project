@@ -45,14 +45,15 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile', [AuthController::class, 'profile'])
+        ->middleware('penyewa.active');
 
     Route::get('/notifikasi', [TagihanReminderController::class, 'notifications']);
     Route::patch('/notifikasi/{idNotifikasi}/read', [TagihanReminderController::class, 'markNotificationAsRead']);
     Route::post('/mobile/device-token', [TagihanReminderController::class, 'registerDeviceToken']);
     Route::get('/tagihan/{idTagihan}/whatsapp-message', [TagihanReminderController::class, 'whatsappMessage']);
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('admin.only')->group(function () {
         Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
 
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);
@@ -90,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/keluhan/{id}', [KeluhanController::class, 'destroy']);
     });
 
-    Route::prefix('penyewa')->group(function () {
+    Route::prefix('penyewa')->middleware('penyewa.active')->group(function () {
         Route::get('/dashboard-summary', [PenyewaDashboardController::class, 'summary']);
 
         Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);
