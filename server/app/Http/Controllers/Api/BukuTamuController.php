@@ -16,7 +16,11 @@ class BukuTamuController extends Controller
         $query = BukuTamu::with('dikunjungi')
             ->orderByDesc('waktu_berkunjung');
 
-        if ($request->filled('id_user')) {
+        $user = $request->user();
+
+        if ($user?->role === 'penyewa') {
+            $query->where('bertemu_dengan', $user->id);
+        } elseif ($request->filled('id_user')) {
             $query->where('bertemu_dengan', $request->integer('id_user'));
         }
 

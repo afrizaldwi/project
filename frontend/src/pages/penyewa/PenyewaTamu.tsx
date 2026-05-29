@@ -31,7 +31,7 @@ const PenyewaTamu = () => {
     setError(null);
 
     try {
-      const tamu = await tamuService.getPenyewaTamu(user.id);
+      const tamu = await tamuService.getPenyewaTamu();
       setData(tamu);
     } catch {
       setError("Gagal memuat riwayat tamu.");
