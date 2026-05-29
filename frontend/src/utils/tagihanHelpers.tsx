@@ -20,10 +20,36 @@ export const formatDate = (value: string, longMonth: boolean = false) => {
   });
 };
 
-export const getStatusConfig = (item: TagihanReminderItem) => {
-  const paymentStatus = item.pembayaran_terbaru?.status_verifikasi;
+const paymentStatus = (item: TagihanReminderItem) =>
+  item.pembayaran_terbaru?.status_verifikasi;
 
-  if (item.status_tagihan === "lunas" || paymentStatus === "diterima") {
+export const isTagihanPaid = (item: TagihanReminderItem) =>
+  item.status_tagihan === "lunas" || paymentStatus(item) === "diterima";
+
+export const isTagihanCanceled = (item: TagihanReminderItem) =>
+  item.status_tagihan === "dibatalkan";
+
+export const isTagihanOpen = (item: TagihanReminderItem) =>
+  !isTagihanPaid(item) && !isTagihanCanceled(item);
+
+const isPastDue = (value: string) => {
+  if (!value) return false;
+
+  const dueDate = new Date(value);
+  if (Number.isNaN(dueDate.getTime())) return false;
+
+  dueDate.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return dueDate < today;
+};
+
+export const getStatusConfig = (item: TagihanReminderItem) => {
+  const latestPaymentStatus = paymentStatus(item);
+
+  if (isTagihanPaid(item)) {
     return {
       label: "Lunas",
       className: "bg-success/10 text-success",
@@ -31,7 +57,7 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
-  if (paymentStatus === "pending") {
+  if (latestPaymentStatus === "pending") {
     return {
       label: "Menunggu",
       className: "bg-warning/10 text-warning",
@@ -39,7 +65,7 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
-  if (paymentStatus === "ditolak") {
+  if (latestPaymentStatus === "ditolak") {
     return {
       label: "Ditolak",
       className: "bg-danger/10 text-danger",
@@ -47,14 +73,14 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
-  if (item.status_tagihan === "dibatalkan") {
+  if (isTagihanCanceled(item)) {
     return {
       label: "Dibatalkan",
       className: "bg-gray-100 text-gray-700",
     };
   }
 
-  if (item.status_tagihan === "telat") {
+  if (item.status_tagihan === "telat" || isPastDue(item.tanggal_jatuh_tempo)) {
     return {
       label: "Telat",
       className: "bg-danger/10 text-danger",
@@ -64,7 +90,7 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
 
   return {
     label: "Belum Bayar",
-    className: "bg-danger/10 text-danger",
+    className: "bg-warning/10 text-warning",
     icon: React.createElement(XCircle, { size: 14 }),
   };
 };

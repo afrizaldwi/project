@@ -8,6 +8,7 @@ import type {
   PendingPembayaranItem,
   TagihanReminderItem,
 } from "../../types";
+import { isTagihanOpen, isTagihanPaid } from "../../utils/tagihanHelpers";
 
 import TagihanStats from "../../components/tagihan/admin/TagihanStats";
 import TagihanTable from "../../components/tagihan/admin/TagihanTable";
@@ -30,10 +31,8 @@ const AdminTagihan = () => {
   const stats = useMemo(() => {
     return {
       total: tagihan.length,
-      lunas: tagihan.filter((item) => item.status_tagihan === "lunas").length,
-      belum: tagihan.filter(
-        (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
-      ).length,
+      lunas: tagihan.filter((item) => isTagihanPaid(item)).length,
+      belum: tagihan.filter((item) => isTagihanOpen(item)).length,
       pending: pendingPayments.length,
     };
   }, [tagihan, pendingPayments]);

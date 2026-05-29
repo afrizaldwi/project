@@ -1,7 +1,12 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import type { TagihanReminderItem } from "../../../types";
-import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
+import {
+  formatRupiah,
+  formatDate,
+  getStatusConfig,
+  isTagihanOpen,
+} from "../../../utils/tagihanHelpers";
 
 interface ActiveTagihanCardProps {
   activeTagihan: TagihanReminderItem[];
@@ -9,7 +14,7 @@ interface ActiveTagihanCardProps {
 }
 
 const canPay = (item: TagihanReminderItem) => {
-  if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
+  if (!isTagihanOpen(item)) return false;
   if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
   return true;
 };

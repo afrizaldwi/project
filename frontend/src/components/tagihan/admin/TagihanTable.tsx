@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Download, MessageCircle } from "lucide-react";
 import type { TagihanReminderItem } from "../../../types";
-import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
+import {
+  formatRupiah,
+  formatDate,
+  getStatusConfig,
+  isTagihanOpen,
+} from "../../../utils/tagihanHelpers";
 import { downloadPdfBlob, invoiceApi } from "../../../api/invoice";
 
 interface TagihanTableProps {
@@ -63,9 +68,8 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
                 item.status_tagihan !== "dibatalkan" &&
                 pembayaranTerbaru?.status_verifikasi === "diterima";
 
-              const isClosedTagihan = ["lunas", "dibatalkan"].includes(item.status_tagihan);
               const canSendWhatsApp =
-                !isClosedTagihan &&
+                isTagihanOpen(item) &&
                 item.whatsapp.enabled &&
                 Boolean(item.whatsapp.url);
 

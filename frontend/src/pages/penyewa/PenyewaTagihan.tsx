@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
 import type { NotifikasiItem, TagihanReminderItem } from "../../types";
+import { isTagihanOpen, isTagihanPaid } from "../../utils/tagihanHelpers";
 
 import ActiveTagihanCard from "../../components/tagihan/penyewa/ActiveTagihanCard";
 import RiwayatPembayaranTable from "../../components/tagihan/penyewa/RiwayatPembayaranTable";
@@ -23,13 +24,11 @@ const PenyewaTagihan = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const activeTagihan = useMemo(() => {
-    return tagihan.filter(
-      (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
-    );
+    return tagihan.filter((item) => isTagihanOpen(item));
   }, [tagihan]);
 
   const riwayatPembayaran = useMemo(() => {
-    return tagihan.filter((item) => item.status_tagihan === "lunas");
+    return tagihan.filter((item) => isTagihanPaid(item));
   }, [tagihan]);
 
   const fetchData = async () => {
@@ -57,7 +56,7 @@ const PenyewaTagihan = () => {
   }, []);
 
   const canPay = (item: TagihanReminderItem) => {
-    if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
+    if (!isTagihanOpen(item)) return false;
     if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
     return true;
   };
