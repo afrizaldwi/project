@@ -7,6 +7,7 @@ use App\Services\Admin\AdminPenghuniService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AdminPenghuniController extends Controller
 {
@@ -44,18 +45,24 @@ class AdminPenghuniController extends Controller
 
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
-            'password' => ['required', 'string', 'min:8'],
-            'no_hp' => ['required', 'string', 'max:20'],
+            'no_hp' => ['required', 'string'],
             'alamat_asal' => ['nullable', 'string'],
 
             'id_kamar' => ['required', 'integer', Rule::exists('kamar', 'id_kamar')],
             'tanggal_masuk' => ['required', 'date'],
             'durasi_sewa_bulan' => ['required', 'integer', 'min:1'],
 
-            'metode_pembayaran' => ['required', 'string', 'max:50'],
+            'metode_pembayaran' => ['nullable', 'string', 'max:50'],
             'bukti_bayar' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
+
+        $validated['no_hp'] = $this->normalizeIndonesianPhoneNumber($validated['no_hp']);
+
+        if (! $validated['no_hp']) {
+            throw ValidationException::withMessages([
+                'no_hp' => 'Nomor HP harus berupa nomor WhatsApp Indonesia yang valid.',
+            ]);
+        }
 
         return response()->json(
             $this->adminPenghuniService->createPenghuni(
@@ -80,6 +87,23 @@ class AdminPenghuniController extends Controller
                 $validated['tanggal_keluar'] ?? null
             )
         );
+    }
+
+    private function normalizeIndonesianPhoneNumber(string $phoneNumber): ?string
+    {
+        $digits = preg_replace('/\D+/', '', $phoneNumber) ?? '';
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        } elseif (str_starts_with($digits, '8')) {
+            $digits = '62' . $digits;
+        }
+
+        if (! preg_match('/^628\d{8,11}$/', $digits)) {
+            return null;
+        }
+
+        return $digits;
     }
 
     private function authorizeAdmin(Request $request): void
