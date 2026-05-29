@@ -22,7 +22,6 @@ export interface AuthContextType {
 export interface LoginResponse {
   message: string;
   user: User;
-  token?: string;
 }
 
 export interface ProfileResponse {

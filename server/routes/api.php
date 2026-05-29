@@ -43,7 +43,8 @@ Route::post('/track-visitor', [VisitorController::class, 'track']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
+    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile'])
         ->middleware('penyewa.active');

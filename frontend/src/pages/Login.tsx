@@ -39,8 +39,7 @@ const Login = () => {
       } else if (user.role === "penyewa") {
         navigate("/penyewa/dashboard", { replace: true });
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
       setError("Email atau password salah.");
     } finally {
       setIsLoadingSubmit(false);

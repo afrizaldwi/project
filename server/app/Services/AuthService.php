@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthService
 {
@@ -21,34 +23,28 @@ class AuthService
             ];
         }
 
-        if (
-            $user->role === 'penyewa' &&
-            ! $user->riwayatSewa()->where('status_sewa', 'aktif')->exists()
-        ) {
+        if ($this->isInactivePenyewa($user)) {
             return [
                 'success' => false,
                 'message' => 'Akun penyewa sudah tidak aktif.',
             ];
         }
 
-        $token = null;
-
-        if ($request->hasSession()) {
-            Auth::login($user);
-            $request->session()->regenerate();
-        } else {
-            $token = $user->createToken('authToken')->plainTextToken;
-        }
-
         return [
             'success' => true,
             'user' => $user,
-            'token' => $token,
+            'token' => JWTAuth::fromUser($user),
         ];
     }
 
     public function logout(Request $request): void
     {
+        try {
+            JWTAuth::parseToken()->invalidate();
+        } catch (JWTException) {
+            // Logout should be idempotent even when the token was already invalidated.
+        }
+
         $user = $request->user();
 
         if ($user) {
@@ -66,8 +62,25 @@ class AuthService
         }
     }
 
+    public function refresh(Request $request): array
+    {
+        $user = $request->user('api');
+        $token = JWTAuth::parseToken()->refresh();
+
+        return [
+            'user' => $user,
+            'token' => $token,
+        ];
+    }
+
     public function profile(User $user): User
     {
         return $user;
+    }
+
+    private function isInactivePenyewa(User $user): bool
+    {
+        return $user->role === 'penyewa'
+            && ! $user->riwayatSewa()->where('status_sewa', 'aktif')->exists();
     }
 }
