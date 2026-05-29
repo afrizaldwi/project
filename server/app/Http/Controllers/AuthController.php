@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
+use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class AuthController extends Controller
 {
@@ -74,7 +75,7 @@ class AuthController extends Controller
             : $this->webJwtAuthStrategy;
     }
 
-    private function forgetJwtCookie(): \Symfony\Component\HttpFoundation\Cookie
+    private function forgetJwtCookie(): SymfonyCookie
     {
         return Cookie::forget(
             (string) config('jwt.cookie_key_name', 'jwt_token'),
