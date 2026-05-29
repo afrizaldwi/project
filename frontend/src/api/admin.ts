@@ -27,11 +27,7 @@ const adminApi = {
     },
 
     createPenghuni: async (payload: FormData) => {
-        const response = await api.post("/admin/penghuni", payload, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
+        const response = await api.post("/admin/penghuni", payload);
 
         return response.data;
     },
