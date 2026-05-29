@@ -93,7 +93,7 @@ class AdminPenghuniService
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($user->id),
                 'tanggal_tagihan' => $tanggalMasuk->toDateString(),
-                'tanggal_jatuh_tempo' => $tanggalMasuk->copy()->addDays(7)->toDateString(),
+                'tanggal_jatuh_tempo' => $tanggalMasuk->toDateString(),
                 'total_tagihan' => $kamar->harga_bulanan * $durasiSewa,
                 'status_tagihan' => 'lunas',
             ]);
