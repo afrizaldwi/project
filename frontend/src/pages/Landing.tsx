@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import api from "../api/axios";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CookieConsent from "../components/CookieConsent";
 import type { KamarStatus } from "../types";
@@ -30,17 +31,9 @@ const Landing = () => {
     const [rooms, setRooms] = useState<LandingKamar[]>([]);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/public/kamar", {
-            headers: {
-                Accept: "application/json",
-            },
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error("Gagal mengambil data kamar");
-                return res.json();
-            })
-            .then((data) => {
-                setRooms(data);
+        api.get<LandingKamar[]>("/public/kamar")
+            .then((response) => {
+                setRooms(response.data);
             })
             .catch(() => {
                 setRooms([]);
@@ -220,17 +213,25 @@ const Landing = () => {
                         Pilih kamar yang sesuai dengan kebutuhan Anda
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {rooms.map((room, i) => (
+                        {rooms.map((room) => (
                             <div
-                                key={i}
+                                key={room.id_kamar}
                                 className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
                             >
-                                <div className="bg-gray-200 h-48 flex items-center justify-center">
-                                    <img
-                                        className="text-gray-400 text-sm h-full w-full object-cover"
-                                        src={room.foto_url ?? undefined}
-                                        alt={`Kamar ${room.nomor_kamar}`}
-                                    />
+                                <div className="relative bg-gray-200 h-48 flex items-center justify-center overflow-hidden">
+                                    <span className="text-gray-400 text-sm font-medium">
+                                        Foto kamar belum tersedia
+                                    </span>
+                                    {room.foto_url && (
+                                        <img
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                            src={room.foto_url}
+                                            alt={`Kamar ${room.nomor_kamar}`}
+                                            onError={(event) => {
+                                                event.currentTarget.style.display = "none";
+                                            }}
+                                        />
+                                    )}
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center justify-between mb-2">
