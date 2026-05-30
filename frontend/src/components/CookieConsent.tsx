@@ -4,11 +4,39 @@ interface CookieConsentProps {
   onAccept?: () => void;
 }
 
+export type CookieConsentValue = "accepted" | "rejected";
+
+const COOKIE_CONSENT_KEY = "cookie_consent";
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
+
+const isCookieConsentValue = (value: string | null): value is CookieConsentValue =>
+  value === "accepted" || value === "rejected";
+
+const getBrowserCookieConsent = (): CookieConsentValue | null => {
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${COOKIE_CONSENT_KEY}=`));
+
+  if (!cookie) {
+    return null;
+  }
+
+  const value = decodeURIComponent(cookie.split("=")[1] ?? "");
+
+  return isCookieConsentValue(value) ? value : null;
+};
+
+export const saveCookieConsent = (consent: CookieConsentValue) => {
+  document.cookie = `${COOKIE_CONSENT_KEY}=${consent}; Max-Age=${COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`;
+};
+
+export const getCookieConsent = (): CookieConsentValue | null => getBrowserCookieConsent();
+
 const CookieConsent = ({ onAccept }: CookieConsentProps) => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("cookie_consent");
+    const consent = getCookieConsent();
 
     if (!consent) {
       setShow(true);
@@ -16,23 +44,30 @@ const CookieConsent = ({ onAccept }: CookieConsentProps) => {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("cookie_consent", "accepted");
+    saveCookieConsent("accepted");
     setShow(false);
     onAccept?.();
   };
 
   const handleDecline = () => {
-    localStorage.setItem("cookie_consent", "declined");
+    saveCookieConsent("rejected");
     setShow(false);
   };
 
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-xl rounded-xl bg-white p-4 shadow-lg border">
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-3xl rounded-xl bg-white p-4 shadow-lg border">
+      <h2 className="mb-2 text-base font-semibold text-gray-900">
+        Persetujuan Cookies
+      </h2>
+
       <p className="mb-4 text-sm text-gray-700">
-        Kami menggunakan cookies untuk melacak kunjungan Anda. Apakah Anda
-        menyetujui penggunaan cookies?
+        Kami menggunakan cookies untuk menyimpan pilihan persetujuan Anda dan
+        membantu menghitung statistik kunjungan halaman. Data kunjungan
+        disimpan secara anonim, tanpa menyimpan informasi
+        browser secara langsung. Apakah Anda menyetujui penggunaan cookies
+        untuk statistik kunjungan?
       </p>
 
       <div className="flex justify-end gap-3">

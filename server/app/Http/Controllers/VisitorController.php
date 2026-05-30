@@ -14,6 +14,12 @@ class VisitorController extends Controller
 
     public function track(Request $request): JsonResponse
     {
+        if ($request->input('analytics_consent') !== true) {
+            return response()->json([
+                'message' => 'Visit tracking ignored because analytics consent was not granted.',
+            ]);
+        }
+
         $tracked = $this->visitorTrackingService->track($request);
 
         if (! $tracked) {

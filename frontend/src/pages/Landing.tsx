@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useState, useEffect, useRef, useCallback } from "react";
-import CookieConsent from "../components/CookieConsent";
+import CookieConsent, { getCookieConsent } from "../components/CookieConsent";
 import type { KamarStatus } from "../types";
 
 type LandingKamar = {
@@ -51,7 +51,7 @@ const Landing = () => {
     };
 
     const sendTracking = useCallback(() => {
-        const consent = localStorage.getItem("cookie_consent");
+        const consent = getCookieConsent();
 
         if (consent !== "accepted" || hasSentTrackingRef.current) {
             return;
@@ -59,7 +59,7 @@ const Landing = () => {
 
         hasSentTrackingRef.current = true;
 
-        const payload = JSON.stringify({});
+        const payload = JSON.stringify({ analytics_consent: true });
 
         const blob = new Blob([payload], {
             type: "application/json",
@@ -91,7 +91,7 @@ const Landing = () => {
     }, []);
 
     useEffect(() => {
-        if (localStorage.getItem("cookie_consent") === "accepted") {
+        if (getCookieConsent() === "accepted") {
             sendTracking();
         }
 
