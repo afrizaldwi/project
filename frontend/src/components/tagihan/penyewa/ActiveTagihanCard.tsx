@@ -97,7 +97,7 @@ const ActiveTagihanCard: React.FC<ActiveTagihanCardProps> = ({
                     Bayar Sekarang
                   </button>
                 ) : item.pembayaran_terbaru?.status_verifikasi === "pending" ? (
-                  <p className="text-sm font-semibold text-yellow-600">
+                  <p className="text-sm font-bold text-warning text-center py-4">
                     Menunggu Verifikasi
                   </p>
                 ) : null}
