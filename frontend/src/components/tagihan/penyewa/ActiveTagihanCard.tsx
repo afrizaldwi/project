@@ -92,7 +92,7 @@ const ActiveTagihanCard: React.FC<ActiveTagihanCardProps> = ({
                   <button
                     type="button"
                     onClick={() => onPay(item)}
-                    className="..."
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:bg-dark/20 disabled:shadow-none"
                   >
                     Bayar Sekarang
                   </button>
