@@ -38,9 +38,15 @@ class AuthController extends Controller
     {
         $this->authService->logout($req);
 
-        return response()->json([
-            'message' => 'Logout Berhasil',
-        ])->withCookie($this->forgetJwtCookie());
+        $response = response()->json([
+            "message" => "Logout Berhasil",
+        ]);
+
+        foreach ($this->logoutCookies() as $cookie) {
+            $response->withCookie($cookie);
+        }
+
+        return $response;
     }
 
     public function profile(Request $req): JsonResponse
@@ -83,4 +89,35 @@ class AuthController extends Controller
             null
         );
     }
+    /**
+     * @return SymfonyCookie[]
+     */
+    private function logoutCookies(): array
+    {
+        $cookies = [
+            $this->forgetJwtCookie(),
+            Cookie::forget("XSRF-TOKEN", "/", null),
+            Cookie::forget("laravel_session", "/", null),
+        ];
+
+        $sessionCookie = (string) config("session.cookie", "laravel_session");
+
+        if ($sessionCookie !== "laravel_session") {
+            $cookies[] = Cookie::forget($sessionCookie, "/", null);
+        }
+
+        $sessionDomain = config("session.domain");
+
+        if (is_string($sessionDomain) && $sessionDomain !== "") {
+            $cookies[] = Cookie::forget("XSRF-TOKEN", "/", $sessionDomain);
+            $cookies[] = Cookie::forget("laravel_session", "/", $sessionDomain);
+
+            if ($sessionCookie !== "laravel_session") {
+                $cookies[] = Cookie::forget($sessionCookie, "/", $sessionDomain);
+            }
+        }
+
+        return $cookies;
+    }
+
 }

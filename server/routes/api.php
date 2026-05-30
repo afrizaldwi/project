@@ -16,12 +16,6 @@ use App\Models\Kamar;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-Route::get('/csrf-token', function () {
-    return response()->json([
-        'token' => csrf_token(),
-    ]);
-});
-
 Route::get('/public/kamar', function () {
     return Kamar::query()
         ->orderBy('nomor_kamar')
