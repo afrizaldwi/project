@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\PersonalAccessToken;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
@@ -43,22 +41,6 @@ class AuthService
             JWTAuth::parseToken()->invalidate();
         } catch (JWTException) {
             // Logout should be idempotent even when the token was already invalidated.
-        }
-
-        $user = $request->user();
-
-        if ($user) {
-            $token = $user->currentAccessToken();
-
-            if ($token instanceof PersonalAccessToken) {
-                $token->delete();
-            }
-        }
-
-        if ($request->hasSession()) {
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
         }
     }
 

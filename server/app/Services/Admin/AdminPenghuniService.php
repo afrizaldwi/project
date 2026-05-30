@@ -152,10 +152,6 @@ class AdminPenghuniService
                     'status_tagihan' => 'dibatalkan',
                 ]);
 
-            if ($sewa->user) {
-                $sewa->user->tokens()->delete();
-            }
-
             return [
                 'message' => 'Penghuni berhasil diarsipkan sebagai alumni.',
             ];
