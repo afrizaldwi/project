@@ -1,4 +1,5 @@
 import type { Keluhan, KeluhanStatus } from "../../types";
+import { getStorageUrl } from "../../utils/storageUrl";
 import { TableHead, TableCell } from "../ui/Table";
 
 const statusLabel: Record<KeluhanStatus, string> = {
@@ -11,23 +12,6 @@ const statusClass: Record<KeluhanStatus, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
   proses: "bg-blue-50 text-blue-700 border-blue-200",
   selesai: "bg-green-50 text-green-700 border-green-200",
-};
-
-const getStorageBaseUrl = () => {
-  return (import.meta.env.VITE_STORAGE_URL || "http://localhost:8000").replace(/\/$/, "");
-};
-
-const getStorageUrl = (path?: string | null) => {
-  if (!path) return null;
-
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path
-      .replace("http://kost-nginx", getStorageBaseUrl())
-      .replace("https://kost-nginx", getStorageBaseUrl())
-      .replace("http://localhost/storage", `${getStorageBaseUrl()}/storage`);
-  }
-
-  return `${getStorageBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 };
 
 const formatTanggal = (value?: string | null) => {
@@ -126,7 +110,7 @@ export const KeluhanTable = ({
                 {item.foto_kerusakan ? (
                   <div className="flex flex-col gap-1.5 min-w-[90px]">
                     {item.foto_kerusakan.split(",").map((path, idx) => {
-                      const url = getStorageUrl("/storage/" + path.trim());
+                      const url = getStorageUrl(path);
                       return url ? (
                         <button
                           key={idx}

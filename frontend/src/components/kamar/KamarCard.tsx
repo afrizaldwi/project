@@ -1,4 +1,5 @@
 import type { Kamar } from "../../types";
+import { getStorageUrl } from "../../utils/storageUrl";
 import { getKamarStatusDisplay } from "./kamarStatusDisplay";
 
 interface KamarCardProps {
@@ -9,6 +10,9 @@ interface KamarCardProps {
 
 const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
   const status = getKamarStatusDisplay(kamar.status_kamar);
+  const fotoKamarUrl = getStorageUrl(kamar.foto_kamar);
+  console.log(fotoKamarUrl);
+
   const formatRupiah = (num: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 
@@ -24,9 +28,9 @@ const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div className="relative h-40 bg-gray-100 flex items-center justify-center">
-        {kamar.foto_kamar ? (
+        {fotoKamarUrl ? (
           <img
-            src={`http://localhost:8000/storage/${kamar.foto_kamar}`}
+            src={fotoKamarUrl}
             alt={`Kamar ${kamar.nomor_kamar}`}
             className="w-full h-full object-cover"
           />

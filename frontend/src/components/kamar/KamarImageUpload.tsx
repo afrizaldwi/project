@@ -1,3 +1,5 @@
+import { getStorageUrl } from "../../utils/storageUrl";
+
 interface KamarImageUploadProps {
   preview: string | null;
   existingFoto?: string | null;
@@ -5,7 +7,7 @@ interface KamarImageUploadProps {
 }
 
 const KamarImageUpload = ({ preview, existingFoto, onChange }: KamarImageUploadProps) => {
-  const displayImage = preview || (existingFoto ? `http://localhost:8000/storage/${existingFoto}` : null);
+  const displayImage = preview || getStorageUrl(existingFoto);
 
   return (
     <div>

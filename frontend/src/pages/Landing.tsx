@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { getStorageUrl } from "../utils/storageUrl";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CookieConsent, { getCookieConsent } from "../components/CookieConsent";
 import type { KamarStatus } from "../types";
@@ -34,6 +35,8 @@ const Landing = () => {
         api.get<LandingKamar[]>("/public/kamar")
             .then((response) => {
                 setRooms(response.data);
+                console.log(response.data);
+
             })
             .catch(() => {
                 setRooms([]);
@@ -225,7 +228,7 @@ const Landing = () => {
                                     {room.foto_url && (
                                         <img
                                             className="absolute inset-0 h-full w-full object-cover"
-                                            src={room.foto_url}
+                                            src={getStorageUrl(room.foto_url)}
                                             alt={`Kamar ${room.nomor_kamar}`}
                                             onError={(event) => {
                                                 event.currentTarget.style.display = "none";

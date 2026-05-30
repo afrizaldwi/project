@@ -2,6 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import type { PendingPembayaranItem } from "../../../types";
 import { formatRupiah } from "../../../utils/tagihanHelpers";
+import { getStorageUrl } from "../../../utils/storageUrl";
 
 interface PaymentVerificationModalProps {
   preview: PendingPembayaranItem;
@@ -20,6 +21,12 @@ const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> = ({
   onVerify,
   verifyingId,
 }) => {
+  const buktiBayarUrl = getStorageUrl(preview.bukti_bayar_url || preview.bukti_bayar);
+  const proofPath = buktiBayarUrl.toLowerCase().split("?")[0].split("#")[0];
+  const isImageProof = [".jpg", ".jpeg", ".png", ".webp"].some((ext) =>
+    proofPath.endsWith(ext)
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
@@ -59,12 +66,12 @@ const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> = ({
             </div>
           </div>
 
-          {preview.bukti_bayar_url ? (
+          {buktiBayarUrl ? (
             <div className="space-y-3">
-              {/\.(jpg|jpeg|png|webp)$/i.test(preview.bukti_bayar_url) ? (
-                <a href={preview.bukti_bayar_url} target="_blank" rel="noreferrer">
+              {isImageProof ? (
+                <a href={buktiBayarUrl} target="_blank" rel="noreferrer">
                   <img
-                    src={preview.bukti_bayar_url}
+                    src={buktiBayarUrl}
                     alt="Bukti pembayaran"
                     className="max-h-72 w-full rounded-xl border border-gray-100 object-contain"
                   />
@@ -76,7 +83,7 @@ const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> = ({
               )}
 
               <a
-                href={preview.bukti_bayar_url}
+                href={buktiBayarUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="block rounded-xl border border-primary/20 bg-primary/10 p-4 text-center text-sm font-black text-primary hover:bg-primary/20"
