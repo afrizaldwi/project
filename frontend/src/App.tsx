@@ -20,6 +20,7 @@ import AdminTambahPenghuni from "./pages/admin/AdminTambahPenghuni";
 import AdminKamarTambah from "./pages/admin/AdminKamarTambah";
 import AdminKamarEdit from "./pages/admin/AdminKamarEdit";
 import AdminPenghuniPerpanjang from "./pages/admin/AdminPenghuniPerpanjang";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -63,6 +64,8 @@ function App() {
             <Route path="keluhan" element={<PenyewaKeluhan />} />
             <Route path="profil" element={<PenyewaProfil />} />
           </Route>
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
