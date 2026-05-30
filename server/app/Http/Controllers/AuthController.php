@@ -39,7 +39,7 @@ class AuthController extends Controller
         $this->authService->logout($req);
 
         $response = response()->json([
-            "message" => "Logout Berhasil",
+            'message' => 'Logout Berhasil',
         ]);
 
         foreach ($this->logoutCookies() as $cookie) {
@@ -54,6 +54,32 @@ class AuthController extends Controller
         return response()->json([
             'user' => $this->authService->profile($req->user())
         ]);
+    }
+
+    public function updatePassword(Request $req): JsonResponse
+    {
+        $validated = $req->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $this->authService->changePassword(
+            $req->user(),
+            $validated['current_password'],
+            $validated['password']
+        );
+
+        $this->authService->logout($req);
+
+        $response = response()->json([
+            'message' => 'Password berhasil diubah. Silakan login kembali.',
+        ]);
+
+        foreach ($this->logoutCookies() as $cookie) {
+            $response->withCookie($cookie);
+        }
+
+        return $response;
     }
 
     public function refresh(Request $req): JsonResponse
@@ -89,6 +115,7 @@ class AuthController extends Controller
             null
         );
     }
+
     /**
      * @return SymfonyCookie[]
      */
@@ -96,24 +123,24 @@ class AuthController extends Controller
     {
         $cookies = [
             $this->forgetJwtCookie(),
-            Cookie::forget("XSRF-TOKEN", "/", null),
-            Cookie::forget("laravel_session", "/", null),
+            Cookie::forget('XSRF-TOKEN', '/', null),
+            Cookie::forget('laravel_session', '/', null),
         ];
 
-        $sessionCookie = (string) config("session.cookie", "laravel_session");
+        $sessionCookie = (string) config('session.cookie', 'laravel_session');
 
-        if ($sessionCookie !== "laravel_session") {
-            $cookies[] = Cookie::forget($sessionCookie, "/", null);
+        if ($sessionCookie !== 'laravel_session') {
+            $cookies[] = Cookie::forget($sessionCookie, '/', null);
         }
 
-        $sessionDomain = config("session.domain");
+        $sessionDomain = config('session.domain');
 
-        if (is_string($sessionDomain) && $sessionDomain !== "") {
-            $cookies[] = Cookie::forget("XSRF-TOKEN", "/", $sessionDomain);
-            $cookies[] = Cookie::forget("laravel_session", "/", $sessionDomain);
+        if (is_string($sessionDomain) && $sessionDomain !== '') {
+            $cookies[] = Cookie::forget('XSRF-TOKEN', '/', $sessionDomain);
+            $cookies[] = Cookie::forget('laravel_session', '/', $sessionDomain);
 
-            if ($sessionCookie !== "laravel_session") {
-                $cookies[] = Cookie::forget($sessionCookie, "/", $sessionDomain);
+            if ($sessionCookie !== 'laravel_session') {
+                $cookies[] = Cookie::forget($sessionCookie, '/', $sessionDomain);
             }
         }
 

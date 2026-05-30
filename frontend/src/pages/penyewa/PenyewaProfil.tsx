@@ -1,3 +1,4 @@
+import PasswordChangeCard from "../../components/profile/PasswordChangeCard";
 import useAuth from "../../hook/useAuth";
 
 interface ProfileUser {
@@ -74,6 +75,8 @@ const PenyewaProfil = () => {
           />
         </div>
       </section>
+
+      <PasswordChangeCard />
     </main>
   );
 };

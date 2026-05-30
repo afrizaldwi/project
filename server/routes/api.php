@@ -40,6 +40,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::patch('/profile/password', [AuthController::class, 'updatePassword']);
     Route::get('/profile', [AuthController::class, 'profile'])
         ->middleware('penyewa.active');
 

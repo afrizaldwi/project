@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
@@ -58,6 +59,18 @@ class AuthService
     public function profile(User $user): User
     {
         return $user;
+    }
+
+    public function changePassword(User $user, string $currentPassword, string $password): void
+    {
+        if (! Hash::check($currentPassword, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Password saat ini tidak sesuai.'],
+            ]);
+        }
+
+        $user->password = $password;
+        $user->save();
     }
 
     private function isInactivePenyewa(User $user): bool
