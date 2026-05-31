@@ -46,13 +46,13 @@ class AdminPenghuniController extends Controller
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'no_hp' => ['required', 'string'],
-            'alamat_asal' => ['nullable', 'string'],
+            'alamat_asal' => ['required', 'string', 'max:500'],
 
             'id_kamar' => ['required', 'integer', Rule::exists('kamar', 'id_kamar')],
             'tanggal_masuk' => ['required', 'date'],
             'durasi_sewa_bulan' => ['required', 'integer', 'min:1'],
 
-            'metode_pembayaran' => ['required', 'string', 'max:50'],
+            'metode_pembayaran' => ['required', 'string', Rule::in(['Tunai', 'Transfer Bank', 'E-Wallet'])],
             'bukti_bayar' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
 

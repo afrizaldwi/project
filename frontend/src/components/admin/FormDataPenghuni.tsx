@@ -66,6 +66,7 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
           value={form.alamat_asal}
           onChange={onChange}
           rows={3}
+          required
           className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -78,6 +79,7 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
           name="metode_pembayaran"
           value={form.metode_pembayaran}
           onChange={onChange}
+          required
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
         >
           <option value="">Pilih metode pembayaran</option>
@@ -89,17 +91,18 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
 
       <div className="mt-4">
         <label className="mb-2 block text-sm font-bold text-dark">
-          Bukti Pembayaran Awal <span className="text-dark/40"> *</span>
+          Bukti Pembayaran Awal *
         </label>
         <input
           type="file"
           name="bukti_bayar"
           accept="image/jpeg,image/jpg,image/png,application/pdf"
           onChange={onBuktiBayarChange}
+          required
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
         />
         <p className="mt-1 text-xs font-medium text-dark/40">
-          Kosongkan jika pembayaran diterima langsung/tunai.
+          Wajib diunggah. Format JPG, JPEG, PNG, atau PDF maksimal 5MB.
         </p>
       </div>
     </section>

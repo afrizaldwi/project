@@ -188,6 +188,21 @@ const AdminTambahPenghuni = () => {
         setErrorMessage("");
         setCreatedCredentials(null);
 
+        if (!form.alamat_asal.trim()) {
+            setErrorMessage("Alamat asal wajib diisi.");
+            return;
+        }
+
+        if (!form.metode_pembayaran) {
+            setErrorMessage("Pilih metode pembayaran awal.");
+            return;
+        }
+
+        if (!form.bukti_bayar) {
+            setErrorMessage("Bukti pembayaran awal wajib diunggah.");
+            return;
+        }
+
         if (!form.id_kamar) {
             setErrorMessage("Pilih kamar terlebih dahulu.");
             return;
