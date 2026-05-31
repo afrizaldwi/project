@@ -61,11 +61,28 @@ class AuthService
         return $user;
     }
 
-    public function changePassword(User $user, string $currentPassword, string $password): void
+    public function changePassword(
+        User $user,
+        string $currentPassword,
+        string $password,
+        string $passwordConfirmation
+    ): void
     {
         if (! Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Password saat ini tidak sesuai.'],
+            ]);
+        }
+
+        if (Hash::check($password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Password baru tidak boleh sama dengan password lama.'],
+            ]);
+        }
+
+        if ($password !== $passwordConfirmation) {
+            throw ValidationException::withMessages([
+                'password_confirmation' => ['Konfirmasi password tidak sesuai.'],
             ]);
         }
 

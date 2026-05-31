@@ -60,13 +60,20 @@ class AuthController extends Controller
     {
         $validated = $req->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8'],
+            'password_confirmation' => ['required', 'string'],
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+            'password_confirmation.required' => 'Konfirmasi password wajib diisi.',
         ]);
 
         $this->authService->changePassword(
             $req->user(),
             $validated['current_password'],
-            $validated['password']
+            $validated['password'],
+            $validated['password_confirmation']
         );
 
         $this->authService->logout($req);

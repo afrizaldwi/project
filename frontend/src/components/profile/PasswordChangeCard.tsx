@@ -62,12 +62,12 @@ const PasswordChangeCard = () => {
           Object.fromEntries(
             Object.entries(validationErrors).map(([field, messages]) => [
               field,
-              messages?.[0] || "Field tidak valid.",
+              messages?.[0] || "Field ini tidak valid.",
             ])
           ) as PasswordErrors
         );
       } else {
-        setMessage(response?.data?.message || "Gagal mengubah password.");
+        setMessage(response?.data?.message || "Gagal mengubah password. Periksa kembali data yang dimasukkan.");
       }
     } finally {
       setIsSubmitting(false);
