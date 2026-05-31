@@ -1,13 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
+import usePolling from "../../hook/usePolling";
 import type { NotifikasiItem, TagihanReminderItem } from "../../types";
 import { isTagihanOpen, isTagihanPaid } from "../../utils/tagihanHelpers";
 
 import ActiveTagihanCard from "../../components/tagihan/penyewa/ActiveTagihanCard";
 import RiwayatPembayaranTable from "../../components/tagihan/penyewa/RiwayatPembayaranTable";
 import PaymentUploadModal from "../../components/tagihan/penyewa/PaymentUploadModal";
+
+const POLLING_INTERVAL_MS = 5000;
+
+const isUnauthorizedError = (error: unknown) => {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
+};
 
 const PenyewaTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
@@ -31,7 +38,7 @@ const PenyewaTagihan = () => {
     return tagihan.filter((item) => isTagihanPaid(item));
   }, [tagihan]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       setErrorMessage("");
@@ -49,11 +56,27 @@ const PenyewaTagihan = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const refreshTagihan = useCallback(async () => {
+    try {
+      const tagihanData = await tagihanReminderApi.getPenyewaTagihan();
+      setTagihan(tagihanData);
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        throw error;
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  usePolling(refreshTagihan, {
+    enabled: !isUploading,
+    intervalMs: POLLING_INTERVAL_MS,
+  });
 
   const canPay = (item: TagihanReminderItem) => {
     if (!isTagihanOpen(item)) return false;
