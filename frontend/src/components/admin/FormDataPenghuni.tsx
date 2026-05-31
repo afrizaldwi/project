@@ -57,13 +57,9 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-primary/10 bg-secondary p-4 text-sm font-medium text-dark/70">
-        Akun penyewa dibuat otomatis setelah data disimpan. Email memakai nama penghuni dengan angka acak, dan password sementara hanya akan ditampilkan satu kali.
-      </div>
-
       <div className="mt-4">
         <label className="mb-1 block text-sm font-bold text-dark/70">
-          Alamat Asal
+          Alamat Asal *
         </label>
         <textarea
           name="alamat_asal"
@@ -76,7 +72,7 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
 
       <div className="mt-4">
         <label className="mb-2 block text-sm font-bold text-dark">
-          Metode Pembayaran Awal <span className="text-dark/40">(Opsional)</span>
+          Metode Pembayaran Awal *
         </label>
         <select
           name="metode_pembayaran"
@@ -93,7 +89,7 @@ const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }:
 
       <div className="mt-4">
         <label className="mb-2 block text-sm font-bold text-dark">
-          Bukti Pembayaran Awal <span className="text-dark/40">(Opsional)</span>
+          Bukti Pembayaran Awal <span className="text-dark/40"> *</span>
         </label>
         <input
           type="file"

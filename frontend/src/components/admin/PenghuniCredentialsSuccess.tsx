@@ -4,8 +4,6 @@ interface PenghuniCredentialsSuccessProps {
     temporary_password: string;
   };
   phoneNumber: string;
-  onAddAnother: () => void;
-  onGoToPenghuni: () => void;
 }
 
 const normalizeIndonesianPhoneNumber = (phoneNumber: string) => {
@@ -35,8 +33,6 @@ const buildWhatsAppUrl = (
 const PenghuniCredentialsSuccess = ({
   credentials,
   phoneNumber,
-  onAddAnother,
-  onGoToPenghuni,
 }: PenghuniCredentialsSuccessProps) => {
   const normalizedPhoneNumber = normalizeIndonesianPhoneNumber(phoneNumber);
   const whatsappUrl = buildWhatsAppUrl(normalizedPhoneNumber, credentials);
@@ -74,20 +70,6 @@ const PenghuniCredentialsSuccess = ({
       </div>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onAddAnother}
-          className="rounded-xl border border-success/30 bg-white px-4 py-2 text-center text-sm font-black text-success hover:bg-success/10"
-        >
-          Tambah Penghuni Lagi
-        </button>
-        <button
-          type="button"
-          onClick={onGoToPenghuni}
-          className="rounded-xl border border-success/30 bg-white px-4 py-2 text-center text-sm font-black text-success hover:bg-success/10"
-        >
-          Ke Data Penghuni
-        </button>
         {canShareToWhatsApp && (
           <a
             href={whatsappUrl}

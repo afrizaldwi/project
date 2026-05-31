@@ -52,8 +52,8 @@ class AdminPenghuniController extends Controller
             'tanggal_masuk' => ['required', 'date'],
             'durasi_sewa_bulan' => ['required', 'integer', 'min:1'],
 
-            'metode_pembayaran' => ['nullable', 'string', 'max:50'],
-            'bukti_bayar' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'metode_pembayaran' => ['required', 'string', 'max:50'],
+            'bukti_bayar' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
 
         $validated['no_hp'] = $this->normalizeIndonesianPhoneNumber($validated['no_hp']);

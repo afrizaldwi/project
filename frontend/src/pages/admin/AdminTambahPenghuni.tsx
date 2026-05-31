@@ -183,14 +183,6 @@ const AdminTambahPenghuni = () => {
         }));
     };
 
-    const resetForm = () => {
-        setForm(defaultForm());
-        setSelectedType("");
-        setCreatedCredentials(null);
-        setCreatedPhoneNumber("");
-        setErrorMessage("");
-    };
-
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
         setErrorMessage("");
@@ -253,8 +245,6 @@ const AdminTambahPenghuni = () => {
                     <PenghuniCredentialsSuccess
                         credentials={createdCredentials}
                         phoneNumber={createdPhoneNumber}
-                        onAddAnother={resetForm}
-                        onGoToPenghuni={() => navigate("/admin/penghuni")}
                     />
                 )}
 
