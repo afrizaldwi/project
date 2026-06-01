@@ -59,14 +59,14 @@ const CookieConsent = ({ onAccept }: CookieConsentProps) => {
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-3xl rounded-xl bg-white p-4 shadow-lg border">
       <h2 className="mb-2 text-base font-semibold text-gray-900">
-        Persetujuan Cookies
+        Persetujuan Kuki
       </h2>
 
       <p className="mb-4 text-sm text-gray-700">
-        Kami menggunakan cookies untuk menyimpan pilihan persetujuan Anda dan
+        Kami menggunakan kuki untuk menyimpan pilihan persetujuan Anda dan
         membantu menghitung statistik kunjungan halaman. Data kunjungan
         disimpan secara anonim, tanpa menyimpan informasi
-        browser secara langsung. Apakah Anda menyetujui penggunaan cookies
+        peramban secara langsung. Apakah Anda menyetujui penggunaan kuki
         untuk statistik kunjungan?
       </p>
 

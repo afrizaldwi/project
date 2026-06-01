@@ -77,13 +77,13 @@ const PaymentUploadModal: React.FC<PaymentUploadModalProps> = ({
                 <option value="">Pilih Metode Pembayaran</option>
                 <option value="transfer bank">Transfer Bank</option>
                 <option value="e-wallet">E-Wallet</option>
-                <option value="cash">Cash</option>
+                <option value="cash">Tunai</option>
               </select>
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-bold text-dark/70">
-                Upload Bukti Bayar
+                Unggah Bukti Bayar
               </label>
 
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-light p-6 text-center transition-all hover:border-primary/40">
@@ -107,7 +107,7 @@ const PaymentUploadModal: React.FC<PaymentUploadModalProps> = ({
             {filePreview ? (
               <img
                 src={filePreview}
-                alt="Preview bukti bayar"
+                alt="Pratinjau bukti bayar"
                 className="max-h-48 w-full rounded-xl object-cover"
               />
             ) : file ? (

@@ -52,7 +52,7 @@ const Sidebar = ({ display }: SidebarProps) => {
           disabled={isLoadingSubmit}
           className="w-full px-4 py-2 rounded text-sm font-medium bg-accent hover:opacity-90 text-light"
         >
-          {isLoadingSubmit ? "Loading..." : "Logout"}
+          {isLoadingSubmit ? "Memuat..." : "Keluar"}
         </button>
       </div>
     </aside>

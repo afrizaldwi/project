@@ -22,7 +22,7 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
       const blob = await invoiceApi.downloadPenyewaInvoicePdf(idPembayaran);
       downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
     } catch {
-      alert("Gagal download invoice PDF.");
+      alert("Gagal mengunduh invoice PDF.");
     } finally {
       setDownloadingInvoiceId(null);
     }

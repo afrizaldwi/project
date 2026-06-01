@@ -48,7 +48,7 @@ const PasswordChangeCard = () => {
     try {
       const response = await api.patch<{ message: string }>("/profile/password", form);
       setForm(initialForm);
-      setMessage(response.data.message || "Password berhasil diubah. Silakan login kembali.");
+      setMessage(response.data.message || "Password berhasil diubah. Silakan masuk kembali.");
 
       await new Promise((resolve) => window.setTimeout(resolve, 900));
       await logout();
@@ -62,7 +62,7 @@ const PasswordChangeCard = () => {
           Object.fromEntries(
             Object.entries(validationErrors).map(([field, messages]) => [
               field,
-              messages?.[0] || "Field ini tidak valid.",
+              messages?.[0] || "Kolom ini tidak valid.",
             ])
           ) as PasswordErrors
         );

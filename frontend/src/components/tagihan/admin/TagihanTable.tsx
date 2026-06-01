@@ -27,7 +27,7 @@ const TagihanTable: React.FC<TagihanTableProps> = ({ tagihan, isLoading }) => {
       const blob = await invoiceApi.downloadAdminInvoicePdf(idPembayaran);
       downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
     } catch {
-      alert("Gagal download invoice PDF.");
+      alert("Gagal mengunduh invoice PDF.");
     } finally {
       setDownloadingInvoiceId(null);
     }

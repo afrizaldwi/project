@@ -21,6 +21,8 @@ class AdminPenghuniController extends Controller
 
         $validated = $request->validate([
             'status' => ['nullable', Rule::in(['aktif', 'selesai', 'dibatalkan', 'all'])],
+        ], [
+            'status.in' => 'Status penghuni tidak valid.',
         ]);
 
         return response()->json([
@@ -54,6 +56,25 @@ class AdminPenghuniController extends Controller
 
             'metode_pembayaran' => ['required', 'string', Rule::in(['Tunai', 'Transfer Bank', 'E-Wallet'])],
             'bukti_bayar' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 255 karakter.',
+            'no_hp.required' => 'Nomor HP wajib diisi.',
+            'alamat_asal.required' => 'Alamat asal wajib diisi.',
+            'alamat_asal.max' => 'Alamat asal maksimal 500 karakter.',
+            'id_kamar.required' => 'Kamar wajib dipilih.',
+            'id_kamar.exists' => 'Kamar yang dipilih tidak valid.',
+            'tanggal_masuk.required' => 'Tanggal masuk wajib diisi.',
+            'tanggal_masuk.date' => 'Tanggal masuk tidak valid.',
+            'durasi_sewa_bulan.required' => 'Durasi sewa wajib diisi.',
+            'durasi_sewa_bulan.integer' => 'Durasi sewa harus berupa angka.',
+            'durasi_sewa_bulan.min' => 'Durasi sewa minimal 1 bulan.',
+            'metode_pembayaran.required' => 'Metode pembayaran wajib dipilih.',
+            'metode_pembayaran.in' => 'Metode pembayaran tidak valid.',
+            'bukti_bayar.required' => 'Bukti pembayaran wajib diunggah.',
+            'bukti_bayar.file' => 'Bukti pembayaran harus berupa file.',
+            'bukti_bayar.mimes' => 'Bukti pembayaran harus berformat JPG, JPEG, PNG, atau PDF.',
+            'bukti_bayar.max' => 'Bukti pembayaran maksimal 5MB.',
         ]);
 
         $validated['no_hp'] = $this->normalizeIndonesianPhoneNumber($validated['no_hp']);
@@ -79,6 +100,8 @@ class AdminPenghuniController extends Controller
 
         $validated = $request->validate([
             'tanggal_keluar' => ['nullable', 'date'],
+        ], [
+            'tanggal_keluar.date' => 'Tanggal keluar tidak valid.',
         ]);
 
         return response()->json(

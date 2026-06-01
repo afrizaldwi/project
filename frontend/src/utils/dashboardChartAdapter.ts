@@ -65,7 +65,7 @@ export const dashboardChartAdapter = {
 
     toStatusKeluhanChart(statusKeluhan: StatusKeluhan): ChartData<"bar"> {
         return {
-            labels: ["Pending", "Proses", "Selesai"],
+            labels: ["Menunggu", "Proses", "Selesai"],
             datasets: [
                 {
                     label: "Jumlah Keluhan",

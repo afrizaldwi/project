@@ -17,7 +17,7 @@ const facilities = [
     "WiFi Gratis",
     "Parkir Motor",
     "Dapur Bersama",
-    "Laundry",
+    "Laundry Kiloan",
     "CCTV 24 Jam",
     "Air Panas",
     "Musholla",
@@ -146,7 +146,7 @@ const Landing = () => {
                         to="/login"
                         className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-accent transition-colors"
                     >
-                        Login Penghuni
+                        Masuk Penghuni
                     </Link>
                 </div>
             </nav>
@@ -312,7 +312,7 @@ const Landing = () => {
                             <ul className="text-gray-500 space-y-1 text-sm">
                                 <li>🏫 Universitas Contoh (500m)</li>
                                 <li>🏥 RS Contoh (1km)</li>
-                                <li>🛒 Mall Contoh (800m)</li>
+                                <li>🛒 Pusat Perbelanjaan Contoh (800m)</li>
                                 <li>🚌 Halte Bus (200m)</li>
                             </ul>
                         </div>
@@ -340,13 +340,13 @@ const Landing = () => {
                             rel="noreferrer"
                             className="px-6 py-3 bg-white text-primary rounded font-medium hover:bg-secondary transition-colors text-center"
                         >
-                            Chat WhatsApp
+                            Hubungi via WhatsApp
                         </a>
                         <Link
                             to="/login"
                             className="px-6 py-3 border border-white text-white rounded font-medium hover:bg-accent transition-colors text-center"
                         >
-                            Login Penghuni
+                            Masuk Penghuni
                         </Link>
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import { getStorageUrl } from "../../utils/storageUrl";
 import { TableHead, TableCell } from "../ui/Table";
 
 const statusLabel: Record<KeluhanStatus, string> = {
-  pending: "Pending",
+  pending: "Menunggu",
   proses: "Diproses",
   selesai: "Selesai",
 };
@@ -141,7 +141,7 @@ export const KeluhanTable = ({
                     }
                     className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
-                    <option value="pending">Pending</option>
+                    <option value="pending">Menunggu</option>
                     <option value="proses">Diproses</option>
                     <option value="selesai">Selesai</option>
                   </select>

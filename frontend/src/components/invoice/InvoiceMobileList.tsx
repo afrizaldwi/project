@@ -80,7 +80,7 @@ export const InvoiceMobileList = ({
               <Download size={14} />
               {downloadingId === invoice.id_pembayaran
                 ? "Memproses..."
-                : "Download PDF"}
+                : "Unduh PDF"}
             </button>
           </div>
         ))

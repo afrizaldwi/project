@@ -4,6 +4,7 @@ interface PenghuniCredentialsSuccessProps {
     temporary_password: string;
   };
   phoneNumber: string;
+  onGoToPenghuni: () => void;
 }
 
 const normalizeIndonesianPhoneNumber = (phoneNumber: string) => {
@@ -25,7 +26,7 @@ const buildWhatsAppUrl = (
   credentials: PenghuniCredentialsSuccessProps["credentials"]
 ) => {
   const normalizedPhoneNumber = normalizeIndonesianPhoneNumber(phoneNumber);
-  const message = `Halo, akun penyewa Kost Bahagia Anda sudah dibuat.\n\nEmail: ${credentials.email}\nPassword sementara: ${credentials.temporary_password}\n\nSilakan login menggunakan kredensial tersebut. Simpan password ini dengan aman.`;
+  const message = `Halo, akun penyewa Kost Bahagia Anda sudah dibuat.\n\nEmail: ${credentials.email}\nPassword sementara: ${credentials.temporary_password}\n\nSilakan masuk menggunakan kredensial tersebut. Simpan password ini dengan aman.`;
 
   return `https://wa.me/${normalizedPhoneNumber}?text=${encodeURIComponent(message)}`;
 };
@@ -33,6 +34,7 @@ const buildWhatsAppUrl = (
 const PenghuniCredentialsSuccess = ({
   credentials,
   phoneNumber,
+  onGoToPenghuni,
 }: PenghuniCredentialsSuccessProps) => {
   const normalizedPhoneNumber = normalizeIndonesianPhoneNumber(phoneNumber);
   const whatsappUrl = buildWhatsAppUrl(normalizedPhoneNumber, credentials);
@@ -70,6 +72,13 @@ const PenghuniCredentialsSuccess = ({
       </div>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          onClick={onGoToPenghuni}
+          className="rounded-xl border border-success/30 bg-white px-4 py-2 text-center text-sm font-black text-success hover:bg-success/10"
+        >
+          Ke Data Penghuni
+        </button>
         {canShareToWhatsApp && (
           <a
             href={whatsappUrl}

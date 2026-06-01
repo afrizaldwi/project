@@ -24,7 +24,7 @@ class WebJwtAuthStrategy implements JwtAuthStrategy
         );
 
         return response()->json([
-            'message' => 'Login Berhasil',
+            'message' => 'Berhasil masuk',
             'user' => $user,
         ])->withCookie($cookie);
     }

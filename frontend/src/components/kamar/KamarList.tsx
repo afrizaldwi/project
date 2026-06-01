@@ -46,9 +46,7 @@ const KamarList = ({ kamarList, onEdit, onDelete }: KamarListProps) => {
                     <button
                       onClick={() => onEdit(kamar.id_kamar)}
                       className="text-xs font-bold text-primary bg-secondary px-3 py-1.5 rounded-lg hover:opacity-80"
-                    >
-                      Edit
-                    </button>
+                    >Ubah</button>
                     <button
                       onClick={() => onDelete({ id_kamar: kamar.id_kamar, nomor_kamar: kamar.nomor_kamar })}
                       className="text-xs font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-lg hover:opacity-80"

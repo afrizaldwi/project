@@ -162,7 +162,7 @@ const FormDataSewa = ({
           </div>
 
           <div className="text-left md:text-right">
-            <p className="text-sm font-bold text-primary">Estimasi Check-Out:</p>
+            <p className="text-sm font-bold text-primary">Estimasi Tanggal Keluar:</p>
             <p className="mt-1 text-lg font-black text-dark">{estimasiCheckOut}</p>
           </div>
         </div>

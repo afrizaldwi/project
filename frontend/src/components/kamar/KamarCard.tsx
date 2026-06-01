@@ -68,7 +68,7 @@ const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
             onClick={() => onEdit(kamar.id_kamar)}
             className="flex-1 flex items-center justify-center gap-1 bg-secondary text-primary text-xs font-bold py-2 rounded-lg hover:opacity-80 transition"
           >
-            ✏ Edit
+            ✏ Ubah
           </button>
           <button
             onClick={() => onDelete({ id_kamar: kamar.id_kamar, nomor_kamar: kamar.nomor_kamar })}

@@ -260,6 +260,7 @@ const AdminTambahPenghuni = () => {
                     <PenghuniCredentialsSuccess
                         credentials={createdCredentials}
                         phoneNumber={createdPhoneNumber}
+                        onGoToPenghuni={() => navigate("/admin/penghuni")}
                     />
                 )}
 

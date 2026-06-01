@@ -2,7 +2,7 @@ import type { Keluhan, KeluhanStatus } from "../../../types";
 import { getStorageUrl } from "../../../utils/storageUrl";
 
 const statusLabel: Record<KeluhanStatus, string> = {
-  pending: "Pending",
+  pending: "Menunggu",
   proses: "Diproses",
   selesai: "Selesai",
 };

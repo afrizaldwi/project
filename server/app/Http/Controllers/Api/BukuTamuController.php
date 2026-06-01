@@ -71,7 +71,18 @@ class BukuTamuController extends Controller
             ];
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'nama_tamu.required' => 'Nama tamu wajib diisi.',
+            'nama_tamu.max' => 'Nama tamu maksimal 100 karakter.',
+            'no_hp_tamu.required' => 'Nomor HP tamu wajib diisi.',
+            'no_hp_tamu.max' => 'Nomor HP tamu maksimal 20 karakter.',
+            'keperluan.required' => 'Keperluan wajib diisi.',
+            'keperluan.max' => 'Keperluan maksimal 1000 karakter.',
+            'id_user.required' => 'Penghuni yang dikunjungi wajib dipilih.',
+            'id_user.exists' => 'Penghuni yang dipilih tidak valid.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         $idUser = $user?->role === 'penyewa'
             ? $user->id

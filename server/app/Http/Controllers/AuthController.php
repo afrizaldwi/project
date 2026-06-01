@@ -39,7 +39,7 @@ class AuthController extends Controller
         $this->authService->logout($req);
 
         $response = response()->json([
-            'message' => 'Logout Berhasil',
+            'message' => 'Berhasil keluar',
         ]);
 
         foreach ($this->logoutCookies() as $cookie) {
@@ -79,7 +79,7 @@ class AuthController extends Controller
         $this->authService->logout($req);
 
         $response = response()->json([
-            'message' => 'Password berhasil diubah. Silakan login kembali.',
+            'message' => 'Password berhasil diubah. Silakan masuk kembali.',
         ]);
 
         foreach ($this->logoutCookies() as $cookie) {

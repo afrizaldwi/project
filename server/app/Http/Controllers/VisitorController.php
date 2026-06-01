@@ -16,7 +16,7 @@ class VisitorController extends Controller
     {
         if ($request->input('analytics_consent') !== true) {
             return response()->json([
-                'message' => 'Visit tracking ignored because analytics consent was not granted.',
+                'message' => 'Pelacakan kunjungan diabaikan karena persetujuan analitik belum diberikan.',
             ]);
         }
 
@@ -24,12 +24,12 @@ class VisitorController extends Controller
 
         if (! $tracked) {
             return response()->json([
-                'message' => 'Visit already tracked today.',
+                'message' => 'Kunjungan hari ini sudah tercatat.',
             ]);
         }
 
         return response()->json([
-            'message' => 'Visit tracked successfully.',
+            'message' => 'Kunjungan berhasil dicatat.',
         ]);
     }
 }

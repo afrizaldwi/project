@@ -20,6 +20,13 @@ class LaporanKeuanganController extends Controller
         $validated = $request->validate([
             'bulan' => ['nullable', 'integer', 'min:1', 'max:12'],
             'tahun' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+        ], [
+            'bulan.integer' => 'Bulan harus berupa angka.',
+            'bulan.min' => 'Bulan tidak valid.',
+            'bulan.max' => 'Bulan tidak valid.',
+            'tahun.integer' => 'Tahun harus berupa angka.',
+            'tahun.min' => 'Tahun tidak valid.',
+            'tahun.max' => 'Tahun tidak valid.',
         ]);
 
         return response()->json(
@@ -37,6 +44,13 @@ class LaporanKeuanganController extends Controller
         $validated = $request->validate([
             'bulan' => ['nullable', 'integer', 'min:1', 'max:12'],
             'tahun' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+        ], [
+            'bulan.integer' => 'Bulan harus berupa angka.',
+            'bulan.min' => 'Bulan tidak valid.',
+            'bulan.max' => 'Bulan tidak valid.',
+            'tahun.integer' => 'Tahun harus berupa angka.',
+            'tahun.min' => 'Tahun tidak valid.',
+            'tahun.max' => 'Tahun tidak valid.',
         ]);
 
         return response()->json([
@@ -57,6 +71,14 @@ class LaporanKeuanganController extends Controller
             'jumlah_pengeluaran' => ['required', 'numeric', 'min:0'],
             'tanggal_pengeluaran' => ['required', 'date'],
             'bukti_foto' => ['nullable', 'string'],
+        ], [
+            'judul_pengeluaran.required' => 'Judul pengeluaran wajib diisi.',
+            'judul_pengeluaran.max' => 'Judul pengeluaran maksimal 255 karakter.',
+            'jumlah_pengeluaran.required' => 'Jumlah pengeluaran wajib diisi.',
+            'jumlah_pengeluaran.numeric' => 'Jumlah pengeluaran harus berupa angka.',
+            'jumlah_pengeluaran.min' => 'Jumlah pengeluaran tidak boleh kurang dari 0.',
+            'tanggal_pengeluaran.required' => 'Tanggal pengeluaran wajib diisi.',
+            'tanggal_pengeluaran.date' => 'Tanggal pengeluaran tidak valid.',
         ]);
 
         $validated['dibuat_oleh'] = $request->user()->id;

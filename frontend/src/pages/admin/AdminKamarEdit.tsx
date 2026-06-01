@@ -127,12 +127,12 @@ const AdminKamarEdit = () => {
           Data Kamar
         </span>
         <span>›</span>
-        <span className="text-dark font-semibold">Edit Kamar — No. {form.nomor_kamar}</span>
+        <span className="text-dark font-semibold">Ubah Kamar — No. {form.nomor_kamar}</span>
       </div>
 
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-dark">Edit Kamar</h1>
+          <h1 className="text-2xl font-bold text-dark">Ubah Kamar</h1>
           <p className="text-sm text-gray-400 mt-1">Perbarui detail kamar No. {form.nomor_kamar}</p>
         </div>
         <button
@@ -150,7 +150,7 @@ const AdminKamarEdit = () => {
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <p className="text-sm font-bold text-dark">Detail Kamar</p>
-          <p className="text-xs text-gray-400 mt-0.5">Semua field bertanda * wajib diisi</p>
+          <p className="text-xs text-gray-400 mt-0.5">Semua kolom bertanda * wajib diisi</p>
         </div>
 
         <KamarForm

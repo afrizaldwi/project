@@ -116,7 +116,7 @@ export const PenyewaInvoiceList = ({
                 <Download size={16} />
                 {downloadingId === invoice.id_pembayaran
                   ? "Memproses..."
-                  : "Download Invoice PDF"}
+                  : "Unduh Invoice PDF"}
               </button>
             </div>
           ))}

@@ -13,7 +13,7 @@ export const ImagePreviewModal = ({ imageUrl, onClose }: ImagePreviewModalProps)
         className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl p-2 shadow-2xl overflow-hidden flex flex-col cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* Tombol Tutup */}
         <button
           type="button"
           onClick={onClose}
@@ -23,10 +23,10 @@ export const ImagePreviewModal = ({ imageUrl, onClose }: ImagePreviewModalProps)
           ✕
         </button>
 
-        {/* Image */}
+        {/* Gambar */}
         <img
           src={imageUrl}
-          alt="Preview Kerusakan"
+          alt="Pratinjau Kerusakan"
           className="max-w-full max-h-[80vh] rounded-xl object-contain"
         />
       </div>

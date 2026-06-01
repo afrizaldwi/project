@@ -11,7 +11,7 @@ class MobileJwtAuthStrategy implements JwtAuthStrategy
     public function respond(User $user, string $token): JsonResponse
     {
         return response()->json([
-            'message' => 'Login Berhasil',
+            'message' => 'Berhasil masuk',
             'user' => $user,
             'access_token' => $token,
             'token' => $token,

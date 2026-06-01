@@ -93,7 +93,7 @@ const AdminKamarTambah = () => {
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <p className="text-sm font-bold text-dark">Detail Kamar</p>
-          <p className="text-xs text-gray-400 mt-0.5">Semua field bertanda * wajib diisi</p>
+          <p className="text-xs text-gray-400 mt-0.5">Semua kolom bertanda * wajib diisi</p>
         </div>
 
         <KamarForm
