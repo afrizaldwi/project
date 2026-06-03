@@ -5,6 +5,7 @@ import KamarFilters from "../../components/kamar/KamarFilters";
 import KamarGrid from "../../components/kamar/KamarGrid";
 import KamarList from "../../components/kamar/KamarList";
 import KamarDeleteDialog from "../../components/kamar/KamarDeleteDialog";
+import { kamarStatusDisplay } from "../../components/kamar/kamarStatusDisplay";
 
 const AdminKamar = () => {
   const navigate = useNavigate();
@@ -56,11 +57,12 @@ const AdminKamar = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Kamar", value: stats.total, color: "text-dark" },
-          { label: "Tersedia", value: stats.tersedia, color: "text-green-600" },
-          { label: "Terisi", value: stats.terisi, color: "text-red-500" },
+          { label: kamarStatusDisplay.tersedia.label, value: stats.tersedia, color: kamarStatusDisplay.tersedia.textClassName },
+          { label: kamarStatusDisplay.terisi.label, value: stats.terisi, color: kamarStatusDisplay.terisi.textClassName },
+          { label: kamarStatusDisplay.perbaikan.label, value: stats.perbaikan, color: kamarStatusDisplay.perbaikan.textClassName },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 px-5 py-4">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">{s.label}</p>

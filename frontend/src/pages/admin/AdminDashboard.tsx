@@ -41,8 +41,7 @@ const AdminDashboard = () => {
         );
 
         setSummary(response.data);
-      } catch (error) {
-        console.log(error);
+      } catch {
         setError("Gagal mengambil data dashboard.");
       } finally {
         setIsLoading(false);

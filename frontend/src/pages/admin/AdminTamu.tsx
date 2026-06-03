@@ -75,7 +75,7 @@ const AdminTamu = () => {
     event.preventDefault();
 
     if (!form.nama_tamu || !form.no_hp_tamu || !form.id_user || !form.keperluan) {
-      setError("Semua field wajib diisi.");
+      setError("Semua kolom wajib diisi.");
       return;
     }
 

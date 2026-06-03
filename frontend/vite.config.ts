@@ -14,7 +14,7 @@ export default defineConfig({
         changeOrigin: true,
         xfwd: true,
       },
-      "/sanctum": {
+      "/storage": {
         target: "http://kost-nginx:80",
         changeOrigin: true,
         xfwd: true,

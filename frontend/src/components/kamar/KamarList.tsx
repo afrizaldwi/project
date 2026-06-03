@@ -1,4 +1,5 @@
 import type { Kamar } from "../../types";
+import { getKamarStatusDisplay } from "./kamarStatusDisplay";
 
 interface KamarListProps {
   kamarList: Kamar[];
@@ -24,41 +25,39 @@ const KamarList = ({ kamarList, onEdit, onDelete }: KamarListProps) => {
           </tr>
         </thead>
         <tbody>
-          {kamarList.map((kamar) => (
-            <tr key={kamar.id_kamar} className="border-t border-gray-50 hover:bg-gray-50 transition">
-              <td className="px-4 py-3">
-                <p className="font-bold text-dark">No. {kamar.nomor_kamar}</p>
-              </td>
-              <td className="px-4 py-3 text-sm text-gray-500">{kamar.luas_kamar}</td>
-              <td className="px-4 py-3 text-sm text-gray-500">{kamar.fasilitas}</td>
-              <td className="px-4 py-3 font-bold text-primary text-sm">{formatRupiah(kamar.harga_bulanan)}</td>
-              <td className="px-4 py-3">
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded-full ${
-                    kamar.status_kamar === "tersedia" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {kamar.status_kamar === "tersedia" ? "Tersedia" : "Terisi"}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => onEdit(kamar.id_kamar)}
-                    className="text-xs font-bold text-primary bg-secondary px-3 py-1.5 rounded-lg hover:opacity-80"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => onDelete({ id_kamar: kamar.id_kamar, nomor_kamar: kamar.nomor_kamar })}
-                    className="text-xs font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-lg hover:opacity-80"
-                  >
-                    Hapus
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {kamarList.map((kamar) => {
+            const status = getKamarStatusDisplay(kamar.status_kamar);
+
+            return (
+              <tr key={kamar.id_kamar} className="border-t border-gray-50 hover:bg-gray-50 transition">
+                <td className="px-4 py-3">
+                  <p className="font-bold text-dark">No. {kamar.nomor_kamar}</p>
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-500">{kamar.luas_kamar}</td>
+                <td className="px-4 py-3 text-sm text-gray-500">{kamar.fasilitas}</td>
+                <td className="px-4 py-3 font-bold text-primary text-sm">{formatRupiah(kamar.harga_bulanan)}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${status.className}`}>
+                    {status.label}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => onEdit(kamar.id_kamar)}
+                      className="text-xs font-bold text-primary bg-secondary px-3 py-1.5 rounded-lg hover:opacity-80"
+                    >Ubah</button>
+                    <button
+                      onClick={() => onDelete({ id_kamar: kamar.id_kamar, nomor_kamar: kamar.nomor_kamar })}
+                      className="text-xs font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-lg hover:opacity-80"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

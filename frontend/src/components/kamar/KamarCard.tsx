@@ -1,4 +1,6 @@
 import type { Kamar } from "../../types";
+import { getStorageUrl } from "../../utils/storageUrl";
+import { getKamarStatusDisplay } from "./kamarStatusDisplay";
 
 interface KamarCardProps {
   kamar: Kamar;
@@ -7,6 +9,10 @@ interface KamarCardProps {
 }
 
 const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
+  const status = getKamarStatusDisplay(kamar.status_kamar);
+  const fotoKamarUrl = getStorageUrl(kamar.foto_kamar);
+  console.log(fotoKamarUrl);
+
   const formatRupiah = (num: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 
@@ -22,21 +28,17 @@ const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div className="relative h-40 bg-gray-100 flex items-center justify-center">
-        {kamar.foto_kamar ? (
+        {fotoKamarUrl ? (
           <img
-            src={`http://localhost:8000/storage/${kamar.foto_kamar}`}
+            src={fotoKamarUrl}
             alt={`Kamar ${kamar.nomor_kamar}`}
             className="w-full h-full object-cover"
           />
         ) : (
           <span className="text-4xl text-gray-300">🛏</span>
         )}
-        <span
-          className={`absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full ${
-            kamar.status_kamar === "tersedia" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-          }`}
-        >
-          {kamar.status_kamar === "tersedia" ? "Tersedia" : "Terisi"}
+        <span className={`absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full ${status.className}`}>
+          {status.label}
         </span>
       </div>
 
@@ -66,7 +68,7 @@ const KamarCard = ({ kamar, onEdit, onDelete }: KamarCardProps) => {
             onClick={() => onEdit(kamar.id_kamar)}
             className="flex-1 flex items-center justify-center gap-1 bg-secondary text-primary text-xs font-bold py-2 rounded-lg hover:opacity-80 transition"
           >
-            ✏ Edit
+            ✏ Ubah
           </button>
           <button
             onClick={() => onDelete({ id_kamar: kamar.id_kamar, nomor_kamar: kamar.nomor_kamar })}

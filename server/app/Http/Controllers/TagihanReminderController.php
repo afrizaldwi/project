@@ -67,6 +67,9 @@ class TagihanReminderController extends Controller
         $validated = $request->validate([
             'device_token' => ['required', 'string'],
             'platform' => ['nullable', 'string', 'max:20'],
+        ], [
+            'device_token.required' => 'Token perangkat wajib diisi.',
+            'platform.max' => 'Platform maksimal 20 karakter.',
         ]);
 
         MobileDeviceToken::updateOrCreate(
@@ -81,7 +84,7 @@ class TagihanReminderController extends Controller
         );
 
         return response()->json([
-            'message' => 'Device token berhasil disimpan.',
+            'message' => 'Token perangkat berhasil disimpan.',
         ]);
     }
 
@@ -104,6 +107,13 @@ class TagihanReminderController extends Controller
         $validated = $request->validate([
             'metode_pembayaran' => ['required', 'string', 'max:50'],
             'bukti_bayar' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'metode_pembayaran.required' => 'Metode pembayaran wajib dipilih.',
+            'metode_pembayaran.max' => 'Metode pembayaran maksimal 50 karakter.',
+            'bukti_bayar.required' => 'Bukti pembayaran wajib diunggah.',
+            'bukti_bayar.file' => 'Bukti pembayaran harus berupa file.',
+            'bukti_bayar.mimes' => 'Bukti pembayaran harus berformat JPG, JPEG, PNG, atau PDF.',
+            'bukti_bayar.max' => 'Bukti pembayaran maksimal 5MB.',
         ]);
 
         return response()->json([
@@ -132,6 +142,8 @@ class TagihanReminderController extends Controller
 
         $validated = $request->validate([
             'catatan_admin' => ['nullable', 'string', 'max:500'],
+        ], [
+            'catatan_admin.max' => 'Catatan admin maksimal 500 karakter.',
         ]);
 
         return response()->json([
@@ -149,6 +161,8 @@ class TagihanReminderController extends Controller
 
         $validated = $request->validate([
             'catatan_admin' => ['nullable', 'string', 'max:500'],
+        ], [
+            'catatan_admin.max' => 'Catatan admin maksimal 500 karakter.',
         ]);
 
         return response()->json([

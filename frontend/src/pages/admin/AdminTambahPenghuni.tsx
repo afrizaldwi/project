@@ -12,30 +12,20 @@ import type { KamarTersedia } from "../../types";
 import FormDataPenghuni from "../../components/admin/FormDataPenghuni";
 import FormDataSewa from "../../components/admin/FormDataSewa";
 import FormActions from "../../components/admin/FormActions";
+import PenghuniCredentialsSuccess from "../../components/admin/PenghuniCredentialsSuccess";
 
-const makeSlug = (value: string) => {
-    return value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s]/g, "")
-        .replace(/\s+/g, ".");
-};
+interface CreatedCredentials {
+    email: string;
+    temporary_password: string;
+}
 
-const generateCredentialFromName = (name: string) => {
-    const slug = makeSlug(name);
-
-    if (!slug) {
-        return {
-            email: "",
-            password: "",
-        };
-    }
-
-    return {
-        email: `${slug}@kost.com`,
-        password: `${slug}`,
-    };
-};
+interface CreatePenghuniResponse {
+    message: string;
+    id_user: number;
+    id_sewa: number;
+    credentials: CreatedCredentials;
+    no_hp: string;
+}
 
 const formatRupiah = (value: string | number) => {
     const number = Number(value || 0);
@@ -52,6 +42,19 @@ const getRoomType = (roomNumber: string) => {
     return firstCharacter || "LAINNYA";
 };
 
+const defaultForm = () => ({
+    nama_lengkap: "",
+    email: "",
+    password: "",
+    no_hp: "",
+    alamat_asal: "",
+    id_kamar: "",
+    tanggal_masuk: new Date().toISOString().slice(0, 10),
+    durasi_sewa_bulan: "1",
+    metode_pembayaran: "",
+    bukti_bayar: null as File | null,
+});
+
 const AdminTambahPenghuni = () => {
     const navigate = useNavigate();
 
@@ -60,23 +63,9 @@ const AdminTambahPenghuni = () => {
     const [isLoadingRooms, setIsLoadingRooms] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
-    const [form, setForm] = useState({
-        nama_lengkap: "",
-        email: "",
-        password: "",
-        no_hp: "",
-        alamat_asal: "",
-        id_kamar: "",
-        tanggal_masuk: new Date().toISOString().slice(0, 10),
-        durasi_sewa_bulan: "1",
-        metode_pembayaran: "",
-        bukti_bayar: null as File | null,
-    });
-
-    // const credentialSuffixRef = useRef(
-    //     Math.floor(100000 + Math.random() * 900000).toString()
-    // );
+    const [createdCredentials, setCreatedCredentials] = useState<CreatedCredentials | null>(null);
+    const [createdPhoneNumber, setCreatedPhoneNumber] = useState("");
+    const [form, setForm] = useState(defaultForm());
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -155,25 +144,27 @@ const AdminTambahPenghuni = () => {
     ) => {
         const { name, value } = event.target;
 
-        if (name === "nama_lengkap") {
-            const generatedCredential = generateCredentialFromName(
-                value,
-                // credentialSuffixRef.current
-            );
-
-            setForm((previous) => ({
-                ...previous,
-                nama_lengkap: value,
-                email: generatedCredential.email,
-                password: generatedCredential.password,
-            }));
-
-            return;
-        }
-
         setForm((previous) => ({
             ...previous,
             [name]: value,
+        }));
+    };
+
+    const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const digits = event.target.value.replace(/\D/g, "");
+
+        setForm((previous) => ({
+            ...previous,
+            no_hp: digits,
+        }));
+    };
+
+    const handleBuktiBayarChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null;
+
+        setForm((previous) => ({
+            ...previous,
+            bukti_bayar: file,
         }));
     };
 
@@ -195,6 +186,22 @@ const AdminTambahPenghuni = () => {
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
         setErrorMessage("");
+        setCreatedCredentials(null);
+
+        if (!form.alamat_asal.trim()) {
+            setErrorMessage("Alamat asal wajib diisi.");
+            return;
+        }
+
+        if (!form.metode_pembayaran) {
+            setErrorMessage("Pilih metode pembayaran awal.");
+            return;
+        }
+
+        if (!form.bukti_bayar) {
+            setErrorMessage("Bukti pembayaran awal wajib diunggah.");
+            return;
+        }
 
         if (!form.id_kamar) {
             setErrorMessage("Pilih kamar terlebih dahulu.");
@@ -207,8 +214,6 @@ const AdminTambahPenghuni = () => {
             const payload = new FormData();
 
             payload.append("nama_lengkap", form.nama_lengkap);
-            payload.append("email", form.email);
-            payload.append("password", form.password);
             payload.append("no_hp", form.no_hp);
             payload.append("alamat_asal", form.alamat_asal || "");
             payload.append("id_kamar", String(form.id_kamar));
@@ -220,9 +225,10 @@ const AdminTambahPenghuni = () => {
                 payload.append("bukti_bayar", form.bukti_bayar);
             }
 
-            await adminApi.createPenghuni(payload);
+            const result = await adminApi.createPenghuni(payload) as CreatePenghuniResponse;
 
-            navigate("/admin/penghuni");
+            setCreatedCredentials(result.credentials);
+            setCreatedPhoneNumber(result.no_hp);
         } catch (error: any) {
             const validationErrors = error?.response?.data?.errors;
 
@@ -242,9 +248,6 @@ const AdminTambahPenghuni = () => {
             <div className="mx-auto max-w-5xl space-y-6">
                 <div>
                     <h1 className="text-2xl font-black text-dark">Tambah Penghuni Baru</h1>
-                    <p className="mt-1 text-sm font-medium text-dark/50">
-                        Membuat akun penyewa sekaligus mencatat sewa kamar.
-                    </p>
                 </div>
 
                 {errorMessage && (
@@ -253,29 +256,44 @@ const AdminTambahPenghuni = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <FormDataPenghuni form={form} onChange={handleChange} />
-
-                    <FormDataSewa
-                        form={form}
-                        onChange={handleChange}
-                        isLoadingRooms={isLoadingRooms}
-                        roomTypes={roomTypes}
-                        selectedType={selectedType}
-                        selectedTypeRooms={selectedTypeRooms}
-                        selectedRoom={selectedRoom}
-                        totalTagihan={totalTagihan}
-                        estimasiCheckOut={estimasiCheckOut}
-                        formatRupiah={formatRupiah}
-                        onTypeSelect={handleTypeSelect}
-                        onRoomSelect={handleRoomSelect}
+                {createdCredentials && (
+                    <PenghuniCredentialsSuccess
+                        credentials={createdCredentials}
+                        phoneNumber={createdPhoneNumber}
+                        onGoToPenghuni={() => navigate("/admin/penghuni")}
                     />
+                )}
 
-                    <FormActions
-                        isSubmitting={isSubmitting}
-                        onCancel={() => navigate("/admin/penghuni")}
-                    />
-                </form>
+                {!createdCredentials && (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <FormDataPenghuni
+                            form={form}
+                            onChange={handleChange}
+                            onPhoneChange={handlePhoneChange}
+                            onBuktiBayarChange={handleBuktiBayarChange}
+                        />
+
+                        <FormDataSewa
+                            form={form}
+                            onChange={handleChange}
+                            isLoadingRooms={isLoadingRooms}
+                            roomTypes={roomTypes}
+                            selectedType={selectedType}
+                            selectedTypeRooms={selectedTypeRooms}
+                            selectedRoom={selectedRoom}
+                            totalTagihan={totalTagihan}
+                            estimasiCheckOut={estimasiCheckOut}
+                            formatRupiah={formatRupiah}
+                            onTypeSelect={handleTypeSelect}
+                            onRoomSelect={handleRoomSelect}
+                        />
+
+                        <FormActions
+                            isSubmitting={isSubmitting}
+                            onCancel={() => navigate("/admin/penghuni")}
+                        />
+                    </form>
+                )}
             </div>
         </div>
     );

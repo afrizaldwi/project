@@ -63,7 +63,7 @@ export const dashboardCardAdapter = {
         value: formatRupiah(cards.pendapatan_bulan_ini),
       },
       {
-        title: "Keluhan Pending",
+        title: "Keluhan Menunggu",
         value: cards.keluhan_pending,
       },
     ];

@@ -31,7 +31,7 @@ const PenyewaTamu = () => {
     setError(null);
 
     try {
-      const tamu = await tamuService.getPenyewaTamu(user.id);
+      const tamu = await tamuService.getPenyewaTamu();
       setData(tamu);
     } catch {
       setError("Gagal memuat riwayat tamu.");
@@ -68,7 +68,7 @@ const PenyewaTamu = () => {
     event.preventDefault();
 
     if (!form.nama_tamu || !form.no_hp_tamu || !form.keperluan) {
-      setError("Semua field wajib diisi.");
+      setError("Semua kolom wajib diisi.");
       return;
     }
 

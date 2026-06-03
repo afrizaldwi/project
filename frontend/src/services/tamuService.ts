@@ -12,12 +12,8 @@ const tamuService = {
         return response.data.data;
     },
 
-    async getPenyewaTamu(userId: number): Promise<Tamu[]> {
-        const response = await api.get<ApiListResponse<Tamu[]>>("/penyewa/tamu", {
-            params: {
-                id_user: userId,
-            },
-        });
+    async getPenyewaTamu(): Promise<Tamu[]> {
+        const response = await api.get<ApiListResponse<Tamu[]>>("/penyewa/tamu");
 
         return response.data.data;
     },

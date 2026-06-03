@@ -118,7 +118,7 @@ export const PenyewaKeluhanForm = ({
                 <div key={index} className="relative mt-2 inline-block">
                   <img
                     src={URL.createObjectURL(file)}
-                    alt={`Preview ${index + 1}`}
+                    alt={`Pratinjau ${index + 1}`}
                     className="h-32 w-32 rounded-lg border border-gray-200 object-cover shadow-sm"
                   />
                   <button

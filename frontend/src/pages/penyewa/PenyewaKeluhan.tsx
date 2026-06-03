@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import keluhanService from "../../services/keluhanService";
+import usePolling from "../../hook/usePolling";
 import type { Keluhan, KeluhanStatus } from "../../types";
 
 import PenyewaKeluhanHeader from "../../components/penyewa/keluhan/PenyewaKeluhanHeader";
@@ -7,6 +8,12 @@ import PenyewaKeluhanForm from "../../components/penyewa/keluhan/PenyewaKeluhanF
 import PenyewaKeluhanFilter from "../../components/penyewa/keluhan/PenyewaKeluhanFilter";
 import PenyewaKeluhanGrid from "../../components/penyewa/keluhan/PenyewaKeluhanGrid";
 import ImagePreviewModal from "../../components/keluhan/ImagePreviewModal";
+
+const POLLING_INTERVAL_MS = 5000;
+
+const isUnauthorizedError = (error: unknown) => {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
+};
 
 const PenyewaKeluhan = () => {
   const [data, setData] = useState<Keluhan[]>([]);
@@ -24,23 +31,38 @@ const PenyewaKeluhan = () => {
     foto_kerusakan: [] as File[],
   });
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
       const keluhan = await keluhanService.getPenyewaKeluhan(statusFilter);
       setData(keluhan);
-    } catch {
-      setError("Gagal memuat laporan kerusakan.");
+    } catch (error) {
+      if (isUnauthorizedError(error) && silent) {
+        throw error;
+      }
+
+      if (!silent) {
+        setError("Gagal memuat laporan kerusakan.");
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [statusFilter]);
+  }, [fetchData]);
+
+  usePolling(() => fetchData(true), {
+    enabled: !isSaving,
+    intervalMs: POLLING_INTERVAL_MS,
+  });
 
   const filteredData = useMemo(() => {
     const keyword = search.toLowerCase();

@@ -21,8 +21,7 @@ const PenyewaDashboard = () => {
         );
 
         setSummary(response.data);
-      } catch (error) {
-        console.log(error);
+      } catch {
         setError("Gagal mengambil data dashboard penyewa.");
       } finally {
         setIsLoading(false);

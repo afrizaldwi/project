@@ -9,7 +9,7 @@ const statusOptions: Array<KeluhanStatus | "semua"> = [
 
 const statusLabel: Record<KeluhanStatus | "semua", string> = {
   semua: "Semua",
-  pending: "Pending",
+  pending: "Menunggu",
   proses: "Diproses",
   selesai: "Selesai",
 };

@@ -22,7 +22,7 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
       const blob = await invoiceApi.downloadPenyewaInvoicePdf(idPembayaran);
       downloadPdfBlob(blob, `invoice-tagihan-${idTagihan}.pdf`);
     } catch {
-      alert("Gagal download invoice PDF.");
+      alert("Gagal mengunduh invoice PDF.");
     } finally {
       setDownloadingInvoiceId(null);
     }
@@ -50,6 +50,8 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
               <tbody className="divide-y divide-gray-100">
                 {riwayatPembayaran.map((item) => {
                   const status = getStatusConfig(item);
+                  const pembayaranTerbaru = item.pembayaran_terbaru;
+                  const canDownloadPdf = pembayaranTerbaru?.status_verifikasi === "diterima";
 
                   return (
                     <tr key={item.id_tagihan} className="hover:bg-light/70">
@@ -76,23 +78,29 @@ const RiwayatPembayaranTable: React.FC<RiwayatPembayaranTableProps> = ({
                           {status.label}
                         </span>
                       </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDownloadInvoicePdf(
-                              item.pembayaran_terbaru!.id_pembayaran,
-                              item.id_tagihan
-                            )
-                          }
-                          disabled={downloadingInvoiceId === item.pembayaran_terbaru?.id_pembayaran}
-                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <Download size={14} />
-                          {downloadingInvoiceId === item.pembayaran_terbaru?.id_pembayaran
-                            ? "..."
-                            : "PDF"}
-                        </button>
+                      <td className="px-5 py-4">
+                        {canDownloadPdf && pembayaranTerbaru ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDownloadInvoicePdf(
+                                pembayaranTerbaru.id_pembayaran,
+                                item.id_tagihan
+                              )
+                            }
+                            disabled={downloadingInvoiceId === pembayaranTerbaru.id_pembayaran}
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-white transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <Download size={14} />
+                            {downloadingInvoiceId === pembayaranTerbaru.id_pembayaran
+                              ? "..."
+                              : "PDF"}
+                          </button>
+                        ) : (
+                          <span className="text-xs font-semibold text-dark/40">
+                            Tidak ada PDF
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

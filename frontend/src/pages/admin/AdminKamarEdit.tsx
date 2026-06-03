@@ -5,6 +5,8 @@ import type { KamarFormData } from "../../types";
 import KamarForm from "../../components/kamar/KamarForm";
 import KamarMetadata from "../../components/kamar/KamarMetadata";
 
+type KamarValidationErrors = Partial<Record<keyof KamarFormData, string[]>>;
+
 const AdminKamarEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -80,6 +82,19 @@ const AdminKamarEdit = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const applyBackendErrors = (validationErrors?: KamarValidationErrors) => {
+    if (!validationErrors) return false;
+
+    const nextErrors: Partial<Record<keyof KamarFormData, string>> = {};
+
+    Object.entries(validationErrors).forEach(([field, messages]) => {
+      nextErrors[field as keyof KamarFormData] = messages?.[0];
+    });
+
+    setErrors(nextErrors);
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!validate() || !id) return;
     setIsSubmitting(true);
@@ -87,7 +102,10 @@ const AdminKamarEdit = () => {
       await kamarService.update(Number(id), form);
       navigate("/admin/kamar");
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: KamarValidationErrors } } };
+
+      if (applyBackendErrors(axiosErr?.response?.data?.errors)) return;
+
       alert(axiosErr?.response?.data?.message || "Gagal menyimpan perubahan.");
     } finally {
       setIsSubmitting(false);
@@ -109,12 +127,12 @@ const AdminKamarEdit = () => {
           Data Kamar
         </span>
         <span>›</span>
-        <span className="text-dark font-semibold">Edit Kamar — No. {form.nomor_kamar}</span>
+        <span className="text-dark font-semibold">Ubah Kamar — No. {form.nomor_kamar}</span>
       </div>
 
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-dark">Edit Kamar</h1>
+          <h1 className="text-2xl font-bold text-dark">Ubah Kamar</h1>
           <p className="text-sm text-gray-400 mt-1">Perbarui detail kamar No. {form.nomor_kamar}</p>
         </div>
         <button
@@ -132,7 +150,7 @@ const AdminKamarEdit = () => {
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <p className="text-sm font-bold text-dark">Detail Kamar</p>
-          <p className="text-xs text-gray-400 mt-0.5">Semua field bertanda * wajib diisi</p>
+          <p className="text-xs text-gray-400 mt-0.5">Semua kolom bertanda * wajib diisi</p>
         </div>
 
         <KamarForm

@@ -22,7 +22,7 @@ const getStatusBadgeClass = (status: RecentKeluhan["status"]) => {
 
 const getStatusLabel = (status: RecentKeluhan["status"]) => {
     if (status === "pending") {
-        return "Pending";
+        return "Menunggu";
     }
 
     if (status === "proses") {

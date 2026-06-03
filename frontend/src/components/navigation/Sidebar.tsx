@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import useAuth from "../../hook/useAuth";
 import { adminMenu, penyewaMenu } from "./menu";
 import { useState } from "react";
@@ -10,10 +10,12 @@ interface SidebarProps {
 const Sidebar = ({ display }: SidebarProps) => {
   const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handlerLogout = async () => {
     setIsLoadingSubmit(true);
     await logout();
+    navigate("/", { replace: true });
   };
 
   const menu = user?.role === "admin" ? adminMenu : penyewaMenu;
@@ -50,7 +52,7 @@ const Sidebar = ({ display }: SidebarProps) => {
           disabled={isLoadingSubmit}
           className="w-full px-4 py-2 rounded text-sm font-medium bg-accent hover:opacity-90 text-light"
         >
-          {isLoadingSubmit ? "Loading..." : "Logout"}
+          {isLoadingSubmit ? "Memuat..." : "Keluar"}
         </button>
       </div>
     </aside>

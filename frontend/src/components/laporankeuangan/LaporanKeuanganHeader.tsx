@@ -16,7 +16,7 @@ export const LaporanKeuanganHeader = ({
       <div>
         <h1 className="text-2xl font-black text-dark">Laporan Keuangan</h1>
         <p className="mt-1 text-sm font-medium text-dark/50">
-          Export laporan transaksi pembayaran yang sudah diterima admin.
+          Unduh laporan transaksi pembayaran yang sudah diterima admin.
         </p>
       </div>
 
@@ -48,7 +48,7 @@ export const LaporanKeuanganHeader = ({
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Download size={16} />
-          Export CSV
+          Unduh CSV
         </button>
       </div>
     </div>

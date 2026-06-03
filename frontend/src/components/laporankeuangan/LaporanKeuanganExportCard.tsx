@@ -12,7 +12,7 @@ export const LaporanKeuanganExportCard = ({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-lg font-black text-dark">
-            Export Laporan Transaksi
+            Unduh Laporan Transaksi
           </h2>
           <p className="mt-1 text-sm font-medium text-dark/50">
             Branch Salsa hanya menambahkan output laporan berupa CSV dari

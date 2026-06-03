@@ -14,16 +14,22 @@ class VisitorController extends Controller
 
     public function track(Request $request): JsonResponse
     {
+        if ($request->input('analytics_consent') !== true) {
+            return response()->json([
+                'message' => 'Pelacakan kunjungan diabaikan karena persetujuan analitik belum diberikan.',
+            ]);
+        }
+
         $tracked = $this->visitorTrackingService->track($request);
 
         if (! $tracked) {
             return response()->json([
-                'message' => 'Visit already tracked today.',
+                'message' => 'Kunjungan hari ini sudah tercatat.',
             ]);
         }
 
         return response()->json([
-            'message' => 'Visit tracked successfully.',
+            'message' => 'Kunjungan berhasil dicatat.',
         ]);
     }
 }

@@ -1,12 +1,15 @@
 import { Link } from "react-router-dom";
+import api from "../api/axios";
+import { getStorageUrl } from "../utils/storageUrl";
 import { useState, useEffect, useRef, useCallback } from "react";
-import CookieConsent from "../components/CookieConsent";
+import CookieConsent, { getCookieConsent } from "../components/CookieConsent";
+import type { KamarStatus } from "../types";
 
 type LandingKamar = {
     id_kamar: number;
     nomor_kamar: string;
     harga_bulanan: number | string;
-    status_kamar: "tersedia" | "terisi" | string;
+    status_kamar: KamarStatus;
     foto_url?: string | null;
 };
 
@@ -14,7 +17,7 @@ const facilities = [
     "WiFi Gratis",
     "Parkir Motor",
     "Dapur Bersama",
-    "Laundry",
+    "Laundry Kiloan",
     "CCTV 24 Jam",
     "Air Panas",
     "Musholla",
@@ -29,17 +32,11 @@ const Landing = () => {
     const [rooms, setRooms] = useState<LandingKamar[]>([]);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/public/kamar", {
-            headers: {
-                Accept: "application/json",
-            },
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error("Gagal mengambil data kamar");
-                return res.json();
-            })
-            .then((data) => {
-                setRooms(data);
+        api.get<LandingKamar[]>("/public/kamar")
+            .then((response) => {
+                setRooms(response.data);
+                console.log(response.data);
+
             })
             .catch(() => {
                 setRooms([]);
@@ -57,7 +54,7 @@ const Landing = () => {
     };
 
     const sendTracking = useCallback(() => {
-        const consent = localStorage.getItem("cookie_consent");
+        const consent = getCookieConsent();
 
         if (consent !== "accepted" || hasSentTrackingRef.current) {
             return;
@@ -65,7 +62,7 @@ const Landing = () => {
 
         hasSentTrackingRef.current = true;
 
-        const payload = JSON.stringify({});
+        const payload = JSON.stringify({ analytics_consent: true });
 
         const blob = new Blob([payload], {
             type: "application/json",
@@ -97,7 +94,7 @@ const Landing = () => {
     }, []);
 
     useEffect(() => {
-        if (localStorage.getItem("cookie_consent") === "accepted") {
+        if (getCookieConsent() === "accepted") {
             sendTracking();
         }
 
@@ -149,7 +146,7 @@ const Landing = () => {
                         to="/login"
                         className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-accent transition-colors"
                     >
-                        Login Penghuni
+                        Masuk Penghuni
                     </Link>
                 </div>
             </nav>
@@ -219,29 +216,29 @@ const Landing = () => {
                         Pilih kamar yang sesuai dengan kebutuhan Anda
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {rooms.map((room, i) => (
+                        {rooms.map((room) => (
                             <div
-                                key={i}
+                                key={room.id_kamar}
                                 className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
                             >
-                                <div className="bg-gray-200 h-48 flex items-center justify-center">
-                                    <img
-                                        className="text-gray-400 text-sm h-full w-full object-cover"
-                                        src={room.foto_url ?? undefined}
-                                        alt={`Kamar ${room.nomor_kamar}`}
-                                    />
+                                <div className="relative bg-gray-200 h-48 flex items-center justify-center overflow-hidden">
+                                    <span className="text-gray-400 text-sm font-medium">
+                                        Foto kamar belum tersedia
+                                    </span>
+                                    {room.foto_url && (
+                                        <img
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                            src={getStorageUrl(room.foto_url)}
+                                            alt={`Kamar ${room.nomor_kamar}`}
+                                            onError={(event) => {
+                                                event.currentTarget.style.display = "none";
+                                            }}
+                                        />
+                                    )}
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-bold text-dark">{room.nomor_kamar}</h4>
-                                        <span
-                                            className={`text-xs px-2 py-1 rounded-full font-medium ${room.status_kamar === "Tersedia"
-                                                ? "bg-green-100 text-green-600"
-                                                : "bg-red-100 text-red-500"
-                                                }`}
-                                        >
-                                            {room.status_kamar}
-                                        </span>
                                     </div>
                                     <p className="text-primary font-bold text-lg mb-1">
                                         {formatRupiah(room.harga_bulanan)}
@@ -315,7 +312,7 @@ const Landing = () => {
                             <ul className="text-gray-500 space-y-1 text-sm">
                                 <li>🏫 Universitas Contoh (500m)</li>
                                 <li>🏥 RS Contoh (1km)</li>
-                                <li>🛒 Mall Contoh (800m)</li>
+                                <li>🛒 Pusat Perbelanjaan Contoh (800m)</li>
                                 <li>🚌 Halte Bus (200m)</li>
                             </ul>
                         </div>
@@ -343,13 +340,13 @@ const Landing = () => {
                             rel="noreferrer"
                             className="px-6 py-3 bg-white text-primary rounded font-medium hover:bg-secondary transition-colors text-center"
                         >
-                            Chat WhatsApp
+                            Hubungi via WhatsApp
                         </a>
                         <Link
                             to="/login"
                             className="px-6 py-3 border border-white text-white rounded font-medium hover:bg-accent transition-colors text-center"
                         >
-                            Login Penghuni
+                            Masuk Penghuni
                         </Link>
                     </div>
                 </div>

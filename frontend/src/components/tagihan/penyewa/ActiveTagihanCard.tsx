@@ -1,7 +1,12 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import type { TagihanReminderItem } from "../../../types";
-import { formatRupiah, formatDate, getStatusConfig } from "../../../utils/tagihanHelpers";
+import {
+  formatRupiah,
+  formatDate,
+  getStatusConfig,
+  isTagihanOpen,
+} from "../../../utils/tagihanHelpers";
 
 interface ActiveTagihanCardProps {
   activeTagihan: TagihanReminderItem[];
@@ -9,7 +14,7 @@ interface ActiveTagihanCardProps {
 }
 
 const canPay = (item: TagihanReminderItem) => {
-  if (["lunas", "dibatalkan"].includes(item.status_tagihan)) return false;
+  if (!isTagihanOpen(item)) return false;
   if (item.pembayaran_terbaru?.status_verifikasi === "pending") return false;
   return true;
 };
@@ -87,12 +92,12 @@ const ActiveTagihanCard: React.FC<ActiveTagihanCardProps> = ({
                   <button
                     type="button"
                     onClick={() => onPay(item)}
-                    className="..."
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-accent disabled:cursor-not-allowed disabled:bg-dark/20 disabled:shadow-none"
                   >
                     Bayar Sekarang
                   </button>
                 ) : item.pembayaran_terbaru?.status_verifikasi === "pending" ? (
-                  <p className="text-sm font-semibold text-yellow-600">
+                  <p className="text-sm font-bold text-warning text-center py-4">
                     Menunggu Verifikasi
                   </p>
                 ) : null}

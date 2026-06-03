@@ -14,11 +14,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const cached = sessionStorage.getItem("user");
-    return cached ? JSON.parse(cached) : null;
-  });
-
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,10 +22,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         const response = await api.get<ProfileResponse>("/profile");
         setUser(response.data.user);
-        sessionStorage.setItem("user", JSON.stringify(response.data.user));
       } catch {
         setUser(null);
-        sessionStorage.removeItem("user");
       } finally {
         setIsLoading(false);
       }
@@ -39,17 +33,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
-    await api.get("/sanctum/csrf-cookie", {
-      baseURL: "",
-    });
-
     const response = await api.post<LoginResponse>("/login", {
       email,
       password,
     });
 
     setUser(response.data.user);
-    sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
     return response.data.user;
   };
@@ -58,11 +47,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true);
       await api.post("/logout");
-    } catch (error) {
-      console.log(error);
+    } catch {
+      // Frontend auth state should still be cleared if the cookie is already gone.
     } finally {
       setUser(null);
-      sessionStorage.removeItem("user");
       setIsLoading(false);
     }
   };

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import keluhanService from "../../services/keluhanService";
+import usePolling from "../../hook/usePolling";
 import type { Keluhan, KeluhanStatus } from "../../types";
 
 import KeluhanHeader from "../../components/keluhan/KeluhanHeader";
@@ -7,6 +8,12 @@ import KeluhanStats from "../../components/keluhan/KeluhanStats";
 import KeluhanFilter from "../../components/keluhan/KeluhanFilter";
 import KeluhanTable from "../../components/keluhan/KeluhanTable";
 import ImagePreviewModal from "../../components/keluhan/ImagePreviewModal";
+
+const POLLING_INTERVAL_MS = 5000;
+
+const isUnauthorizedError = (error: unknown) => {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
+};
 
 const AdminKeluhan = () => {
   const [data, setData] = useState<Keluhan[]>([]);
@@ -17,23 +24,38 @@ const AdminKeluhan = () => {
   const [error, setError] = useState<string | null>(null);
   const [activePreviewImage, setActivePreviewImage] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
       const keluhan = await keluhanService.getAdminKeluhan(statusFilter);
       setData(keluhan);
-    } catch {
-      setError("Gagal memuat laporan kerusakan.");
+    } catch (error) {
+      if (isUnauthorizedError(error) && silent) {
+        throw error;
+      }
+
+      if (!silent) {
+        setError("Gagal memuat laporan kerusakan.");
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [statusFilter]);
+  }, [fetchData]);
+
+  usePolling(() => fetchData(true), {
+    enabled: isUpdatingId === null,
+    intervalMs: POLLING_INTERVAL_MS,
+  });
 
   const filteredData = useMemo(() => {
     const keyword = search.toLowerCase();

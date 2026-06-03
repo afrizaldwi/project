@@ -54,7 +54,7 @@ const FormDataSewa = ({
       <h2 className="mb-5 text-lg font-black text-dark">Data Sewa</h2>
 
       <div className="mb-6">
-        <p className="mb-3 text-sm font-black text-dark">Pilih Tipe Kamar</p>
+        <p className="mb-3 text-sm font-black text-dark">Pilih Tipe Kamar *</p>
 
         {isLoadingRooms ? (
           <div className="rounded-xl bg-light p-4 text-sm font-semibold text-dark/50">
@@ -71,11 +71,10 @@ const FormDataSewa = ({
                 key={type.id}
                 type="button"
                 onClick={() => onTypeSelect(type.id)}
-                className={`rounded-2xl border-2 p-4 text-left transition-all ${
-                  selectedType === type.id
-                    ? "border-primary bg-secondary shadow-sm"
-                    : "border-gray-100 hover:border-primary/30"
-                }`}
+                className={`rounded-2xl border-2 p-4 text-left transition-all ${selectedType === type.id
+                  ? "border-primary bg-secondary shadow-sm"
+                  : "border-gray-100 hover:border-primary/30"
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <p className="font-black text-dark">{type.name}</p>
@@ -106,11 +105,10 @@ const FormDataSewa = ({
                 key={room.id_kamar}
                 type="button"
                 onClick={() => onRoomSelect(room.id_kamar)}
-                className={`rounded-xl border-2 p-3 text-xs font-black transition-all ${
-                  form.id_kamar === String(room.id_kamar)
-                    ? "border-primary bg-primary text-white"
-                    : "border-gray-100 text-dark/40 hover:border-primary/30 hover:text-primary"
-                }`}
+                className={`rounded-xl border-2 p-3 text-xs font-black transition-all ${form.id_kamar === String(room.id_kamar)
+                  ? "border-primary bg-primary text-white"
+                  : "border-gray-100 text-dark/40 hover:border-primary/30 hover:text-primary"
+                  }`}
               >
                 {room.nomor_kamar}
               </button>
@@ -164,7 +162,7 @@ const FormDataSewa = ({
           </div>
 
           <div className="text-left md:text-right">
-            <p className="text-sm font-bold text-primary">Estimasi Check-Out:</p>
+            <p className="text-sm font-bold text-primary">Estimasi Tanggal Keluar:</p>
             <p className="mt-1 text-lg font-black text-dark">{estimasiCheckOut}</p>
           </div>
         </div>

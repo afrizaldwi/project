@@ -1,18 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
+import usePolling from "../../hook/usePolling";
 import type {
   NotifikasiItem,
   PendingPembayaranItem,
   TagihanReminderItem,
 } from "../../types";
+import { isTagihanOpen, isTagihanPaid } from "../../utils/tagihanHelpers";
 
 import TagihanStats from "../../components/tagihan/admin/TagihanStats";
 import TagihanTable from "../../components/tagihan/admin/TagihanTable";
 import PendingPaymentsTable from "../../components/tagihan/admin/PendingPaymentsTable";
 import PaymentVerificationModal from "../../components/tagihan/admin/PaymentVerificationModal";
+
+const POLLING_INTERVAL_MS = 5000;
+
+const isUnauthorizedError = (error: unknown) => {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
+};
 
 const AdminTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
@@ -30,15 +38,13 @@ const AdminTagihan = () => {
   const stats = useMemo(() => {
     return {
       total: tagihan.length,
-      lunas: tagihan.filter((item) => item.status_tagihan === "lunas").length,
-      belum: tagihan.filter(
-        (item) => !["lunas", "dibatalkan"].includes(item.status_tagihan)
-      ).length,
+      lunas: tagihan.filter((item) => isTagihanPaid(item)).length,
+      belum: tagihan.filter((item) => isTagihanOpen(item)).length,
       pending: pendingPayments.length,
     };
   }, [tagihan, pendingPayments]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       setErrorMessage("");
@@ -58,11 +64,32 @@ const AdminTagihan = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const refreshPaymentData = useCallback(async () => {
+    try {
+      const [tagihanData, pendingData] = await Promise.all([
+        tagihanReminderApi.getAdminTagihan(),
+        tagihanReminderApi.getPendingPayments(),
+      ]);
+
+      setTagihan(tagihanData);
+      setPendingPayments(pendingData);
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        throw error;
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  usePolling(refreshPaymentData, {
+    enabled: verifyingId === null,
+    intervalMs: POLLING_INTERVAL_MS,
+  });
 
   const handleRunDueDateCheck = async () => {
     try {

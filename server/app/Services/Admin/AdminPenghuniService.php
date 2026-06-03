@@ -5,10 +5,12 @@ namespace App\Services\Admin;
 use App\Models\Pembayaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
+use App\Models\User;
 use App\Repositories\Admin\PenghuniRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AdminPenghuniService
@@ -70,8 +72,13 @@ class AdminPenghuniService
             $tanggalMasuk = Carbon::parse($data['tanggal_masuk']);
             $durasiSewa = (int) $data['durasi_sewa_bulan'];
             $tanggalKeluar = $tanggalMasuk->copy()->addMonths($durasiSewa);
+            $credentials = $this->generatePenyewaCredentials($data['nama_lengkap']);
 
-            $user = $this->penghuniRepo->createUser($data);
+            $user = $this->penghuniRepo->createUser([
+                ...$data,
+                'email' => $credentials['email'],
+                'password' => $credentials['temporary_password'],
+            ]);
 
             $sewa = $this->penghuniRepo->createSewa([
                 'id_user' => $user->id,
@@ -86,7 +93,7 @@ class AdminPenghuniService
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($user->id),
                 'tanggal_tagihan' => $tanggalMasuk->toDateString(),
-                'tanggal_jatuh_tempo' => $tanggalMasuk->copy()->addDays(7)->toDateString(),
+                'tanggal_jatuh_tempo' => $tanggalMasuk->toDateString(),
                 'total_tagihan' => $kamar->harga_bulanan * $durasiSewa,
                 'status_tagihan' => 'lunas',
             ]);
@@ -101,7 +108,7 @@ class AdminPenghuniService
                 'id_tagihan' => $tagihan->id_tagihan,
                 'tanggal_bayar' => $tanggalMasuk->toDateString(),
                 'jumlah_bayar' => $kamar->harga_bulanan * $durasiSewa,
-                'metode_pembayaran' => $data['metode_pembayaran'],
+                'metode_pembayaran' => trim((string) ($data['metode_pembayaran'] ?? '')) ?: 'Pembayaran awal admin',
                 'bukti_bayar' => $buktiBayarPath,
                 'status_verifikasi' => 'diterima',
             ]);
@@ -112,6 +119,8 @@ class AdminPenghuniService
             return [
                 'id_user' => $user->id,
                 'id_sewa' => $sewa->id_sewa,
+                'credentials' => $credentials,
+                'no_hp' => $user->no_hp,
                 'message' => 'Penghuni berhasil ditambahkan.',
             ];
         });
@@ -143,14 +152,28 @@ class AdminPenghuniService
                     'status_tagihan' => 'dibatalkan',
                 ]);
 
-            if ($sewa->user) {
-                $sewa->user->tokens()->delete();
-            }
-
             return [
                 'message' => 'Penghuni berhasil diarsipkan sebagai alumni.',
             ];
         });
+    }
+
+    private function generatePenyewaCredentials(string $namaLengkap): array
+    {
+        $baseEmail = Str::slug($namaLengkap, '.');
+
+        if ($baseEmail === '') {
+            $baseEmail = 'penyewa';
+        }
+
+        do {
+            $email = $baseEmail . '.' . random_int(1000, 9999) . '@kost.com';
+        } while (User::where('email', $email)->exists());
+
+        return [
+            'email' => $email,
+            'temporary_password' => 'Kost-' . Str::random(10),
+        ];
     }
 
     private function generateInvoiceCode(int $userId): string

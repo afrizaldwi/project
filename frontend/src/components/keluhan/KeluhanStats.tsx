@@ -11,7 +11,7 @@ export const KeluhanStats = ({ total, pending, proses, selesai }: KeluhanStatsPr
   return (
     <section className="grid gap-4 md:grid-cols-4">
       <StatCard label="Total" value={total.toString()} />
-      <StatCard label="Pending" value={pending.toString()} />
+      <StatCard label="Menunggu" value={pending.toString()} />
       <StatCard label="Diproses" value={proses.toString()} />
       <StatCard label="Selesai" value={selesai.toString()} />
     </section>

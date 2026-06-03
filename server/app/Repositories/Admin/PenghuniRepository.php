@@ -27,6 +27,9 @@ class PenghuniRepository
     public function getKamarTersedia(): Collection
     {
         return Kamar::where('status_kamar', 'tersedia')
+            ->whereDoesntHave('riwayatSewa', function ($query) {
+                $query->where('status_sewa', 'aktif');
+            })
             ->orderBy('nomor_kamar')
             ->get();
     }
@@ -35,6 +38,9 @@ class PenghuniRepository
     {
         return Kamar::where('id_kamar', $idKamar)
             ->where('status_kamar', 'tersedia')
+            ->whereDoesntHave('riwayatSewa', function ($query) {
+                $query->where('status_sewa', 'aktif');
+            })
             ->lockForUpdate()
             ->first();
     }

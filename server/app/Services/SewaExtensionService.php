@@ -61,6 +61,8 @@ class SewaExtensionService
                 throw new RuntimeException('Tanggal mulai perpanjangan harus sama dengan tanggal keluar sewa saat ini.');
             }
 
+            $tanggalMulaiPerpanjangan = $tanggalKeluarLama->copy();
+
             $tanggalKeluarBaru = $this->dateCalculation->calculate(
                 $tanggalKeluarLama,
                 $extensionDTO->durasi_sewa_bulan
@@ -77,7 +79,7 @@ class SewaExtensionService
                 'id_sewa' => $sewa->id_sewa,
                 'kode_invoice' => $this->generateInvoiceCode($sewa->id_sewa),
                 'tanggal_tagihan' => now()->toDateString(),
-                'tanggal_jatuh_tempo' => now()->addDays(7)->toDateString(),
+                'tanggal_jatuh_tempo' => $tanggalMulaiPerpanjangan->toDateString(),
                 'total_tagihan' => $extensionDTO->harga_deal,
                 'status_tagihan' => 'belum_bayar',
             ]);

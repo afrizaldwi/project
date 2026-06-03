@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsurePenyewaHasActiveSewa;
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\UseJwtCookie;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,12 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
         $middleware->redirectGuestsTo(function ($req) {
             if ($req->is('api/*')) {
                 return null;
             }
         });
+        $middleware->alias([
+            'admin.only' => EnsureUserIsAdmin::class,
+            'penyewa.active' => EnsurePenyewaHasActiveSewa::class,
+            'jwt.cookie' => UseJwtCookie::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AuthenticationException $e, $req) {

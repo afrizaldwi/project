@@ -4,6 +4,8 @@ import kamarService from "../../services/kamarService";
 import { type KamarFormData, defaultKamarForm } from "../../types";
 import KamarForm from "../../components/kamar/KamarForm";
 
+type KamarValidationErrors = Partial<Record<keyof KamarFormData, string[]>>;
+
 const AdminKamarTambah = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<KamarFormData>(defaultKamarForm());
@@ -32,6 +34,19 @@ const AdminKamarTambah = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const applyBackendErrors = (validationErrors?: KamarValidationErrors) => {
+    if (!validationErrors) return false;
+
+    const nextErrors: Partial<Record<keyof KamarFormData, string>> = {};
+
+    Object.entries(validationErrors).forEach(([field, messages]) => {
+      nextErrors[field as keyof KamarFormData] = messages?.[0];
+    });
+
+    setErrors(nextErrors);
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!validate()) return;
     setIsSubmitting(true);
@@ -39,7 +54,10 @@ const AdminKamarTambah = () => {
       await kamarService.create(form);
       navigate("/admin/kamar");
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: KamarValidationErrors } } };
+
+      if (applyBackendErrors(axiosErr?.response?.data?.errors)) return;
+
       alert(axiosErr?.response?.data?.message || "Gagal menyimpan kamar.");
     } finally {
       setIsSubmitting(false);
@@ -75,7 +93,7 @@ const AdminKamarTambah = () => {
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <p className="text-sm font-bold text-dark">Detail Kamar</p>
-          <p className="text-xs text-gray-400 mt-0.5">Semua field bertanda * wajib diisi</p>
+          <p className="text-xs text-gray-400 mt-0.5">Semua kolom bertanda * wajib diisi</p>
         </div>
 
         <KamarForm

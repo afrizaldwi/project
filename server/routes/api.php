@@ -16,12 +16,6 @@ use App\Models\Kamar;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-Route::get('/csrf-token', function () {
-    return response()->json([
-        'token' => csrf_token(),
-    ]);
-});
-
 Route::get('/public/kamar', function () {
     return Kamar::query()
         ->orderBy('nomor_kamar')
@@ -32,8 +26,8 @@ Route::get('/public/kamar', function () {
                 'nomor_kamar' => $kamar->nomor_kamar,
                 'harga_bulanan' => $kamar->harga_bulanan,
                 'status_kamar' => $kamar->status_kamar,
-                'foto_url' => $kamar->foto
-                    ? url(Storage::url($kamar->foto))
+                'foto_url' => $kamar->foto_kamar
+                    ? url(Storage::url($kamar->foto_kamar))
                     : null,
             ];
         });
@@ -43,16 +37,19 @@ Route::post('/track-visitor', [VisitorController::class, 'track']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
+    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::patch('/profile/password', [AuthController::class, 'updatePassword']);
+    Route::get('/profile', [AuthController::class, 'profile'])
+        ->middleware('penyewa.active');
 
     Route::get('/notifikasi', [TagihanReminderController::class, 'notifications']);
     Route::patch('/notifikasi/{idNotifikasi}/read', [TagihanReminderController::class, 'markNotificationAsRead']);
     Route::post('/mobile/device-token', [TagihanReminderController::class, 'registerDeviceToken']);
     Route::get('/tagihan/{idTagihan}/whatsapp-message', [TagihanReminderController::class, 'whatsappMessage']);
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('admin.only')->group(function () {
         Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
 
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);
@@ -90,7 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/keluhan/{id}', [KeluhanController::class, 'destroy']);
     });
 
-    Route::prefix('penyewa')->group(function () {
+    Route::prefix('penyewa')->middleware('penyewa.active')->group(function () {
         Route::get('/dashboard-summary', [PenyewaDashboardController::class, 'summary']);
 
         Route::get('/tagihan', [TagihanReminderController::class, 'penyewaTagihan']);

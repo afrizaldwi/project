@@ -2,8 +2,6 @@ import type { ChangeEvent } from "react";
 
 interface FormState {
   nama_lengkap: string;
-  email: string;
-  password: string;
   no_hp: string;
   alamat_asal: string;
   id_kamar: string;
@@ -16,9 +14,11 @@ interface FormState {
 interface FormDataPenghuniProps {
   form: FormState;
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onPhoneChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onBuktiBayarChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-const FormDataPenghuni = ({ form, onChange }: FormDataPenghuniProps) => {
+const FormDataPenghuni = ({ form, onChange, onPhoneChange, onBuktiBayarChange }: FormDataPenghuniProps) => {
   return (
     <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <h2 className="mb-5 text-lg font-black text-dark">Data Penghuni</h2>
@@ -44,72 +44,43 @@ const FormDataPenghuni = ({ form, onChange }: FormDataPenghuniProps) => {
           <input
             name="no_hp"
             type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={form.no_hp}
-            onChange={onChange}
+            onChange={onPhoneChange}
             required
             className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-bold text-dark/70">
-            Email *
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={onChange}
-            disabled
-            required
-            className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
           <p className="mt-1 text-xs font-medium text-dark/40">
-            Email dibuat otomatis dari nama, tapi masih bisa diedit.
-          </p>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-bold text-dark/70">
-            Password *
-          </label>
-          <input
-            name="password"
-            value={form.password}
-            onChange={onChange}
-            disabled
-            required
-            className="w-full rounded-xl border border-gray-200 bg-light p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-          <p className="mt-1 text-xs font-medium text-dark/40">
-            Berikan password ini kepada penghuni.
+            Contoh: 081234567890 atau 6281234567890
           </p>
         </div>
       </div>
 
       <div className="mt-4">
         <label className="mb-1 block text-sm font-bold text-dark/70">
-          Alamat Asal
+          Alamat Asal *
         </label>
         <textarea
           name="alamat_asal"
           value={form.alamat_asal}
           onChange={onChange}
           rows={3}
+          required
           className="w-full rounded-xl border border-gray-200 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
 
       <div className="mt-4">
         <label className="mb-2 block text-sm font-bold text-dark">
-          Metode Pembayaran Awal
+          Metode Pembayaran Awal *
         </label>
         <select
           name="metode_pembayaran"
           value={form.metode_pembayaran}
           onChange={onChange}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
           required
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
         >
           <option value="">Pilih metode pembayaran</option>
           <option value="Tunai">Tunai</option>
@@ -120,17 +91,18 @@ const FormDataPenghuni = ({ form, onChange }: FormDataPenghuniProps) => {
 
       <div className="mt-4">
         <label className="mb-2 block text-sm font-bold text-dark">
-          Bukti Pembayaran Awal <span className="text-dark/40">(Opsional)</span>
+          Bukti Pembayaran Awal *
         </label>
         <input
           type="file"
           name="bukti_bayar"
           accept="image/jpeg,image/jpg,image/png,application/pdf"
-          onChange={onChange}
+          onChange={onBuktiBayarChange}
+          required
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium outline-none focus:border-primary"
         />
         <p className="mt-1 text-xs font-medium text-dark/40">
-          Kosongkan jika pembayaran diterima langsung/tunai. Maksimal 5MB.
+          Wajib diunggah. Format JPG, JPEG, PNG, atau PDF maksimal 5MB.
         </p>
       </div>
     </section>
