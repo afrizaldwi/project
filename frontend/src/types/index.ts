@@ -435,3 +435,54 @@ export interface KeluhanPayload {
   deskripsi_keluhan: string;
   foto_kerusakan?: File[] | null;
 }
+export type VisitorBrowserName =
+  | "Brave"
+  | "Edge"
+  | "Opera"
+  | "Samsung Internet"
+  | "Firefox"
+  | "Safari"
+  | "Chrome"
+  | "Unknown";
+
+export interface DailyVisitorItem {
+  date: string;
+  unique_visitors: number;
+}
+
+export interface LocationVisitorItem {
+  country: string;
+  city: string;
+  unique_visitors: number;
+}
+
+export interface BrowserVisitorItem {
+  browser_name: VisitorBrowserName | "Tidak diketahui";
+  unique_visitors: number;
+}
+
+export interface VisitorConsentSummary {
+  analytics_allowed: number;
+  location_allowed: number;
+  location_rejected: number;
+  browser_allowed: number;
+  browser_rejected: number;
+}
+
+export interface VisitorStatsResponse {
+  total_unique_visitors: number;
+  today_unique_visitors: number;
+  top_location: {
+    country: string;
+    city: string;
+    total: number;
+  };
+  top_browser: {
+    browser_name: VisitorBrowserName | "Tidak diketahui";
+    total: number;
+  };
+  daily_visitors: DailyVisitorItem[];
+  location_visitors: LocationVisitorItem[];
+  browser_visitors: BrowserVisitorItem[];
+  consent_summary: VisitorConsentSummary;
+}

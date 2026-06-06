@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminPenghuniController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LaporanKeuanganController;
+use App\Http\Controllers\Admin\VisitorStatsController;
 use App\Http\Controllers\Api\BukuTamuController;
 use App\Http\Controllers\Api\KeluhanController;
 use App\Http\Controllers\AuthController;
@@ -41,6 +42,8 @@ Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('/profile/password', [AuthController::class, 'updatePassword']);
+    Route::get('/visitors/export.csv', [VisitorController::class, 'exportCsv'])
+        ->middleware('admin.only');
     Route::get('/profile', [AuthController::class, 'profile'])
         ->middleware('penyewa.active');
 
@@ -51,6 +54,7 @@ Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
 
     Route::prefix('admin')->middleware('admin.only')->group(function () {
         Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
+        Route::get('/visitor-stats', [VisitorStatsController::class, 'index']);
 
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);
         Route::post('/penghuni', [AdminPenghuniController::class, 'store']);

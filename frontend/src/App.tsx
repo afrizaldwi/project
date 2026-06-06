@@ -20,6 +20,7 @@ import AdminTambahPenghuni from "./pages/admin/AdminTambahPenghuni";
 import AdminKamarTambah from "./pages/admin/AdminKamarTambah";
 import AdminKamarEdit from "./pages/admin/AdminKamarEdit";
 import AdminPenghuniPerpanjang from "./pages/admin/AdminPenghuniPerpanjang";
+import AdminVisitorAnalytics from "./pages/admin/AdminVisitorAnalytics";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="tagihan" element={<AdminTagihan />} />
             <Route path="tamu" element={<AdminTamu />} />
             <Route path="keluhan" element={<AdminKeluhan />} />
+            <Route path="visitor-analytics" element={<AdminVisitorAnalytics />} />
             <Route path="profil" element={<AdminProfil />} />
             <Route path="penghuni/perpanjang/:id" element={<AdminPenghuniPerpanjang />} />
           </Route>

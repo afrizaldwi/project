@@ -36,10 +36,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardSummary = async () => {
       try {
-        const response = await api.get<DashboardSummary>(
-          "/admin/dashboard-summary"
-        );
-
+        const response = await api.get<DashboardSummary>("/admin/dashboard-summary");
         setSummary(response.data);
       } catch {
         setError("Gagal mengambil data dashboard.");
@@ -84,7 +81,6 @@ const AdminDashboard = () => {
   const statusKeluhanChartData = dashboardChartAdapter.toStatusKeluhanChart(
     summary.charts.status_keluhan
   );
-
 
   return (
     <div className="space-y-6 p-6">

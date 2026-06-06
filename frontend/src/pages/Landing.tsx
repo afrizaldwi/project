@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { getStorageUrl } from "../utils/storageUrl";
 import { useState, useEffect, useRef, useCallback } from "react";
 import CookieConsent, { getCookieConsent } from "../components/CookieConsent";
+import { detectBrowserName } from "../utils/browserDetection";
 import type { KamarStatus } from "../types";
 
 type LandingKamar = {
@@ -24,6 +25,32 @@ const facilities = [
     "Kebersihan Rutin",
 ];
 
+type VisitorCoordinates = {
+    latitude: number;
+    longitude: number;
+};
+
+const getVisitorCoordinates = (): Promise<VisitorCoordinates | null> => {
+    if (!("geolocation" in navigator)) {
+        return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            }),
+            () => resolve(null),
+            {
+                enableHighAccuracy: false,
+                maximumAge: 300000,
+                timeout: 5000,
+            },
+        );
+    });
+};
+
 const Landing = () => {
     const hasSentTrackingRef = useRef(false);
 
@@ -35,8 +62,6 @@ const Landing = () => {
         api.get<LandingKamar[]>("/public/kamar")
             .then((response) => {
                 setRooms(response.data);
-                console.log(response.data);
-
             })
             .catch(() => {
                 setRooms([]);
@@ -53,35 +78,48 @@ const Landing = () => {
         }).format(numberValue);
     };
 
-    const sendTracking = useCallback(() => {
+    const sendTracking = useCallback(async () => {
         const consent = getCookieConsent();
 
-        if (consent !== "accepted" || hasSentTrackingRef.current) {
+        if (!consent?.analytics_consent || hasSentTrackingRef.current) {
             return;
         }
 
         hasSentTrackingRef.current = true;
 
-        const payload = JSON.stringify({ analytics_consent: true });
+        try {
+            const [browserName, coordinates] = await Promise.all([
+                consent.browser_consent
+                    ? detectBrowserName().catch(() => "Unknown" as const)
+                    : Promise.resolve(null),
+                consent.location_consent ? getVisitorCoordinates() : Promise.resolve(null),
+            ]);
 
-        const blob = new Blob([payload], {
-            type: "application/json",
-        });
+            const payload: {
+                analytics_consent: true;
+                location_consent: boolean;
+                browser_consent: boolean;
+                browser_name?: string;
+                latitude?: number;
+                longitude?: number;
+            } = {
+                analytics_consent: true,
+                location_consent: consent.location_consent,
+                browser_consent: consent.browser_consent,
+            };
 
-        const sent = navigator.sendBeacon("/api/track-visitor", blob);
+            if (browserName) {
+                payload.browser_name = browserName;
+            }
 
-        if (!sent) {
-            fetch("/api/track-visitor", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                body: payload,
-                keepalive: true,
-            }).catch(() => {
-                hasSentTrackingRef.current = false;
-            });
+            if (coordinates) {
+                payload.latitude = coordinates.latitude;
+                payload.longitude = coordinates.longitude;
+            }
+
+            await api.post("/track-visitor", payload);
+        } catch {
+            hasSentTrackingRef.current = false;
         }
     }, []);
 
@@ -94,27 +132,7 @@ const Landing = () => {
     }, []);
 
     useEffect(() => {
-        if (getCookieConsent() === "accepted") {
-            sendTracking();
-        }
-
-        const handlePageHide = () => {
-            sendTracking();
-        }
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === "hidden") {
-                sendTracking();
-            }
-        };
-
-        window.addEventListener("pagehide", handlePageHide);
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            window.removeEventListener("pagehide", handlePageHide);
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
+        void sendTracking();
     }, [sendTracking]);
 
     return (
@@ -381,7 +399,7 @@ const Landing = () => {
                 </div>
             </footer>
 
-            <CookieConsent onAccept={sendTracking} />
+            <CookieConsent onConsentSaved={() => { void sendTracking(); }} />
         </div>
     );
 };
