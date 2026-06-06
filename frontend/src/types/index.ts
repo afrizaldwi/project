@@ -324,6 +324,15 @@ export interface Kamar {
   updated_at: string;
 }
 
+export type LandingKamar = {
+  id_kamar: number;
+  nomor_kamar: string;
+  harga_bulanan: number | string;
+  status_kamar: KamarStatus;
+  foto_url?: string | null;
+};
+
+
 export interface KamarStats {
   total: number;
   tersedia: number;
@@ -486,3 +495,4 @@ export interface VisitorStatsResponse {
   browser_visitors: BrowserVisitorItem[];
   consent_summary: VisitorConsentSummary;
 }
+

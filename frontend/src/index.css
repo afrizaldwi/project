@@ -11,3 +11,8 @@
   --color-warning: #f59e0b;
   --color-danger: #dc2626;
 }
+
+@tailwind base;
+html {
+  scroll-behavior: smooth;
+}
