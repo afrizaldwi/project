@@ -21,4 +21,22 @@ export const dashboardChartOptions = {
         },
 
     } satisfies ChartOptions<"bar">,
+
+    visitorBar: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: "bottom",
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                },
+            },
+        },
+    } satisfies ChartOptions<"bar">,
 };

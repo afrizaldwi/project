@@ -6,6 +6,7 @@ const adminMenu = [
   { label: "Tagihan", path: "/admin/tagihan" },
   { label: "Tamu", path: "/admin/tamu" },
   { label: "Keluhan", path: "/admin/keluhan" },
+  { label: "Analitik Pengunjung", path: "/admin/visitor-analytics" },
   { label: "Profil", path: "/admin/profil" },
 ];
 
