@@ -12,7 +12,7 @@ const rentalSteps = [
     description: "Calon penyewa melengkapi data dan melakukan pembayaran awal sesuai arahan admin.",
   },
   {
-    title: "Penghuni Menerima Akun Sdari Admin",
+    title: "Penghuni Menerima Akun dari Admin",
     description: "Setelah proses pendaftaran disetujui, penghuni menerima akun dari admin untuk mengakses sistem",
   },
   {

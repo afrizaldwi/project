@@ -66,9 +66,6 @@ const Landing = () => {
             });
     }, []);
 
-    console.log(rooms);
-
-
     const formatRupiah = (value: number | string) => {
         const numberValue = Number(value);
 
