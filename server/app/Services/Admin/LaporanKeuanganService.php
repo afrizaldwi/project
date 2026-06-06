@@ -17,9 +17,11 @@ class LaporanKeuanganService
         $bulan ??= (int) now()->format('m');
         $tahun ??= (int) now()->format('Y');
 
-        $totalPemasukan = $this->keuanganRepo->getTotalPemasukan($bulan, $tahun);
-        $totalPengeluaran = $this->keuanganRepo->getTotalPengeluaran($bulan, $tahun);
-        $tagihanBelumBayar = $this->keuanganRepo->getTagihanBelumBayar($bulan, $tahun);
+        $summary = $this->keuanganRepo->getMonthlySummary($bulan, $tahun);
+
+        $totalPemasukan = $summary['total_pemasukan'];
+        $totalPengeluaran = $summary['total_pengeluaran'];
+        $tagihanBelumBayar = $summary['tagihan_belum_bayar'];
 
         return [
             'periode' => [
