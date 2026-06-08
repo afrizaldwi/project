@@ -31,9 +31,6 @@ export const PenyewaKeluhanFilter = ({
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h2 className="text-lg font-bold text-gray-900">Riwayat Laporan</h2>
-        <p className="text-sm text-gray-500">
-          Anda hanya dapat melihat laporan dari sewa aktif milik Anda.
-        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">

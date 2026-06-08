@@ -57,6 +57,13 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
     };
   }
 
+  if (isTagihanCanceled(item)) {
+    return {
+      label: "Dibatalkan",
+      className: "bg-gray-100 text-gray-700",
+    };
+  }
+
   if (latestPaymentStatus === "pending") {
     return {
       label: "Menunggu",
@@ -70,13 +77,6 @@ export const getStatusConfig = (item: TagihanReminderItem) => {
       label: "Ditolak",
       className: "bg-danger/10 text-danger",
       icon: React.createElement(XCircle, { size: 14 }),
-    };
-  }
-
-  if (isTagihanCanceled(item)) {
-    return {
-      label: "Dibatalkan",
-      className: "bg-gray-100 text-gray-700",
     };
   }
 

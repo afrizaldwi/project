@@ -1,9 +1,25 @@
 import api from "../api/axios";
-import type { Kamar, KamarFormData, KamarListResponse } from "../types";
+import type {
+  Kamar,
+  KamarFormData,
+  KamarListResponse,
+  KamarStatus,
+  PaginationParams,
+} from "../types";
+
+type KamarListParams = PaginationParams & {
+  status?: KamarStatus | "semua";
+};
 
 const kamarService = {
-  async getAll(): Promise<KamarListResponse> {
-    const response = await api.get<KamarListResponse>("/admin/kamar");
+  async getAll(params: KamarListParams = {}): Promise<KamarListResponse> {
+    const response = await api.get<KamarListResponse>("/admin/kamar", {
+      params: {
+        ...params,
+        search: params.search?.trim() || undefined,
+        status: params.status && params.status !== "semua" ? params.status : undefined,
+      },
+    });
     return response.data;
   },
 

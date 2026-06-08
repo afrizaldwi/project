@@ -30,10 +30,11 @@ const InfoItem = ({ label, value }: InfoItemProps) => (
 
 interface TamuMobileCardsProps {
   data: Tamu[];
+  startNumber?: number;
   onDelete: (id: number) => void;
 }
 
-export const TamuMobileCards = ({ data, onDelete }: TamuMobileCardsProps) => {
+export const TamuMobileCards = ({ data, startNumber = 1, onDelete }: TamuMobileCardsProps) => {
   return (
     <div className="grid gap-4 lg:hidden">
       {data.map((item, index) => (
@@ -43,7 +44,7 @@ export const TamuMobileCards = ({ data, onDelete }: TamuMobileCardsProps) => {
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-gray-400">#{index + 1}</p>
+              <p className="text-xs font-semibold text-gray-400">#{startNumber + index}</p>
               <h3 className="mt-1 font-bold text-gray-900">{item.nama_tamu}</h3>
               <p className="text-sm text-gray-500">{item.no_hp_tamu}</p>
             </div>

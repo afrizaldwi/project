@@ -57,7 +57,7 @@ const Landing = () => {
     const [rooms, setRooms] = useState<LandingKamar[]>([]);
 
     useEffect(() => {
-        api.get<LandingKamar[]>("/public/kamar")
+        api.get<LandingKamar[]>("/public/kamar/types")
             .then((response) => {
                 setRooms(response.data);
             })
@@ -65,6 +65,9 @@ const Landing = () => {
                 setRooms([]);
             });
     }, []);
+
+    console.log(rooms);
+
 
     const formatRupiah = (value: number | string) => {
         const numberValue = Number(value);

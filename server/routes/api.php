@@ -13,28 +13,11 @@ use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardControll
 use App\Http\Controllers\SewaExtensionController;
 use App\Http\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
-use App\Models\Kamar;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
-
-Route::get('/public/kamar', function () {
-    return Kamar::query()
-        ->orderBy('nomor_kamar')
-        ->get()
-        ->map(function ($kamar) {
-            return [
-                'id_kamar' => $kamar->id_kamar,
-                'nomor_kamar' => $kamar->nomor_kamar,
-                'harga_bulanan' => $kamar->harga_bulanan,
-                'status_kamar' => $kamar->status_kamar,
-                'foto_url' => $kamar->foto_kamar
-                    ? url(Storage::url($kamar->foto_kamar))
-                    : null,
-            ];
-        });
-});
 
 Route::post('/track-visitor', [VisitorController::class, 'track']);
+
+Route::get('/public/kamar/types', [KamarController::class, 'publicRoomTypes']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -68,6 +51,7 @@ Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
         Route::patch('/sewa/{id}/perpanjang', [SewaExtensionController::class, 'perpanjang']);
 
         Route::get('/laporan-keuangan', [LaporanKeuanganController::class, 'summary']);
+        Route::get('/laporan-keuangan/export-csv', [LaporanKeuanganController::class, 'exportCsv']);
         Route::get('/pengeluaran', [LaporanKeuanganController::class, 'pengeluaran']);
         Route::post('/pengeluaran', [LaporanKeuanganController::class, 'storePengeluaran']);
         Route::delete('/pengeluaran/{idPengeluaran}', [LaporanKeuanganController::class, 'destroyPengeluaran']);

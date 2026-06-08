@@ -64,72 +64,92 @@ export const KeluhanTable = ({
   }
 
   return (
-    <div className="mt-5 overflow-x-auto rounded-xl border border-gray-100">
-      <table className="min-w-full divide-y divide-gray-100">
-        <thead className="bg-gray-50">
+    <div className="mt-5 w-full">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-gray-50 text-gray-600 hidden md:table-header-group">
           <tr>
-            <TableHead>Laporan</TableHead>
-            <TableHead>Penghuni</TableHead>
-            <TableHead>Kamar</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Tanggal Lapor</TableHead>
-            <TableHead>Foto</TableHead>
-            <TableHead>Aksi</TableHead>
+            <th className="px-4 py-3 font-semibold">Laporan</th>
+            <th className="px-4 py-3 font-semibold">Penghuni</th>
+            <th className="px-4 py-3 font-semibold">Kamar</th>
+            <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 font-semibold">Tanggal Lapor</th>
+            <th className="px-4 py-3 font-semibold">Foto</th>
+            <th className="px-4 py-3 font-semibold">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
+
+        <tbody className="block md:table-row-group md:divide-y divide-gray-100 bg-transparent md:bg-white">
           {data.map((item) => (
-            <tr key={item.id_keluhan} className="align-top hover:bg-gray-50">
-              <TableCell>
-                <p className="font-semibold text-gray-900">{item.judul_keluhan}</p>
-                <p className="mt-1 max-w-xs text-xs text-gray-500">
-                  {item.deskripsi_keluhan}
-                </p>
-              </TableCell>
+            <tr
+              key={item.id_keluhan}
+              className="block md:table-row bg-white mb-4 md:mb-0 border md:border-0 border-gray-100 rounded-xl shadow-sm md:shadow-none align-top transition-colors hover:bg-gray-50"
+            >
+              <td className="flex flex-col sm:flex-row sm:justify-between items-start md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase mb-1 sm:mb-0">Laporan</span>
+                <div className="text-left sm:text-right md:text-left">
+                  <p className="font-semibold text-gray-900">{item.judul_keluhan}</p>
+                  <p className="mt-1 max-w-xs text-xs text-gray-500 line-clamp-2 md:line-clamp-none">
+                    {item.deskripsi_keluhan}
+                  </p>
+                </div>
+              </td>
 
-              <TableCell>
-                <p className="font-semibold text-gray-900">{item.nama_penghuni}</p>
-                <p className="text-xs text-gray-500">{item.email_penghuni}</p>
-              </TableCell>
+              <td className="flex justify-between items-start md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Penghuni</span>
+                <div className="text-right md:text-left">
+                  <p className="font-semibold text-gray-900">{item.nama_penghuni}</p>
+                  <p className="text-xs text-gray-500">{item.email_penghuni}</p>
+                </div>
+              </td>
 
-              <TableCell>{item.nomor_kamar}</TableCell>
+              <td className="flex justify-between items-center md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Kamar</span>
+                <span className="font-medium text-gray-900">{item.nomor_kamar}</span>
+              </td>
 
-              <TableCell>
+              <td className="flex justify-between items-center md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Status</span>
                 <span
-                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
-                    statusClass[item.status_keluhan]
-                  }`}
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClass[item.status_keluhan]
+                    }`}
                 >
                   {statusLabel[item.status_keluhan]}
                 </span>
-              </TableCell>
+              </td>
 
-              <TableCell>{formatTanggal(item.tanggal_lapor)}</TableCell>
+              <td className="flex justify-between items-center md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Tanggal</span>
+                <span className="text-gray-600">{formatTanggal(item.tanggal_lapor)}</span>
+              </td>
 
-              <TableCell>
-                {item.foto_kerusakan ? (
-                  <div className="flex flex-col gap-1.5 min-w-[90px]">
-                    {item.foto_kerusakan.split(",").map((path, idx) => {
-                      const url = getStorageUrl(path);
-                      return url ? (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => onPreviewImage(url)}
-                          className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-colors whitespace-nowrap text-center cursor-pointer"
-                        >
-                          Foto {idx + 1}
-                        </button>
-                      ) : null;
-                    })}
-                  </div>
-                ) : (
-                  <span className="text-xs text-gray-400">Tidak ada</span>
-                )}
-              </TableCell>
+              <td className="flex justify-between items-start md:table-cell p-4 border-b md:border-none border-gray-50">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase">Foto</span>
+                <div className="text-right md:text-left">
+                  {item.foto_kerusakan ? (
+                    <div className="flex flex-row md:flex-col gap-1.5 flex-wrap justify-end md:justify-start">
+                      {item.foto_kerusakan.split(",").map((path, idx) => {
+                        const url = getStorageUrl(path);
+                        return url ? (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => onPreviewImage(url)}
+                            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-colors whitespace-nowrap text-center cursor-pointer"
+                          >
+                            Foto {idx + 1}
+                          </button>
+                        ) : null;
+                      })}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400">Tidak ada</span>
+                  )}
+                </div>
+              </td>
 
-              <TableCell>
-                <div className="flex flex-col gap-2">
+              <td className="flex flex-col md:table-cell p-4 gap-2">
+                <span className="md:hidden text-xs font-bold text-gray-400 uppercase mb-2">Aksi</span>
+                <div className="flex flex-row md:flex-col gap-2 w-full">
                   <select
                     value={item.status_keluhan}
                     disabled={isUpdatingId === item.id_keluhan}
@@ -139,7 +159,7 @@ export const KeluhanTable = ({
                         event.target.value as KeluhanStatus
                       )
                     }
-                    className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="flex-1 md:flex-none rounded-lg border border-gray-200 bg-white px-2 py-2 md:py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
                     <option value="pending">Menunggu</option>
                     <option value="proses">Diproses</option>
@@ -149,12 +169,12 @@ export const KeluhanTable = ({
                   <button
                     type="button"
                     onClick={() => onDelete(item.id_keluhan)}
-                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 cursor-pointer"
+                    className="flex-1 md:flex-none rounded-lg border border-red-200 bg-red-50 px-3 py-2 md:py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 cursor-pointer"
                   >
                     Hapus
                   </button>
                 </div>
-              </TableCell>
+              </td>
             </tr>
           ))}
         </tbody>

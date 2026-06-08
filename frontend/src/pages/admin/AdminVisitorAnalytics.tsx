@@ -121,9 +121,6 @@ const AdminVisitorAnalytics = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Analitik Pengunjung</h1>
-          <p className="text-sm text-gray-500">
-            Ringkasan pengunjung landing page berdasarkan persetujuan cookie.
-          </p>
         </div>
 
         <a

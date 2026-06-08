@@ -2,14 +2,21 @@ import api from "./axios";
 
 import type {
     NotifikasiItem,
+    PaginatedResponse,
+    PaginationParams,
     PendingPembayaranItem,
     TagihanReminderItem,
 } from "../types";
 
 export const tagihanReminderApi = {
-    async getAdminTagihan() {
-        const response = await api.get<{ data: TagihanReminderItem[] }>("/admin/tagihan");
-        return response.data.data;
+    async getAdminTagihan(params: PaginationParams = {}) {
+        const response = await api.get<PaginatedResponse<TagihanReminderItem>>(
+            "/admin/tagihan",
+            { params }
+        );
+        console.log(response.data);
+
+        return response.data;
     },
 
     async getPenyewaTagihan() {
@@ -22,12 +29,13 @@ export const tagihanReminderApi = {
         return response.data;
     },
 
-    async getPendingPayments() {
-        const response = await api.get<{ data: PendingPembayaranItem[] }>(
-            "/admin/pembayaran/pending"
+    async getPendingPayments(params: PaginationParams = {}) {
+        const response = await api.get<PaginatedResponse<PendingPembayaranItem>>(
+            "/admin/pembayaran/pending",
+            { params }
         );
 
-        return response.data.data;
+        return response.data;
     },
 
     async verifyPayment(idPembayaran: number, catatanAdmin?: string) {

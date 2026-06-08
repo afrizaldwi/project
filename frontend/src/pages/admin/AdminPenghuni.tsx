@@ -1,51 +1,68 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import adminApi from "../../api/admin";
-import type { PenghuniItem } from "../../types";
+import type { PaginationMeta, PenghuniItem } from "../../types";
 import PenghuniHeader from "../../components/admin/PenghuniHeader";
 import PenghuniFilter from "../../components/admin/PenghuniFilter";
 import PenghuniCardMobile from "../../components/admin/PenghuniCardMobile";
 import PenghuniTableDesktop from "../../components/admin/PenghuniTableDesktop";
+import PaginationControls from "../../components/ui/PaginationControls";
 import { useNavigate } from "react-router-dom";
 
 type StatusFilter = "aktif" | "selesai";
+const PER_PAGE = 10;
 
 const AdminPenghuni = () => {
   const [status, setStatus] = useState<StatusFilter>("aktif");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(null);
   const [penghuni, setPenghuni] = useState<PenghuniItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  const fetchPenghuni = async () => {
+  const fetchPenghuni = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) {
+        setIsLoading(true);
+      }
       setErrorMessage("");
 
-      const data = await adminApi.getPenghuni(status);
-      setPenghuni(data);
+      const response = await adminApi.getPenghuni({
+        page,
+        per_page: PER_PAGE,
+        search,
+        status,
+      });
+      setPenghuni(response.data);
+      setPaginationMeta(response.meta);
+
+      if (response.data.length === 0 && page > 1) {
+        setPage(Math.max(1, response.meta.last_page));
+        return;
+      }
     } catch {
       setErrorMessage("Gagal memuat data penghuni.");
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [page, search, status]);
 
   useEffect(() => {
     fetchPenghuni();
-  }, [status]);
+  }, [fetchPenghuni]);
 
-  const filteredPenghuni = useMemo(() => {
-    const keyword = search.toLowerCase().trim();
-    if (!keyword) return penghuni;
+  const handleStatusChange = (value: StatusFilter) => {
+    setStatus(value);
+    setPage(1);
+  };
 
-    return penghuni.filter((item) => {
-      const nama = item.user?.nama_lengkap?.toLowerCase() || "";
-      const email = item.user?.email?.toLowerCase() || "";
-      const kamar = item.kamar?.nomor_kamar?.toLowerCase() || "";
-      return nama.includes(keyword) || email.includes(keyword) || kamar.includes(keyword);
-    });
-  }, [penghuni, search]);
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   const handleSelesaikan = async (idSewa: number) => {
     const confirmed = window.confirm(
@@ -55,7 +72,7 @@ const AdminPenghuni = () => {
 
     try {
       await adminApi.finishSewa(idSewa, new Date().toISOString().slice(0, 10));
-      await fetchPenghuni();
+      await fetchPenghuni(true);
     } catch {
       alert("Gagal mengarsipkan penghuni.");
     }
@@ -71,9 +88,9 @@ const AdminPenghuni = () => {
 
       <PenghuniFilter
         status={status}
-        setStatus={setStatus}
+        setStatus={handleStatusChange}
         search={search}
-        setSearch={setSearch}
+        setSearch={handleSearchChange}
       />
 
       {errorMessage && (
@@ -84,18 +101,22 @@ const AdminPenghuni = () => {
 
       <PenghuniCardMobile
         isLoading={isLoading}
-        filteredPenghuni={filteredPenghuni}
+        filteredPenghuni={penghuni}
         handleSelesaikan={handleSelesaikan}
         handlePerpanjang={handlePerpanjang}
-
       />
 
       <PenghuniTableDesktop
         isLoading={isLoading}
-        filteredPenghuni={filteredPenghuni}
+        filteredPenghuni={penghuni}
         handleSelesaikan={handleSelesaikan}
         handlePerpanjang={handlePerpanjang}
+      />
 
+      <PaginationControls
+        meta={paginationMeta}
+        isLoading={isLoading}
+        onPageChange={setPage}
       />
     </div>
   );

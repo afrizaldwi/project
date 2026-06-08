@@ -3,19 +3,29 @@ import type {
     CreatePengeluaranPayload,
     KamarTersedia,
     LaporanKeuanganResponse,
+    PaginatedResponse,
+    PaginationParams,
     PengeluaranItem,
     PenghuniItem,
 } from "../types";
 
+type PenghuniStatus = "aktif" | "selesai" | "dibatalkan" | "all";
+
+type PenghuniListParams = PaginationParams & {
+    status?: PenghuniStatus;
+};
+
 const adminApi = {
-    async getPenghuni(
-        status: "aktif" | "selesai" | "dibatalkan" | "all" = "aktif"
-    ) {
-        const response = await api.get<{ data: PenghuniItem[] }>("/admin/penghuni", {
-            params: { status },
+    async getPenghuni(params: PenghuniListParams = {}): Promise<PaginatedResponse<PenghuniItem>> {
+        const response = await api.get<PaginatedResponse<PenghuniItem>>("/admin/penghuni", {
+            params: {
+                ...params,
+                search: params.search?.trim() || undefined,
+                status: params.status ?? "aktif",
+            },
         });
 
-        return response.data.data;
+        return response.data;
     },
 
     async getKamarTersedia() {
@@ -45,6 +55,18 @@ const adminApi = {
             "/admin/laporan-keuangan",
             {
                 params: { bulan, tahun },
+            }
+        );
+
+        return response.data;
+    },
+
+    async exportLaporanKeuanganCsv(bulan?: number, tahun?: number) {
+        const response = await api.get(
+            "/admin/laporan-keuangan/export-csv",
+            {
+                params: { bulan, tahun },
+                responseType: "blob",
             }
         );
 

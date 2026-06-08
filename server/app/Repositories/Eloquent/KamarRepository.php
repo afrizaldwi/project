@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Repositories\Contracts\KamarRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class KamarRepository implements KamarRepositoryInterface
@@ -12,6 +13,31 @@ class KamarRepository implements KamarRepositoryInterface
     public function all(): Collection
     {
         return Kamar::orderBy('nomor_kamar')->get();
+    }
+
+    public function paginate(?string $search = null, ?string $status = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = Kamar::query();
+        $search = trim((string) $search);
+        $status = trim((string) $status);
+
+        if ($search !== '') {
+            $query->where('nomor_kamar', 'like', "%{$search}%");
+        }
+
+        if ($status !== '' && $status !== 'semua') {
+            $query->where('status_kamar', $status);
+        }
+
+        return $query->orderBy('nomor_kamar')->paginate($perPage);
+    }
+
+    public function getAvailableRooms(): Collection
+    {
+        return Kamar::query()
+            ->where('status_kamar', 'tersedia')
+            ->orderBy('nomor_kamar')
+            ->get();
     }
 
     public function findById(int $id): ?Kamar

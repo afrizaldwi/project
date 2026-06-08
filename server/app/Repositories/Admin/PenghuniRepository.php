@@ -6,6 +6,7 @@ use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class PenghuniRepository
@@ -22,6 +23,33 @@ class PenghuniRepository
         }
 
         return $query->orderByDesc('tanggal_masuk')->get();
+    }
+
+    public function paginatePenghuniByStatus(?string $status = 'aktif', ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $query = RiwayatSewa::with(['user', 'kamar'])
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'penyewa');
+            });
+        $search = trim((string) $search);
+
+        if ($status && $status !== 'all') {
+            $query->where('status_sewa', $status);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('no_hp', 'like', "%{$search}%");
+                })->orWhereHas('kamar', function ($kamarQuery) use ($search) {
+                    $kamarQuery->where('nomor_kamar', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        return $query->orderByDesc('tanggal_masuk')->paginate($perPage);
     }
 
     public function getKamarTersedia(): Collection
