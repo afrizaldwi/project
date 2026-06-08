@@ -17,9 +17,6 @@ export const PenyewaKeluhanHeader = ({
             Laporan Kerusakan
           </p>
           <h1 className="mt-2 text-2xl font-bold">Keluhan Kamar Saya</h1>
-          <p className="mt-1 max-w-2xl text-sm text-blue-100">
-            Laporkan kerusakan fasilitas kamar dan pantau status perbaikannya.
-          </p>
         </div>
 
         <button

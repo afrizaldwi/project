@@ -1,9 +1,13 @@
+import type { KamarStatus } from "../../types";
+
+type KamarStatusFilter = KamarStatus | "semua";
+
 interface KamarFiltersProps {
   search: string;
-  filterStatus: string;
+  filterStatus: KamarStatusFilter;
   viewMode: "grid" | "list";
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
+  onStatusChange: (value: KamarStatusFilter) => void;
   onViewModeChange: (mode: "grid" | "list") => void;
 }
 
@@ -29,7 +33,7 @@ const KamarFilters = ({
       </div>
       <select
         value={filterStatus}
-        onChange={(e) => onStatusChange(e.target.value)}
+        onChange={(e) => onStatusChange(e.target.value as KamarStatusFilter)}
         className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white text-dark outline-none"
       >
         <option value="semua">Semua Status</option>
@@ -37,7 +41,7 @@ const KamarFilters = ({
         <option value="terisi">Terisi</option>
         <option value="perbaikan">Perbaikan</option>
       </select>
-      <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+      <div className="md:flex border border-gray-200 rounded-lg overflow-hidden hidden">
         <button
           onClick={() => onViewModeChange("grid")}
           className={`px-3 py-2 text-sm transition ${viewMode === "grid" ? "bg-primary text-white" : "bg-white text-gray-400"}`}

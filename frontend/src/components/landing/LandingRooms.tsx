@@ -35,7 +35,7 @@ const LandingRooms = ({ rooms, facilities, formatRupiah }: LandingRoomsProps) =>
                     <img
                       className="absolute inset-0 h-full w-full object-cover"
                       src={getStorageUrl(room.foto_url)}
-                      alt={`Kamar ${room.nomor_kamar}`}
+                      alt={`Kamar ${room.tipe_kamar}`}
                       onError={(event) => {
                         event.currentTarget.style.display = "none";
                       }}
@@ -44,7 +44,7 @@ const LandingRooms = ({ rooms, facilities, formatRupiah }: LandingRoomsProps) =>
                 </div>
                 <div className="p-5">
                   <div className="mb-2 flex items-center justify-between gap-3">
-                    <h4 className="font-bold text-dark">Kamar {room.nomor_kamar}</h4>
+                    <h4 className="font-bold text-dark">Kamar {room.tipe_kamar}</h4>
                     <span className={`rounded-full px-2 py-1 text-xs font-medium ${status.className}`}>
                       {status.label}
                     </span>

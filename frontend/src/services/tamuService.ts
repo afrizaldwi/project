@@ -1,5 +1,11 @@
 import api from "../api/axios";
-import type { PenghuniAktifOption, Tamu, TamuPayload } from "../types";
+import type {
+    PaginatedResponse,
+    PaginationParams,
+    PenghuniAktifOption,
+    Tamu,
+    TamuPayload,
+} from "../types";
 
 interface ApiListResponse<T> {
     status: string;
@@ -7,9 +13,14 @@ interface ApiListResponse<T> {
 }
 
 const tamuService = {
-    async getAdminTamu(): Promise<Tamu[]> {
-        const response = await api.get<ApiListResponse<Tamu[]>>("/admin/tamu");
-        return response.data.data;
+    async getAdminTamu(params: PaginationParams = {}): Promise<PaginatedResponse<Tamu>> {
+        const response = await api.get<PaginatedResponse<Tamu>>("/admin/tamu", {
+            params: {
+                ...params,
+                search: params.search?.trim() || undefined,
+            },
+        });
+        return response.data;
     },
 
     async getPenyewaTamu(): Promise<Tamu[]> {

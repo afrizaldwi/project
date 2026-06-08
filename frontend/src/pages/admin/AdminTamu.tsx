@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import tamuService from "../../services/tamuService";
-import type { PenghuniAktifOption, Tamu } from "../../types";
+import type { PaginationMeta, PenghuniAktifOption, Tamu } from "../../types";
 
 import TamuHeader from "../../components/tamu/TamuHeader";
 import TamuStats from "../../components/tamu/TamuStats";
@@ -8,9 +8,15 @@ import TamuForm from "../../components/tamu/TamuForm";
 import TamuFilter from "../../components/tamu/TamuFilter";
 import TamuTable from "../../components/tamu/TamuTable";
 import TamuMobileCards from "../../components/tamu/TamuMobileCards";
+import PaginationControls from "../../components/ui/PaginationControls";
+
+const PER_PAGE = 10;
 
 const AdminTamu = () => {
   const [data, setData] = useState<Tamu[]>([]);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(null);
+  const [tamuSummary, setTamuSummary] = useState<any>(null);
+  const [page, setPage] = useState(1);
   const [penghuniOptions, setPenghuniOptions] = useState<PenghuniAktifOption[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -25,42 +31,54 @@ const AdminTamu = () => {
     keperluan: "",
   });
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
-      const [tamu, penghuni] = await Promise.all([
-        tamuService.getAdminTamu(),
-        tamuService.getPenghuniAktif(),
-      ]);
+      const response = await tamuService.getAdminTamu({
+        page,
+        per_page: PER_PAGE,
+        search,
+      });
 
-      setData(tamu);
-      setPenghuniOptions(penghuni);
+      setData(response.data);
+      setPaginationMeta(response.meta);
+      if (response.summary) {
+        setTamuSummary(response.summary);
+      }
+
+      if (response.data.length === 0 && page > 1) {
+        setPage(Math.max(1, response.meta.last_page));
+        return;
+      }
     } catch {
       setError("Gagal memuat data tamu.");
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [page, search]);
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    const fetchPenghuniOptions = async () => {
+      try {
+        const penghuni = await tamuService.getPenghuniAktif();
+        setPenghuniOptions(penghuni);
+      } catch {
+        setError("Gagal memuat data penghuni aktif.");
+      }
+    };
+
+    fetchPenghuniOptions();
   }, []);
-
-  const filteredData = useMemo(() => {
-    const keyword = search.toLowerCase();
-
-    return data.filter((item) => {
-      return (
-        item.nama_tamu.toLowerCase().includes(keyword) ||
-        item.no_hp_tamu.toLowerCase().includes(keyword) ||
-        item.nama_penghuni.toLowerCase().includes(keyword) ||
-        item.nomor_kamar.toLowerCase().includes(keyword) ||
-        item.keperluan.toLowerCase().includes(keyword)
-      );
-    });
-  }, [data, search]);
 
   const resetForm = () => {
     setForm({
@@ -69,6 +87,11 @@ const AdminTamu = () => {
       id_user: "",
       keperluan: "",
     });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -86,7 +109,12 @@ const AdminTamu = () => {
       await tamuService.createAdminTamu(form);
       resetForm();
       setIsFormOpen(false);
-      await fetchData();
+
+      if (page === 1) {
+        await fetchData(true);
+      } else {
+        setPage(1);
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Gagal menyimpan data tamu.");
     } finally {
@@ -99,21 +127,28 @@ const AdminTamu = () => {
 
     try {
       await tamuService.deleteTamu(id);
-      setData((current) => current.filter((item) => item.id_tamu !== id));
+      await fetchData(true);
     } catch {
       setError("Gagal menghapus data tamu.");
     }
   };
 
   const stats = useMemo(() => {
+    if (tamuSummary) {
+      return {
+        totalTamu: tamuSummary.total_tamu ?? 0,
+        totalPenghuniVisited: tamuSummary.total_penghuni_visited ?? 0,
+        tamuToday: tamuSummary.tamu_today ?? 0,
+      };
+    }
     return {
-      totalTamu: data.length,
+      totalTamu: paginationMeta?.total ?? data.length,
       totalPenghuniVisited: new Set(data.map((item) => item.id_user)).size,
       tamuToday: data.filter(
         (item) => item.waktu_berkunjung?.slice(0, 10) === new Date().toISOString().slice(0, 10)
       ).length,
     };
-  }, [data]);
+  }, [data, paginationMeta, tamuSummary]);
 
   return (
     <main className="space-y-6 p-6">
@@ -146,22 +181,36 @@ const AdminTamu = () => {
       )}
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <TamuFilter search={search} setSearch={setSearch} />
+        <TamuFilter search={search} setSearch={handleSearchChange} />
 
         {isLoading ? (
           <div className="mt-5 rounded-xl border border-gray-100 p-6 text-center text-sm text-gray-500">
             Memuat data tamu...
           </div>
-        ) : filteredData.length === 0 ? (
+        ) : data.length === 0 ? (
           <div className="mt-5 rounded-xl border border-gray-100 p-6 text-center text-sm text-gray-500">
             Belum ada data tamu.
           </div>
         ) : (
           <div className="mt-5 space-y-4">
-            <TamuTable data={filteredData} onDelete={handleDelete} />
-            <TamuMobileCards data={filteredData} onDelete={handleDelete} />
+            <TamuTable
+              data={data}
+              startNumber={paginationMeta?.from ?? 1}
+              onDelete={handleDelete}
+            />
+            <TamuMobileCards
+              data={data}
+              startNumber={paginationMeta?.from ?? 1}
+              onDelete={handleDelete}
+            />
           </div>
         )}
+
+        <PaginationControls
+          meta={paginationMeta}
+          isLoading={isLoading}
+          onPageChange={setPage}
+        />
       </section>
     </main>
   );

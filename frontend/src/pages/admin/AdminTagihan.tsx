@@ -6,6 +6,7 @@ import { tagihanReminderApi } from "../../api/tagihanReminder";
 import usePolling from "../../hook/usePolling";
 import type {
   NotifikasiItem,
+  PaginationMeta,
   PendingPembayaranItem,
   TagihanReminderItem,
 } from "../../types";
@@ -15,8 +16,10 @@ import TagihanStats from "../../components/tagihan/admin/TagihanStats";
 import TagihanTable from "../../components/tagihan/admin/TagihanTable";
 import PendingPaymentsTable from "../../components/tagihan/admin/PendingPaymentsTable";
 import PaymentVerificationModal from "../../components/tagihan/admin/PaymentVerificationModal";
+import PaginationControls from "../../components/ui/PaginationControls";
 
 const POLLING_INTERVAL_MS = 5000;
+const PER_PAGE = 10;
 
 const isUnauthorizedError = (error: unknown) => {
   return (error as { response?: { status?: number } })?.response?.status === 401;
@@ -25,6 +28,12 @@ const isUnauthorizedError = (error: unknown) => {
 const AdminTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
   const [pendingPayments, setPendingPayments] = useState<PendingPembayaranItem[]>([]);
+  const [tagihanMeta, setTagihanMeta] = useState<PaginationMeta | null>(null);
+  const [tagihanSummary, setTagihanSummary] = useState<any>(null);
+  const [pendingMeta, setPendingMeta] = useState<PaginationMeta | null>(null);
+  const [tagihanPage, setTagihanPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("semua");
   const [notifications, setNotifications] = useState<NotifikasiItem[]>([]);
   const [activeTab, setActiveTab] = useState<"semua" | "pending">("semua");
   const [preview, setPreview] = useState<PendingPembayaranItem | null>(null);
@@ -36,13 +45,21 @@ const AdminTagihan = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const stats = useMemo(() => {
+    if (tagihanSummary) {
+      return {
+        total: tagihanSummary.total ?? 0,
+        lunas: tagihanSummary.lunas ?? 0,
+        belum: tagihanSummary.belum ?? 0,
+        pending: pendingMeta?.total ?? pendingPayments.length,
+      };
+    }
     return {
-      total: tagihan.length,
+      total: tagihanMeta?.total ?? tagihan.length,
       lunas: tagihan.filter((item) => isTagihanPaid(item)).length,
       belum: tagihan.filter((item) => isTagihanOpen(item)).length,
-      pending: pendingPayments.length,
+      pending: pendingMeta?.total ?? pendingPayments.length,
     };
-  }, [tagihan, pendingPayments]);
+  }, [tagihan, tagihanMeta, pendingPayments, pendingMeta, tagihanSummary]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -50,13 +67,33 @@ const AdminTagihan = () => {
       setErrorMessage("");
 
       const [tagihanData, pendingData, notificationData] = await Promise.all([
-        tagihanReminderApi.getAdminTagihan(),
-        tagihanReminderApi.getPendingPayments(),
+        tagihanReminderApi.getAdminTagihan({ page: tagihanPage, per_page: PER_PAGE, status: statusFilter }),
+        tagihanReminderApi.getPendingPayments({ page: pendingPage, per_page: PER_PAGE }),
         tagihanReminderApi.getNotifications(true),
       ]);
+      let needRefetch = false;
 
-      setTagihan(tagihanData);
-      setPendingPayments(pendingData);
+      if (tagihanData.data.length === 0 && tagihanPage > 1) {
+        setTagihanPage(Math.max(1, tagihanData.meta.last_page));
+        needRefetch = true;
+      } else {
+        setTagihan(tagihanData.data);
+        setTagihanMeta(tagihanData.meta);
+        if (tagihanData.summary) {
+          setTagihanSummary(tagihanData.summary);
+        }
+      }
+
+      if (pendingData.data.length === 0 && pendingPage > 1) {
+        setPendingPage(Math.max(1, pendingData.meta.last_page));
+        needRefetch = true;
+      } else {
+        setPendingPayments(pendingData.data);
+        setPendingMeta(pendingData.meta);
+      }
+
+      if (needRefetch) return;
+
       setNotifications(notificationData);
       setShowNotificationModal(notificationData.length > 0);
     } catch {
@@ -64,23 +101,42 @@ const AdminTagihan = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [tagihanPage, pendingPage, statusFilter]);
 
   const refreshPaymentData = useCallback(async () => {
     try {
       const [tagihanData, pendingData] = await Promise.all([
-        tagihanReminderApi.getAdminTagihan(),
-        tagihanReminderApi.getPendingPayments(),
+        tagihanReminderApi.getAdminTagihan({ page: tagihanPage, per_page: PER_PAGE, status: statusFilter }),
+        tagihanReminderApi.getPendingPayments({ page: pendingPage, per_page: PER_PAGE }),
       ]);
+      let needRefetch = false;
 
-      setTagihan(tagihanData);
-      setPendingPayments(pendingData);
+      if (tagihanData.data.length === 0 && tagihanPage > 1) {
+        setTagihanPage(Math.max(1, tagihanData.meta.last_page));
+        needRefetch = true;
+      } else {
+        setTagihan(tagihanData.data);
+        setTagihanMeta(tagihanData.meta);
+        if (tagihanData.summary) {
+          setTagihanSummary(tagihanData.summary);
+        }
+      }
+
+      if (pendingData.data.length === 0 && pendingPage > 1) {
+        setPendingPage(Math.max(1, pendingData.meta.last_page));
+        needRefetch = true;
+      } else {
+        setPendingPayments(pendingData.data);
+        setPendingMeta(pendingData.meta);
+      }
+
+      if (needRefetch) return;
     } catch (error) {
       if (isUnauthorizedError(error)) {
         throw error;
       }
     }
-  }, []);
+  }, [tagihanPage, pendingPage, statusFilter]);
 
   useEffect(() => {
     fetchData();
@@ -150,7 +206,7 @@ const AdminTagihan = () => {
   };
 
   return (
-    <div className="space-y-6 bg-light p-4 md:p-6">
+    <div className="space-y-6 bg-light p-4 md:p-6 w-full">
       {showNotificationModal && (
         <NotificationModal
           notifications={notifications}
@@ -163,9 +219,6 @@ const AdminTagihan = () => {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-black text-dark">Manajemen Tagihan</h1>
-          <p className="mt-1 text-sm font-medium text-dark/50">
-            Status hunian, notifikasi jatuh tempo, dan validasi bukti bayar.
-          </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -208,42 +261,85 @@ const AdminTagihan = () => {
             </p>
           </div>
 
-          <div className="grid w-full grid-cols-2 rounded-xl bg-light p-1 md:w-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab("semua")}
-              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "semua"
-                ? "bg-primary text-white shadow-sm"
-                : "text-dark/40 hover:text-dark"
-                }`}
-            >
-              Semua Tagihan
-            </button>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            {activeTab === "semua" && (
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setTagihanPage(1);
+                }}
+                className="w-full md:w-auto rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition-all hover:border-gray-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
+              >
+                <option value="semua">Semua Status</option>
+                <option value="belum_bayar">Belum Bayar</option>
+                <option value="lunas">Lunas</option>
+                <option value="telat">Telat</option>
+                <option value="dibatalkan">Dibatalkan</option>
+              </select>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setActiveTab("pending")}
-              className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "pending"
-                ? "bg-primary text-white shadow-sm"
-                : "text-dark/40 hover:text-dark"
-                }`}
-            >
-              Perlu Validasi
-            </button>
+            <div className="grid w-full grid-cols-2 rounded-xl bg-light p-1 md:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("semua");
+                  setTagihanPage(1);
+                }}
+                className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "semua"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-dark/40 hover:text-dark"
+                  }`}
+              >
+                Semua Tagihan
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("pending");
+                  setPendingPage(1);
+                }}
+                className={`rounded-lg px-3 py-2 text-xs font-black transition-all md:px-5 ${activeTab === "pending"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-dark/40 hover:text-dark"
+                  }`}
+              >
+                Perlu Validasi
+              </button>
+            </div>
           </div>
         </div>
 
         {activeTab === "semua" ? (
-          <TagihanTable tagihan={tagihan} isLoading={isLoading} />
+          <>
+            <TagihanTable tagihan={tagihan} isLoading={isLoading} />
+            <div className="px-5 pb-5">
+              <PaginationControls
+                meta={tagihanMeta}
+                isLoading={isLoading}
+                onPageChange={setTagihanPage}
+              />
+            </div>
+          </>
         ) : (
-          <PendingPaymentsTable
-            pendingPayments={pendingPayments}
-            isLoading={isLoading}
-            onInspect={(payment) => {
-              setPreview(payment);
-              setCatatan("");
-            }}
-          />
+          <>
+            <PendingPaymentsTable
+              pendingPayments={pendingPayments}
+              isLoading={isLoading}
+              onInspect={(payment) => {
+                setPreview(payment);
+                setCatatan("");
+              }}
+            />
+            <div className="px-5 pb-5">
+              <PaginationControls
+                meta={pendingMeta}
+                isLoading={isLoading}
+                onPageChange={setPendingPage}
+              />
+            </div>
+          </>
         )}
       </div>
 

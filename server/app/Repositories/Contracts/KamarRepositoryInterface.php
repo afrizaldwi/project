@@ -3,11 +3,16 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Kamar;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 interface KamarRepositoryInterface
 {
     public function all(): Collection;
+
+    public function paginate(?string $search = null, ?string $status = null, int $perPage = 10): LengthAwarePaginator;
+
+    public function getAvailableRooms(): Collection;
 
     public function findById(int $id): ?Kamar;
 

@@ -28,6 +28,28 @@ export interface ProfileResponse {
   user: User;
 }
 
+export interface PaginationMeta {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+  summary?: any;
+}
+
+export interface PaginationParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: string;
+}
+
 export interface PenghuniUser {
   id: number;
   nama_lengkap: string;
@@ -326,7 +348,7 @@ export interface Kamar {
 
 export type LandingKamar = {
   id_kamar: number;
-  nomor_kamar: string;
+  tipe_kamar: string;
   harga_bulanan: number | string;
   status_kamar: KamarStatus;
   foto_url?: string | null;
@@ -340,8 +362,7 @@ export interface KamarStats {
   perbaikan: number;
 }
 
-export interface KamarListResponse {
-  data: Kamar[];
+export interface KamarListResponse extends PaginatedResponse<Kamar> {
   total: number;
   tersedia: number;
   terisi: number;
@@ -495,4 +516,3 @@ export interface VisitorStatsResponse {
   browser_visitors: BrowserVisitorItem[];
   consent_summary: VisitorConsentSummary;
 }
-

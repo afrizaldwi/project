@@ -134,45 +134,25 @@ const AdminLaporanKeuangan = () => {
     }
   };
 
-  const handleExportCsv = () => {
-    const pemasukanRows =
-      data?.pembayaran_terbaru.map((item) => ({
-        tipe: "Pemasukan",
-        tanggal: item.tanggal_bayar,
-        keterangan: `${item.nama_lengkap || "-"} / ${item.kode_invoice || "-"}`,
-        jumlah: item.jumlah_bayar,
-        status: item.status_verifikasi,
-      })) || [];
+  const handleExportCsv = async () => {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
 
-    const pengeluaranRows = pengeluaran.map((item) => ({
-      tipe: "Pengeluaran",
-      tanggal: item.tanggal_pengeluaran,
-      keterangan: item.judul_pengeluaran,
-      jumlah: item.jumlah_pengeluaran,
-      status: item.deskripsi || "-",
-    }));
-
-    const rows = [
-      ["Tipe", "Tanggal", "Keterangan", "Jumlah", "Status/Keterangan"],
-      ...pemasukanRows.map((row) => [row.tipe, row.tanggal, row.keterangan, row.jumlah, row.status]),
-      ...pengeluaranRows.map((row) => [row.tipe, row.tanggal, row.keterangan, row.jumlah, row.status]),
-    ];
-
-    const csv = rows
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      )
-      .join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `laporan-keuangan-${bulan}-${tahun}.csv`;
-    link.click();
-
-    URL.revokeObjectURL(url);
+      const blob = await adminApi.exportLaporanKeuanganCsv(bulan, tahun);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      
+      link.href = url;
+      link.download = `laporan-keuangan-${bulan}-${tahun}.csv`;
+      link.click();
+      
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setErrorMessage("Gagal mengunduh CSV.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const summary = data?.summary;

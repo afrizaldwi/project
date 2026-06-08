@@ -19,10 +19,11 @@ const formatTanggal = (value?: string | null) => {
 
 interface TamuTableProps {
   data: Tamu[];
+  startNumber?: number;
   onDelete: (id: number) => void;
 }
 
-export const TamuTable = ({ data, onDelete }: TamuTableProps) => {
+export const TamuTable = ({ data, startNumber = 1, onDelete }: TamuTableProps) => {
   return (
     <div className="hidden overflow-x-auto rounded-xl border border-gray-100 lg:block">
       <table className="min-w-full divide-y divide-gray-100">
@@ -41,7 +42,7 @@ export const TamuTable = ({ data, onDelete }: TamuTableProps) => {
         <tbody className="divide-y divide-gray-100 bg-white">
           {data.map((item, index) => (
             <tr key={item.id_tamu} className="hover:bg-gray-50">
-              <TableCell>{index + 1}</TableCell>
+              <TableCell>{startNumber + index}</TableCell>
               <TableCell>
                 <p className="font-semibold text-gray-900">{item.nama_tamu}</p>
                 <p className="text-xs text-gray-500">{item.no_hp_tamu}</p>

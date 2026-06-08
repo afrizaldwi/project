@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\BukuTamu;
 use App\Models\RiwayatSewa;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,10 +14,16 @@ class BukuTamuController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = BukuTamu::with('dikunjungi')
-            ->orderByDesc('waktu_berkunjung');
-
+        $query = BukuTamu::with('dikunjungi');
         $user = $request->user();
+        $isAdmin = $user?->role === 'admin';
+
+        if ($isAdmin) {
+            $this->validatePagination($request, [
+                'search' => ['nullable', 'string', 'max:100'],
+                'id_user' => ['nullable', 'integer', 'min:1'],
+            ]);
+        }
 
         if ($user?->role === 'penyewa') {
             $query->where('bertemu_dengan', $user->id);
@@ -24,7 +31,45 @@ class BukuTamuController extends Controller
             $query->where('bertemu_dengan', $request->integer('id_user'));
         }
 
-        $tamu = $query->get()->map(fn(BukuTamu $item) => $this->formatTamu($item));
+        if ($isAdmin) {
+            $search = trim((string) $request->query('search', ''));
+
+            if ($search !== '') {
+                $query->where(function (Builder $query) use ($search) {
+                    $query->where('nama_tamu', 'like', "%{$search}%")
+                        ->orWhere('no_hp_tamu', 'like', "%{$search}%")
+                        ->orWhere('keperluan', 'like', "%{$search}%")
+                        ->orWhereHas('dikunjungi', function (Builder $userQuery) use ($search) {
+                            $userQuery->where('nama_lengkap', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('dikunjungi.riwayatSewa', function (Builder $sewaQuery) use ($search) {
+                            $sewaQuery->where('status_sewa', 'aktif')
+                                ->whereHas('kamar', function (Builder $kamarQuery) use ($search) {
+                                    $kamarQuery->where('nomor_kamar', 'like', "%{$search}%");
+                                });
+                        });
+                });
+            }
+
+            $paginator = $query
+                ->orderByDesc('waktu_berkunjung')
+                ->paginate($this->perPage($request));
+            $paginator->getCollection()->transform(
+                fn(BukuTamu $item) => $this->formatTamu($item)
+            );
+
+            return response()->json([
+                'data' => $this->paginatedData($paginator),
+                'meta' => $this->paginationMeta($paginator),
+                'summary' => $this->tamuSummary($query),
+            ]);
+        }
+
+        $tamu = $query
+            ->orderByDesc('waktu_berkunjung')
+            ->get()
+            ->map(fn(BukuTamu $item) => $this->formatTamu($item));
 
         return response()->json([
             'status' => 'success',
@@ -112,6 +157,15 @@ class BukuTamuController extends Controller
             'status' => 'success',
             'message' => 'Data tamu berhasil dihapus.',
         ]);
+    }
+
+    private function tamuSummary($query): array
+    {
+        return [
+            'total_tamu' => (clone $query)->count(),
+            'total_penghuni_visited' => (clone $query)->distinct('bertemu_dengan')->count('bertemu_dengan'),
+            'tamu_today' => (clone $query)->whereDate('waktu_berkunjung', now()->toDateString())->count(),
+        ];
     }
 
     private function formatTamu(BukuTamu $item): array

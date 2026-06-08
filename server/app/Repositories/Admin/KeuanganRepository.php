@@ -6,6 +6,7 @@ use App\Models\Pembayaran;
 use App\Models\Pengeluaran;
 use App\Models\Tagihan;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -98,6 +99,15 @@ class KeuanganRepository
         return $query->get();
     }
 
+    public function getPengeluaranQuery(int $bulan, int $tahun): Builder
+    {
+        return Pengeluaran::with('pencatat')
+            ->whereMonth('tanggal_pengeluaran', $bulan)
+            ->whereYear('tanggal_pengeluaran', $tahun)
+            ->orderByDesc('tanggal_pengeluaran')
+            ->orderByDesc('id_pengeluaran');
+    }
+
     public function createPengeluaran(array $data): Pengeluaran
     {
         return Pengeluaran::create([
@@ -122,11 +132,33 @@ class KeuanganRepository
 
     public function getPembayaranTerbaru(int $bulan, int $tahun, int $limit = 10): Collection
     {
-        return Pembayaran::with(['tagihan.riwayatSewa.user'])
+        return $this->getPembayaranDiterimaList($bulan, $tahun, $limit);
+    }
+
+    public function getPembayaranDiterimaList(int $bulan, int $tahun, ?int $limit = null): Collection
+    {
+        $query = Pembayaran::with(['tagihan.riwayatSewa.user'])
+            ->where('status_verifikasi', 'diterima')
             ->whereMonth('tanggal_bayar', $bulan)
             ->whereYear('tanggal_bayar', $tahun)
             ->orderByDesc('tanggal_bayar')
-            ->limit($limit)
-            ->get();
+            ->orderByDesc('created_at');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
+    }
+
+    public function getPembayaranDiterimaQuery(int $bulan, int $tahun): Builder
+    {
+        return Pembayaran::with(['tagihan.riwayatSewa.user'])
+            ->where('status_verifikasi', 'diterima')
+            ->whereMonth('tanggal_bayar', $bulan)
+            ->whereYear('tanggal_bayar', $tahun)
+            ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id_pembayaran');
     }
 }

@@ -14,9 +14,6 @@ export const TamuHeader = ({ isFormOpen, setIsFormOpen }: TamuHeaderProps) => {
             Buku Tamu
           </p>
           <h1 className="mt-2 text-2xl font-bold">Data Semua Tamu</h1>
-          <p className="mt-1 max-w-2xl text-sm text-blue-100">
-            Kelola dan pantau aktivitas kunjungan tamu di seluruh kost.
-          </p>
         </div>
 
         <button

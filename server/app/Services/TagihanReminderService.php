@@ -7,6 +7,7 @@ use App\Models\Tagihan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Pembayaran;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -99,10 +100,63 @@ class TagihanReminderService
 
     public function getAdminTagihan(): Collection
     {
-        return Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar', 'pembayaran'])
+        return $this->adminTagihanQuery()
             ->orderByDesc('tanggal_jatuh_tempo')
             ->get()
             ->map(fn(Tagihan $tagihan) => $this->formatTagihan($tagihan));
+    }
+
+    public function getAdminTagihanPaginated(int $perPage, ?string $search = null, ?string $status = null): LengthAwarePaginator
+    {
+        $paginator = $this->adminTagihanQuery($search, $status)
+            ->orderByDesc('tanggal_jatuh_tempo')
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(
+            fn(Tagihan $tagihan) => $this->formatTagihan($tagihan)
+        );
+
+        return $paginator;
+    }
+
+    public function getAdminTagihanSummary(?string $search = null, ?string $status = null): array
+    {
+        $query = $this->adminTagihanQuery($search, $status);
+
+        return [
+            'total' => (clone $query)->count(),
+            'lunas' => (clone $query)->where('status_tagihan', 'lunas')->count(),
+            'belum' => (clone $query)->whereIn('status_tagihan', ['belum_bayar', 'telat'])->count(),
+            'telat' => (clone $query)->where('status_tagihan', 'telat')->count(),
+            'dibatalkan' => (clone $query)->where('status_tagihan', 'dibatalkan')->count(),
+        ];
+    }
+
+    private function adminTagihanQuery(?string $search = null, ?string $status = null)
+    {
+        $query = Tagihan::with(['riwayatSewa.user', 'riwayatSewa.kamar', 'pembayaran']);
+        $search = trim((string) $search);
+        $status = trim((string) $status);
+
+        if ($status !== '' && $status !== 'semua') {
+            $query->where('status_tagihan', $status);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('kode_invoice', 'like', "%{$search}%")
+                    ->orWhereHas('riwayatSewa.user', function ($userQuery) use ($search) {
+                        $userQuery->where('nama_lengkap', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('no_hp', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('riwayatSewa.kamar', function ($kamarQuery) use ($search) {
+                        $kamarQuery->where('nomor_kamar', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query;
     }
 
     public function getPenyewaTagihan(int $userId): Collection
@@ -181,6 +235,40 @@ class TagihanReminderService
             ->latest('tanggal_bayar')
             ->get()
             ->map(fn(Pembayaran $pembayaran) => $this->formatPembayaran($pembayaran));
+    }
+
+    public function getPendingPaymentsPaginated(int $perPage, ?string $search = null): LengthAwarePaginator
+    {
+        $query = Pembayaran::with(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar'])
+            ->where('status_verifikasi', 'pending');
+        $search = trim((string) $search);
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('metode_pembayaran', 'like', "%{$search}%")
+                    ->orWhereHas('tagihan', function ($tagihanQuery) use ($search) {
+                        $tagihanQuery->where('kode_invoice', 'like', "%{$search}%")
+                            ->orWhereHas('riwayatSewa.user', function ($userQuery) use ($search) {
+                                $userQuery->where('nama_lengkap', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%")
+                                    ->orWhere('no_hp', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('riwayatSewa.kamar', function ($kamarQuery) use ($search) {
+                                $kamarQuery->where('nomor_kamar', 'like', "%{$search}%");
+                            });
+                    });
+            });
+        }
+
+        $paginator = $query
+            ->latest('tanggal_bayar')
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(
+            fn(Pembayaran $pembayaran) => $this->formatPembayaran($pembayaran)
+        );
+
+        return $paginator;
     }
 
     public function verifyPayment(int $idPembayaran, ?string $catatanAdmin = null): array

@@ -45,9 +45,6 @@ const AdminProfil = () => {
         <h1 className="mt-2 text-2xl font-bold">
           {user.nama_lengkap || "Admin"}
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-blue-100">
-          Informasi akun admin yang sedang login di sistem manajemen kost.
-        </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -58,10 +55,6 @@ const AdminProfil = () => {
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold text-gray-900">Detail Akun</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Data ini berasal dari akun yang sedang login. Fitur edit profil belum
-          diaktifkan pada tahap ini.
-        </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <ProfileInfoItem label="Nama Lengkap" value={user.nama_lengkap || "-"} />

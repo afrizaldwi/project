@@ -19,16 +19,22 @@ class AdminPenghuniController extends Controller
     {
         $this->authorizeAdmin($request);
 
-        $validated = $request->validate([
+        $validated = $this->validatePagination($request, [
             'status' => ['nullable', Rule::in(['aktif', 'selesai', 'dibatalkan', 'all'])],
+            'search' => ['nullable', 'string', 'max:100'],
         ], [
             'status.in' => 'Status penghuni tidak valid.',
         ]);
 
+        $paginator = $this->adminPenghuniService->getPenghuniPaginated(
+            $validated['status'] ?? 'aktif',
+            $validated['search'] ?? null,
+            $this->perPage($request)
+        );
+
         return response()->json([
-            'data' => $this->adminPenghuniService->getPenghuni(
-                $validated['status'] ?? 'aktif'
-            ),
+            'data' => $this->paginatedData($paginator),
+            'meta' => $this->paginationMeta($paginator),
         ]);
     }
 

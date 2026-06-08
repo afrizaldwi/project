@@ -17,9 +17,6 @@ export const PenyewaTamuHeader = ({
             Buku Tamu
           </p>
           <h1 className="mt-2 text-2xl font-bold">Tamu yang Berkunjung</h1>
-          <p className="mt-1 max-w-2xl text-sm text-blue-100">
-            Catat dan lihat riwayat tamu yang berkunjung ke kamar Anda.
-          </p>
         </div>
 
         <button

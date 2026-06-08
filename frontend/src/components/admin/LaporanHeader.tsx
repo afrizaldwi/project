@@ -28,9 +28,6 @@ const LaporanHeader = ({
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h1 className="text-2xl font-black text-dark">Laporan Keuangan</h1>
-        <p className="mt-1 text-sm font-medium text-dark/50">
-          Ringkasan transaksi dan pencatatan pengeluaran operasional.
-        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

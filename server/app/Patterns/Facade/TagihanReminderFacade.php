@@ -3,6 +3,7 @@
 namespace App\Patterns\Facade;
 
 use App\Services\TagihanReminderService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class TagihanReminderFacade
@@ -24,6 +25,16 @@ class TagihanReminderFacade
     public function getAdminTagihan(): Collection
     {
         return $this->tagihanReminderService->getAdminTagihan();
+    }
+
+    public function getAdminTagihanPaginated(int $perPage, ?string $search = null, ?string $status = null): LengthAwarePaginator
+    {
+        return $this->tagihanReminderService->getAdminTagihanPaginated($perPage, $search, $status);
+    }
+
+    public function getAdminTagihanSummary(?string $search = null, ?string $status = null): array
+    {
+        return $this->tagihanReminderService->getAdminTagihanSummary($search, $status);
     }
 
     public function getPenyewaTagihan(int $userId): Collection
@@ -49,6 +60,11 @@ class TagihanReminderFacade
     public function getPendingPayments(): Collection
     {
         return $this->tagihanReminderService->getPendingPayments();
+    }
+
+    public function getPendingPaymentsPaginated(int $perPage, ?string $search = null): LengthAwarePaginator
+    {
+        return $this->tagihanReminderService->getPendingPaymentsPaginated($perPage, $search);
     }
 
     public function verifyPayment(int $idPembayaran, ?string $catatanAdmin = null): array

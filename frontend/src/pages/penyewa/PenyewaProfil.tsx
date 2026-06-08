@@ -45,9 +45,6 @@ const PenyewaProfil = () => {
         <h1 className="mt-2 text-2xl font-bold">
           {user.nama_lengkap || "Penyewa"}
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-blue-100">
-          Informasi akun penyewa yang sedang login di sistem manajemen kost.
-        </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -58,10 +55,6 @@ const PenyewaProfil = () => {
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold text-gray-900">Detail Akun</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Data ini bersifat read-only untuk tahap integrasi web. Perubahan profil
-          bisa ditambahkan nanti jika memang dibutuhkan.
-        </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <ProfileInfoItem label="Nama Lengkap" value={user.nama_lengkap || "-"} />

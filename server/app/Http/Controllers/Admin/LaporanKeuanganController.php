@@ -37,6 +37,28 @@ class LaporanKeuanganController extends Controller
         );
     }
 
+    public function exportCsv(Request $request)
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'bulan' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'tahun' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+        ], [
+            'bulan.integer' => 'Bulan harus berupa angka.',
+            'bulan.min' => 'Bulan tidak valid.',
+            'bulan.max' => 'Bulan tidak valid.',
+            'tahun.integer' => 'Tahun harus berupa angka.',
+            'tahun.min' => 'Tahun tidak valid.',
+            'tahun.max' => 'Tahun tidak valid.',
+        ]);
+
+        return $this->laporanKeuanganService->exportCsv(
+            $validated['bulan'] ?? null,
+            $validated['tahun'] ?? null
+        );
+    }
+
     public function pengeluaran(Request $request): JsonResponse
     {
         $this->authorizeAdmin($request);

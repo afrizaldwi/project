@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Kamar;
 use App\Repositories\Contracts\KamarRepositoryInterface;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -21,7 +22,42 @@ class KamarService
 
         return [
             'data' => $kamar,
-            'total' => $kamar->count(),
+            ...$this->getStats(),
+        ];
+    }
+
+    public function getPaginated(?string $search = null, ?string $status = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->kamarRepository->paginate($search, $status, $perPage);
+    }
+
+
+    public function getGroupedRoomTypes()
+    {
+        $rooms = $this->kamarRepository->getAvailableRooms();
+
+        return $rooms->groupBy(function ($kamar) {
+            return substr($kamar->nomor_kamar, 0, 1);
+        })->map(function ($group) {
+            $kamar = $group->first();
+            return [
+                'id_kamar' => $kamar->id_kamar,
+                'tipe_kamar' => 'Tipe ' . substr($kamar->nomor_kamar, 0, 1),
+                'harga_bulanan' => $kamar->harga_bulanan,
+                'status_kamar' => $kamar->status_kamar,
+                'foto_url' => $kamar->foto_kamar
+                    ? url(Storage::url($kamar->foto_kamar))
+                    : null,
+            ];
+        })->values();
+    }
+
+    public function getStats(): array
+    {
+        return [
+            'total' => $this->kamarRepository->countByStatus('tersedia')
+                + $this->kamarRepository->countByStatus('terisi')
+                + $this->kamarRepository->countByStatus('perbaikan'),
             'tersedia' => $this->kamarRepository->countByStatus('tersedia'),
             'terisi' => $this->kamarRepository->countByStatus('terisi'),
             'perbaikan' => $this->kamarRepository->countByStatus('perbaikan'),

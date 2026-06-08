@@ -19,7 +19,7 @@ class PenyewaKeluhanStrategy implements KeluhanQueryStrategy
             $query->where('id_user', $this->userId);
         });
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->string('status')->toString() !== 'semua') {
             $query->where('status_keluhan', $request->string('status'));
         }
 

@@ -1,5 +1,11 @@
 import api from "../api/axios";
-import type { Keluhan, KeluhanPayload, KeluhanStatus } from "../types";
+import type {
+    Keluhan,
+    KeluhanPayload,
+    KeluhanStatus,
+    PaginatedResponse,
+    PaginationParams,
+} from "../types";
 
 interface ApiListResponse<T> {
     status: string;
@@ -7,13 +13,21 @@ interface ApiListResponse<T> {
     message?: string;
 }
 
+type AdminKeluhanParams = PaginationParams & {
+    status?: KeluhanStatus | "semua";
+};
+
 const keluhanService = {
-    async getAdminKeluhan(status?: KeluhanStatus | "semua"): Promise<Keluhan[]> {
-        const response = await api.get<ApiListResponse<Keluhan[]>>("/admin/keluhan", {
-            params: status && status !== "semua" ? { status } : {},
+    async getAdminKeluhan(params: AdminKeluhanParams = {}): Promise<PaginatedResponse<Keluhan>> {
+        const response = await api.get<PaginatedResponse<Keluhan>>("/admin/keluhan", {
+            params: {
+                ...params,
+                search: params.search?.trim() || undefined,
+                status: params.status && params.status !== "semua" ? params.status : undefined,
+            },
         });
 
-        return response.data.data;
+        return response.data;
     },
 
     async getPenyewaKeluhan(status?: KeluhanStatus | "semua"): Promise<Keluhan[]> {

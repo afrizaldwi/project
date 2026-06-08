@@ -8,6 +8,7 @@ use App\Models\Tagihan;
 use App\Models\User;
 use App\Repositories\Admin\PenghuniRepository;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,35 +23,18 @@ class AdminPenghuniService
     public function getPenghuni(?string $status = 'aktif'): Collection
     {
         return $this->penghuniRepo->getPenghuniByStatus($status)
-            ->map(function (RiwayatSewa $sewa) {
-                return [
-                    'id_sewa' => $sewa->id_sewa,
-                    'tanggal_masuk' => $sewa->tanggal_masuk,
-                    'tanggal_keluar' => $sewa->tanggal_keluar,
-                    'harga_deal' => $sewa->harga_deal,
-                    'durasi_sewa_bulan' => $sewa->durasi_sewa_bulan,
-                    'status_sewa' => $sewa->status_sewa,
+            ->map(fn(RiwayatSewa $sewa) => $this->formatPenghuni($sewa));
+    }
 
-                    'user' => [
-                        'id' => $sewa->user?->id,
-                        'nama_lengkap' => $sewa->user?->nama_lengkap,
-                        'email' => $sewa->user?->email,
-                        'no_hp' => $sewa->user?->no_hp,
-                        'alamat_asal' => $sewa->user?->alamat_asal,
-                        'foto_profil' => $sewa->user?->foto_profil,
-                    ],
+    public function getPenghuniPaginated(?string $status = 'aktif', ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $paginator = $this->penghuniRepo->paginatePenghuniByStatus($status, $search, $perPage);
 
-                    'kamar' => [
-                        'id_kamar' => $sewa->kamar?->id_kamar,
-                        'nomor_kamar' => $sewa->kamar?->nomor_kamar,
-                        'fasilitas' => $sewa->kamar?->fasilitas,
-                        'harga_bulanan' => $sewa->kamar?->harga_bulanan,
-                        'luas_kamar' => $sewa->kamar?->luas_kamar,
-                        'foto_kamar' => $sewa->kamar?->foto_kamar,
-                        'status_kamar' => $sewa->kamar?->status_kamar,
-                    ],
-                ];
-            });
+        $paginator->getCollection()->transform(
+            fn(RiwayatSewa $sewa) => $this->formatPenghuni($sewa)
+        );
+
+        return $paginator;
     }
 
     public function getKamarTersedia(): Collection
@@ -156,6 +140,37 @@ class AdminPenghuniService
                 'message' => 'Penghuni berhasil diarsipkan sebagai alumni.',
             ];
         });
+    }
+
+    private function formatPenghuni(RiwayatSewa $sewa): array
+    {
+        return [
+            'id_sewa' => $sewa->id_sewa,
+            'tanggal_masuk' => $sewa->tanggal_masuk,
+            'tanggal_keluar' => $sewa->tanggal_keluar,
+            'harga_deal' => $sewa->harga_deal,
+            'durasi_sewa_bulan' => $sewa->durasi_sewa_bulan,
+            'status_sewa' => $sewa->status_sewa,
+
+            'user' => [
+                'id' => $sewa->user?->id,
+                'nama_lengkap' => $sewa->user?->nama_lengkap,
+                'email' => $sewa->user?->email,
+                'no_hp' => $sewa->user?->no_hp,
+                'alamat_asal' => $sewa->user?->alamat_asal,
+                'foto_profil' => $sewa->user?->foto_profil,
+            ],
+
+            'kamar' => [
+                'id_kamar' => $sewa->kamar?->id_kamar,
+                'nomor_kamar' => $sewa->kamar?->nomor_kamar,
+                'fasilitas' => $sewa->kamar?->fasilitas,
+                'harga_bulanan' => $sewa->kamar?->harga_bulanan,
+                'luas_kamar' => $sewa->kamar?->luas_kamar,
+                'foto_kamar' => $sewa->kamar?->foto_kamar,
+                'status_kamar' => $sewa->kamar?->status_kamar,
+            ],
+        ];
     }
 
     private function generatePenyewaCredentials(string $namaLengkap): array

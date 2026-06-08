@@ -5,15 +5,38 @@ namespace App\Http\Controllers;
 use App\Http\Requests\KamarRequest;
 use App\Services\KamarService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class KamarController extends Controller
 {
     public function __construct(private readonly KamarService $kamarService) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json($this->kamarService->getAll());
+        $validated = $this->validatePagination($request, [
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['tersedia', 'terisi', 'perbaikan', 'semua'])],
+        ]);
+
+        $paginator = $this->kamarService->getPaginated(
+            $validated['search'] ?? null,
+            $validated['status'] ?? null,
+            $this->perPage($request)
+        );
+
+        return response()->json(array_merge([
+            'data' => $this->paginatedData($paginator),
+            'meta' => $this->paginationMeta($paginator),
+        ], $this->kamarService->getStats()));
+    }
+
+    public function publicRoomTypes(): JsonResponse
+    {
+        return response()->json(
+            $this->kamarService->getGroupedRoomTypes()
+        );
     }
 
     public function show(int $id): JsonResponse

@@ -17,14 +17,41 @@ class KeluhanController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $isAdmin = $user?->role === 'admin';
 
-        $strategy = $user?->role === 'admin'
+        if ($isAdmin) {
+            $this->validatePagination($request, [
+                'search' => ['nullable', 'string', 'max:100'],
+                'status' => ['nullable', Rule::in(['pending', 'proses', 'selesai', 'semua'])],
+            ]);
+        } else {
+            $request->validate([
+                'status' => ['nullable', Rule::in(['pending', 'proses', 'selesai', 'semua'])],
+            ]);
+        }
+
+        $strategy = $isAdmin
             ? new AdminKeluhanStrategy()
             : new PenyewaKeluhanStrategy((int) $user->id);
 
-        $keluhan = $strategy
+        $query = $strategy
             ->query($request)
-            ->orderByDesc('tanggal_lapor')
+            ->orderByDesc('tanggal_lapor');
+
+        if ($isAdmin) {
+            $paginator = $query->paginate($this->perPage($request));
+            $paginator->getCollection()->transform(
+                fn(Keluhan $item) => $this->formatKeluhan($item)
+            );
+
+            return response()->json([
+                'data' => $this->paginatedData($paginator),
+                'meta' => $this->paginationMeta($paginator),
+                'summary' => $this->keluhanSummary($query),
+            ]);
+        }
+
+        $keluhan = $query
             ->get()
             ->map(fn(Keluhan $item) => $this->formatKeluhan($item));
 
@@ -174,6 +201,16 @@ class KeluhanController extends Controller
             'status' => 'success',
             'message' => 'Keluhan berhasil dihapus.',
         ]);
+    }
+
+    private function keluhanSummary($query): array
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status_keluhan', 'pending')->count(),
+            'proses' => (clone $query)->where('status_keluhan', 'proses')->count(),
+            'selesai' => (clone $query)->where('status_keluhan', 'selesai')->count(),
+        ];
     }
 
     private function formatKeluhan(Keluhan $keluhan): array

@@ -6,6 +6,7 @@ use App\Models\MobileDeviceToken;
 use App\Patterns\Facade\TagihanReminderFacade;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TagihanReminderController extends Controller
 {
@@ -17,8 +18,24 @@ class TagihanReminderController extends Controller
     {
         $this->authorizeAdmin($request);
 
+        $validated = $this->validatePagination($request, [
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['semua', 'belum_bayar', 'lunas', 'telat', 'dibatalkan'])],
+        ]);
+
+        $paginator = $this->tagihanReminderFacade->getAdminTagihanPaginated(
+            $this->perPage($request),
+            $validated['search'] ?? null,
+            $validated['status'] ?? null
+        );
+
         return response()->json([
-            'data' => $this->tagihanReminderFacade->getAdminTagihan(),
+            'data' => $this->paginatedData($paginator),
+            'meta' => $this->paginationMeta($paginator),
+            'summary' => $this->tagihanReminderFacade->getAdminTagihanSummary(
+                $validated['search'] ?? null,
+                $validated['status'] ?? null
+            ),
         ]);
     }
 
@@ -131,8 +148,18 @@ class TagihanReminderController extends Controller
     {
         $this->authorizeAdmin($request);
 
+        $validated = $this->validatePagination($request, [
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $paginator = $this->tagihanReminderFacade->getPendingPaymentsPaginated(
+            $this->perPage($request),
+            $validated['search'] ?? null
+        );
+
         return response()->json([
-            'data' => $this->tagihanReminderFacade->getPendingPayments(),
+            'data' => $this->paginatedData($paginator),
+            'meta' => $this->paginationMeta($paginator),
         ]);
     }
 
