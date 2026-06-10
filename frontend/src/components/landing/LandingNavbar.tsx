@@ -20,7 +20,7 @@ const LandingNavbar = ({ isScrolled }: LandingNavbarProps) => {
         }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href="#" className="text-xl font-bold text-primary">Kost Bahagia</a>
+        <a href="#" className="text-xl font-bold text-primary">Basecamp Kost</a>
         <div className="hidden items-center gap-6 text-sm font-medium text-dark md:flex">
           {navigationItems.map((item) => (
             <a

@@ -26,7 +26,7 @@ const buildWhatsAppUrl = (
   credentials: PenghuniCredentialsSuccessProps["credentials"]
 ) => {
   const normalizedPhoneNumber = normalizeIndonesianPhoneNumber(phoneNumber);
-  const message = `Halo, akun penyewa Kost Bahagia Anda sudah dibuat.\n\nEmail: ${credentials.email}\nPassword sementara: ${credentials.temporary_password}\n\nSilakan masuk menggunakan kredensial tersebut. Simpan password ini dengan aman.`;
+  const message = `Halo, akun penyewa Basecamp Kost Anda sudah dibuat.\n\nEmail: ${credentials.email}\nPassword sementara: ${credentials.temporary_password}\n\nSilakan masuk menggunakan kredensial tersebut. Simpan password ini dengan aman.`;
 
   return `https://wa.me/${normalizedPhoneNumber}?text=${encodeURIComponent(message)}`;
 };

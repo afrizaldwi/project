@@ -26,7 +26,7 @@ const LandingAbout = () => {
             <div className="flex h-64 items-center justify-center max-md:h-full overflow-hidden rounded-xl bg-light shadow-sm">
               <img
                 src="/about.webp"
-                alt="Lingkungan Kost Bahagia"
+                alt="Lingkungan Basecamp Kost"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -39,7 +39,7 @@ const LandingAbout = () => {
               Informasi Kost untuk Calon Penyewa dan Pengelolaan untuk Penghuni
             </h3>
             <p className="mb-4 text-gray-500">
-              Kost Bahagia adalah hunian nyaman yang berlokasi strategis di pusat kota Surabaya. Landing page ini membantu calon penyewa melihat informasi kost sebelum menghubungi admin.
+              Basecamp Kost adalah hunian nyaman yang berlokasi strategis di pusat kota Surabaya. Landing page ini membantu calon penyewa melihat informasi kost sebelum menghubungi admin.
             </p>
             <p className="text-gray-500">
               Setelah terdaftar, penyewa dapat menggunakan aplikasi untuk melihat tagihan, pembayaran, riwayat sewa, dan menyampaikan keluhan secara online.

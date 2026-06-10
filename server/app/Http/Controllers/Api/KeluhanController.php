@@ -36,7 +36,8 @@ class KeluhanController extends Controller
 
         $query = $strategy
             ->query($request)
-            ->orderByDesc('tanggal_lapor');
+            ->orderByDesc('tanggal_lapor')
+            ->orderByDesc('id_keluhan');
 
         if ($isAdmin) {
             $paginator = $query->paginate($this->perPage($request));

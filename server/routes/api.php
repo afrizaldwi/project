@@ -37,6 +37,7 @@ Route::middleware(['jwt.cookie', 'auth:api'])->group(function () {
 
     Route::prefix('admin')->middleware('admin.only')->group(function () {
         Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
+        Route::get('/visitor-stats/daily', [VisitorStatsController::class, 'daily']);
         Route::get('/visitor-stats', [VisitorStatsController::class, 'index']);
 
         Route::get('/penghuni', [AdminPenghuniController::class, 'index']);

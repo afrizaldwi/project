@@ -22,12 +22,12 @@ const LandingContact = () => {
                   referrerPolicy="no-referrer-when-downgrade"
                   width="100%"
                   height="100%"
-                  title="Peta lokasi Kost Bahagia"
+                  title="Peta lokasi Basecamp Kost"
                 />
               </div>
             </div>
             <div className="flex-1">
-              <h4 className="mb-3 font-bold text-dark">Kost Bahagia</h4>
+              <h4 className="mb-3 font-bold text-dark">Basecamp Kost</h4>
               <p className="mb-2 text-gray-500">
                 Jl. Contoh No. 123, Surabaya, Jawa Timur 60123
               </p>
@@ -52,7 +52,7 @@ const LandingContact = () => {
             </p>
             <div className="space-y-2 text-sm text-secondary">
               <p>Telepon: 08123456789</p>
-              <p>Email: kostbahagia@email.com</p>
+              <p>Email: basecampkost@email.com</p>
               <p>WhatsApp: 08123456789</p>
             </div>
           </div>

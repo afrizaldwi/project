@@ -516,3 +516,5 @@ export interface VisitorStatsResponse {
   browser_visitors: BrowserVisitorItem[];
   consent_summary: VisitorConsentSummary;
 }
+
+export type VisitorPeriod = "7" | "30" | "90" | "all";

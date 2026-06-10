@@ -12,7 +12,7 @@ const LandingFooter = () => {
     <footer className="bg-accent px-6 py-8 text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
         <div>
-          <h1 className="mb-1 text-lg font-bold">Kost Bahagia</h1>
+          <h1 className="mb-1 text-lg font-bold">Basecamp Kost</h1>
           <p className="text-sm text-secondary">
             Jl. Contoh No. 123, Surabaya, Jawa Timur
           </p>
@@ -24,7 +24,7 @@ const LandingFooter = () => {
             </a>
           ))}
         </div>
-        <p className="text-sm text-secondary">© 2026 Kost Bahagia</p>
+        <p className="text-sm text-secondary">© 2026 Basecamp Kost</p>
       </div>
     </footer>
   );

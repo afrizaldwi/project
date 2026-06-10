@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   Tooltip,
@@ -6,17 +6,20 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
+  Filler,
   type ChartData,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 
 import api from "../../api/axios";
 import IsLoading from "../../components/IsLoading";
 import DashboardCard from "../../components/dashboard/DashboardCard";
 import { dashboardChartOptions } from "../../utils/dashboardChartOptions";
-import type { VisitorStatsResponse } from "../../types";
+import type { VisitorStatsResponse, VisitorPeriod, DailyVisitorItem } from "../../types";
 
-ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler);
 
 const formatNumber = (value: number) => new Intl.NumberFormat("id-ID").format(value);
 
@@ -30,14 +33,22 @@ const formatTopLocation = (stats: VisitorStatsResponse) => {
   return location.city + ", " + location.country;
 };
 
-const toDailyVisitorChart = (stats: VisitorStatsResponse): ChartData<"bar"> => ({
-  labels: stats.daily_visitors.map((item) => item.date),
+
+const toDailyVisitorLineChart = (dailyVisitors: DailyVisitorItem[]): ChartData<"line"> => ({
+  labels: dailyVisitors.map((item) => item.date),
   datasets: [
     {
       label: "Pengunjung",
-      data: stats.daily_visitors.map((item) => item.unique_visitors),
-      backgroundColor: "rgba(37, 99, 235, 0.75)",
-      borderWidth: 1,
+      data: dailyVisitors.map((item) => item.unique_visitors),
+      borderColor: "rgba(37, 99, 235, 1)",
+      backgroundColor: "rgba(37, 99, 235, 0.1)",
+      fill: true,
+      tension: 0.3,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      pointBackgroundColor: "rgba(37, 99, 235, 1)",
+      pointBorderColor: "#fff",
+      pointBorderWidth: 2,
     },
   ],
 });
@@ -54,25 +65,84 @@ const toBrowserVisitorChart = (stats: VisitorStatsResponse): ChartData<"bar"> =>
   ],
 });
 
+const PERIOD_OPTIONS: { value: VisitorPeriod; label: string }[] = [
+  { value: "7", label: "7 Hari" },
+  { value: "30", label: "30 Hari" },
+  { value: "90", label: "90 Hari" },
+  { value: "all", label: "Semua" },
+];
+
 const AdminVisitorAnalytics = () => {
   const [visitorStats, setVisitorStats] = useState<VisitorStatsResponse | null>(null);
+  const [dailyVisitors, setDailyVisitors] = useState<DailyVisitorItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [visitorLoading, setVisitorLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<VisitorPeriod>("7");
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const fetchVisitorStats = async () => {
+    const controller = new AbortController();
+
+    const fetchInitialStats = async () => {
       try {
-        const response = await api.get<VisitorStatsResponse>("/admin/visitor-stats");
+        const response = await api.get<VisitorStatsResponse>("/admin/visitor-stats", {
+          params: { period: "7" },
+          signal: controller.signal,
+        });
         setVisitorStats(response.data);
+        setDailyVisitors(response.data.daily_visitors);
       } catch {
-        setError("Gagal mengambil data analitik pengunjung.");
+        if (!controller.signal.aborted) {
+          setError("Gagal mengambil data analitik pengunjung.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchVisitorStats();
+    fetchInitialStats();
+
+    return () => controller.abort();
   }, []);
+
+  const fetchVisitorDailyStats = async (period: VisitorPeriod) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setVisitorLoading(true);
+
+    try {
+      const response = await api.get<{ daily_visitors: DailyVisitorItem[] }>("/admin/visitor-stats/daily", {
+        params: { period },
+        signal: controller.signal,
+      });
+
+      if (!controller.signal.aborted) {
+        setDailyVisitors(response.data.daily_visitors);
+      }
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        console.error("Failed to fetch visitor daily stats:", err);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setVisitorLoading(false);
+      }
+    }
+  };
+
+  const handlePeriodChange = (period: VisitorPeriod) => {
+    if (period === selectedPeriod) return;
+    setSelectedPeriod(period);
+    fetchVisitorDailyStats(period);
+  };
 
   if (isLoading) {
     return <IsLoading />;
@@ -113,7 +183,7 @@ const AdminVisitorAnalytics = () => {
     },
   ];
 
-  const dailyVisitorChartData = toDailyVisitorChart(visitorStats);
+  const dailyVisitorChartData = toDailyVisitorLineChart(dailyVisitors);
   const browserVisitorChartData = toBrowserVisitorChart(visitorStats);
 
   return (
@@ -143,14 +213,43 @@ const AdminVisitorAnalytics = () => {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800">
-            Grafik Pengunjung Harian
-          </h2>
-          <div className="h-80">
-            <Bar
-              data={dailyVisitorChartData}
-              options={dashboardChartOptions.visitorBar}
-            />
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Grafik Pengunjung Harian
+            </h2>
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1" role="group" aria-label="Periode pengunjung">
+              {PERIOD_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  id={`visitor-period-${option.value}`}
+                  type="button"
+                  onClick={() => handlePeriodChange(option.value)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${selectedPeriod === option.value
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                    }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="relative h-80">
+            {visitorLoading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+              </div>
+            )}
+            {dailyVisitors.length > 0 ? (
+              <Line
+                data={dailyVisitorChartData}
+                options={dashboardChartOptions.visitorLine}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-gray-400">
+                <p className="text-sm">Belum ada data pengunjung untuk periode ini</p>
+              </div>
+            )}
           </div>
         </div>
 

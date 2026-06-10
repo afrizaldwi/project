@@ -110,6 +110,7 @@ class TagihanReminderService
     {
         $paginator = $this->adminTagihanQuery($search, $status)
             ->orderByDesc('tanggal_jatuh_tempo')
+            ->orderByDesc('id_tagihan')
             ->paginate($perPage);
 
         $paginator->getCollection()->transform(
@@ -166,6 +167,7 @@ class TagihanReminderService
                 $query->where('id_user', $userId);
             })
             ->orderByDesc('tanggal_jatuh_tempo')
+            ->orderByDesc('id_tagihan')
             ->get()
             ->map(fn(Tagihan $tagihan) => $this->formatTagihan($tagihan));
     }

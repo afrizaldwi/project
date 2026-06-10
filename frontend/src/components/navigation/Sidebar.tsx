@@ -26,7 +26,7 @@ const Sidebar = ({ display }: SidebarProps) => {
 
     >
       <div className="px-6 py-5 border-b border-accent">
-        <h1 className="text-xl font-bold">Kost Bahagia</h1>
+        <h1 className="text-xl font-bold">Basecamp Kost</h1>
       </div>
 
       <nav className="flex flex-col flex-1 px-4 py-4 gap-1">
