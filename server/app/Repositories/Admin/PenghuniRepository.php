@@ -22,7 +22,7 @@ class PenghuniRepository
             $query->where('status_sewa', $status);
         }
 
-        return $query->orderByDesc('tanggal_masuk')->get();
+        return $query->orderByDesc('tanggal_masuk')->orderByDesc('id_sewa')->get();
     }
 
     public function paginatePenghuniByStatus(?string $status = 'aktif', ?string $search = null, int $perPage = 10): LengthAwarePaginator
@@ -49,7 +49,7 @@ class PenghuniRepository
             });
         }
 
-        return $query->orderByDesc('tanggal_masuk')->paginate($perPage);
+        return $query->orderByDesc('tanggal_masuk')->orderByDesc('id_sewa')->paginate($perPage);
     }
 
     public function getKamarTersedia(): Collection
