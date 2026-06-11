@@ -8,33 +8,9 @@ git clone <url-repository-web>
 cd <repository-web>
 ````
 
-## 2\. Environment Configuration
+## 2\. Jalankan Docker
 
-  * copas file bernama `.env.example` di root folder.
-  * Rename file hasil copas tersebut menjadi `.env`.
-  * Isi seperti ini:
-    DB_NAME=kost_database
-    DB_USER=kost_user
-    DB_PASSWORD=P@ssw0rd
-
-  * buka folder frontend dan copas file bernama `.env.example`.
-  * Rename file hasil copas tersebut menjadi `.env`.
-  * Isi seperti ini:
-    VITE_STORAGE_URL=ip_address:8000
-
-  * buka folder server dan copas file bernama `.env.example`.
-  * Rename file hasil copas tersebut menjadi `.env`.
-  * Isi pada bagian: 
-    DB_CONNECTION=pgsql
-    DB_HOST=kost-db
-    DB_PORT=5432
-    DB_DATABASE=kost_database
-    DB_USERNAME=kost_user
-    DB_PASSWORD=P@ssw0rd
-
-## 3\. Boot the Universe
-
-Start the Docker containers.
+Jalankan docker container dengan perintah berikut:
 
 ```
 docker compose up -d --build
@@ -42,13 +18,13 @@ docker compose up -d --build
 
 *Tunggu hingga proses selesai*
 
-## 4\. Install Backend Dependencies
+## 3\. Install Backend Dependencies
 
 ```
 docker exec -it laravel-api composer install
 ```
 
-## 5\. Generate Keys and Migrate the Database
+## 4\. Generate Keys and Migrate the Database
 
 ```
 docker exec -it laravel-api php artisan key:generate
@@ -58,7 +34,7 @@ docker exec -it laravel-api php artisan migrate:fresh --seed
 ```
 -----
 
-## Features Developed
+# Features Developed
 
 ## Login
 
