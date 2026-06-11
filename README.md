@@ -1,11 +1,11 @@
 # Instalasi Project
 
-## 1. Clone the Repository
+## 1. Clone Repository
 Buka terminal dan clone repository:
 
 ```
-git clone <url-repository-web>
-cd <repository-web>
+git clone https://github.com/Manajemen-Kost/Basecamp-Kost-Web.git
+cd Base Basecamp-Kost-Web
 ````
 
 ## 2\. Jalankan Docker
