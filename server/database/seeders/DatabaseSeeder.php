@@ -16,16 +16,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
-        User::updateOrCreate(
-            ['email' => 'admin@kost.com'],
-            [
-                'nama_lengkap' => 'Admin Kost',
-                'password' => Hash::make('password123'),
-                'role' => 'admin',
-                'no_hp' => '081234567890',
-                'alamat_asal' => 'Sidoarjo',
-            ]
-        );
+        if (app()->environment('local')) {
+            $this->call(WorkflowDemoSeeder::class);
+        } else {
+            User::updateOrCreate(
+                ['email' => 'admin@kost.com'],
+                [
+                    'nama_lengkap' => 'Admin Kost',
+                    'password' => Hash::make('password123'),
+                    'role' => 'admin',
+                    'no_hp' => '081234567890',
+                    'alamat_asal' => 'Sidoarjo',
+                ]
+            );
+        }
     }
+
 }
