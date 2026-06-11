@@ -120,6 +120,7 @@ digunakan untuk mengelola seluruh informasi kamar kos yang tersedia. Admin dapat
 ## Perpanjangan Masa Sewa
 
 digunakan untuk memperbarui kontrak sewa penyewa yang akan habis masa berlakunya. Ketika penyewa melakukan perpanjangan, sistem secara otomatis menghitung tanggal berakhir sewa yang baru berdasarkan durasi yang dipilih serta menghitung total biaya yang harus dibayarkan. Dengan fitur ini, proses perpanjangan kontrak menjadi lebih cepat, akurat, dan mengurangi kesalahan perhitungan yang biasanya terjadi pada pencatatan manual.
+
 -----
 
 ## 🌐 Accessing the Application
