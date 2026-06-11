@@ -299,66 +299,39 @@ const AdminVisitorAnalytics = () => {
             </table>
           </div>
         </div>
-
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-800">
-            Ringkasan Persetujuan Cookie
+            Browser Pengunjung
           </h2>
-          <div className="space-y-3 text-sm text-gray-700">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <span>Analitik Diizinkan</span>
-              <strong>{formatNumber(visitorStats.consent_summary.analytics_allowed)}</strong>
-            </div>
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <span>Lokasi Diizinkan</span>
-              <strong>{formatNumber(visitorStats.consent_summary.location_allowed)}</strong>
-            </div>
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <span>Lokasi Ditolak</span>
-              <strong>{formatNumber(visitorStats.consent_summary.location_rejected)}</strong>
-            </div>
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-              <span>Browser Diizinkan</span>
-              <strong>{formatNumber(visitorStats.consent_summary.browser_allowed)}</strong>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Browser Ditolak</span>
-              <strong>{formatNumber(visitorStats.consent_summary.browser_rejected)}</strong>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50 text-left text-gray-600">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Browser</th>
+                  <th className="px-4 py-3 font-semibold">Pengunjung</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-gray-700">
+                {visitorStats.browser_visitors.map((item) => (
+                  <tr key={item.browser_name}>
+                    <td className="px-4 py-3">{item.browser_name}</td>
+                    <td className="px-4 py-3">{formatNumber(item.unique_visitors)}</td>
+                  </tr>
+                ))}
+                {visitorStats.browser_visitors.length === 0 && (
+                  <tr>
+                    <td className="px-4 py-3 text-gray-500" colSpan={2}>
+                      Data browser belum tersedia.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-800">
-          Browser Pengunjung
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 text-left text-gray-600">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Browser</th>
-                <th className="px-4 py-3 font-semibold">Pengunjung</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-gray-700">
-              {visitorStats.browser_visitors.map((item) => (
-                <tr key={item.browser_name}>
-                  <td className="px-4 py-3">{item.browser_name}</td>
-                  <td className="px-4 py-3">{formatNumber(item.unique_visitors)}</td>
-                </tr>
-              ))}
-              {visitorStats.browser_visitors.length === 0 && (
-                <tr>
-                  <td className="px-4 py-3 text-gray-500" colSpan={2}>
-                    Data browser belum tersedia.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </div>
   );
 };
