@@ -3,25 +3,42 @@
 namespace App\Services;
 
 use App\Models\Pembayaran;
-use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InvoiceService
 {
-    public function getAdminInvoices(): Collection
+    public function getAdminInvoices(int $perPage = 10): LengthAwarePaginator
     {
-        return Pembayaran::with(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar'])
+        $paginator = Pembayaran::with([
+            'tagihan.riwayatSewa.user',
+            'tagihan.riwayatSewa.kamar',
+        ])
             ->where('status_verifikasi', 'diterima')
             ->whereHas('tagihan', function ($query) {
                 $query->where('status_tagihan', 'lunas');
             })
-            ->latest('tanggal_bayar')
-            ->get()
-            ->map(fn(Pembayaran $pembayaran) => $this->formatInvoice($pembayaran));
+            ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('id_pembayaran')
+            ->paginate($perPage);
+
+        $paginator->setCollection(
+            $paginator->getCollection()->map(
+                fn(Pembayaran $pembayaran) =>
+                $this->formatInvoice($pembayaran)
+            )
+        );
+
+        return $paginator;
     }
 
-    public function getPenyewaInvoices(int $userId): Collection
-    {
-        return Pembayaran::with(['tagihan.riwayatSewa.user', 'tagihan.riwayatSewa.kamar'])
+    public function getPenyewaInvoices(
+        int $userId,
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        $paginator = Pembayaran::with([
+            'tagihan.riwayatSewa.user',
+            'tagihan.riwayatSewa.kamar',
+        ])
             ->where('status_verifikasi', 'diterima')
             ->whereHas('tagihan', function ($query) use ($userId) {
                 $query->where('status_tagihan', 'lunas')
@@ -29,9 +46,18 @@ class InvoiceService
                         $sewaQuery->where('id_user', $userId);
                     });
             })
-            ->latest('tanggal_bayar')
-            ->get()
-            ->map(fn(Pembayaran $pembayaran) => $this->formatInvoice($pembayaran));
+            ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('id_pembayaran')
+            ->paginate($perPage);
+
+        $paginator->setCollection(
+            $paginator->getCollection()->map(
+                fn(Pembayaran $pembayaran) =>
+                $this->formatInvoice($pembayaran)
+            )
+        );
+
+        return $paginator;
     }
 
     public function getInvoiceDetail(int $idPembayaran, ?int $userId = null): array

@@ -16,19 +16,42 @@ class InvoiceController extends Controller
 
     public function adminIndex(Request $request): JsonResponse
     {
-        abort_unless($request->user()?->role === 'admin', 403, 'Akses hanya untuk admin.');
+        abort_unless(
+            $request->user()?->role === 'admin',
+            403,
+            'Akses hanya untuk admin.'
+        );
+
+        $this->validatePagination($request);
+
+        $invoices = $this->invoiceService->getAdminInvoices(
+            $this->perPage($request)
+        );
 
         return response()->json([
-            'data' => $this->invoiceService->getAdminInvoices(),
+            'data' => $this->paginatedData($invoices),
+            'meta' => $this->paginationMeta($invoices),
         ]);
     }
 
     public function penyewaIndex(Request $request): JsonResponse
     {
-        abort_unless($request->user()?->role === 'penyewa', 403, 'Akses hanya untuk penyewa.');
+        abort_unless(
+            $request->user()?->role === 'penyewa',
+            403,
+            'Akses hanya untuk penyewa.'
+        );
+
+        $this->validatePagination($request);
+
+        $invoices = $this->invoiceService->getPenyewaInvoices(
+            $request->user()->id,
+            $this->perPage($request)
+        );
 
         return response()->json([
-            'data' => $this->invoiceService->getPenyewaInvoices($request->user()->id),
+            'data' => $this->paginatedData($invoices),
+            'meta' => $this->paginationMeta($invoices),
         ]);
     }
 

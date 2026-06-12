@@ -41,11 +41,23 @@ class WorkflowDemoSeeder extends Seeder
     protected int $initialInvoiceCounter = 1;
     protected int $extInvoiceCounter = 1;
 
+    private const PERFORMANCE_INVOICE_TARGET = 1000;
+
+    protected int $performanceInvoiceCount = 0;
+
     protected array $extStats = [
-        'accepted' => 0, 'pending' => 0, 'rejected' => 0, 'unpaid_not_due' => 0, 'overdue' => 0,
+        'accepted' => 0,
+        'pending' => 0,
+        'rejected' => 0,
+        'unpaid_not_due' => 0,
+        'overdue' => 0,
     ];
     protected array $compStats = [
-        'pending' => 0, 'proses' => 0, 'selesai' => 0, 'with_photo' => 0, 'without_photo' => 0,
+        'pending' => 0,
+        'proses' => 0,
+        'selesai' => 0,
+        'with_photo' => 0,
+        'without_photo' => 0,
     ];
 
     public function run(): void
@@ -63,10 +75,11 @@ class WorkflowDemoSeeder extends Seeder
                 $this->seedRooms();
                 $this->seedTenants();
                 $this->seedRentalsAndInvoices();
+                $this->seedPerformanceInvoices();
                 $this->seedComplaints();
                 $this->seedGuestBook();
                 $this->seedExpenses();
-                
+
                 $this->runAssertions();
             });
             $this->printSummary();
@@ -196,13 +209,13 @@ class WorkflowDemoSeeder extends Seeder
     protected function rollbackAssets(): void
     {
         $disk = Storage::disk('public');
-        
+
         foreach ($this->newlyCreatedFiles as $file) {
             if ($disk->exists($file)) {
                 $disk->delete($file);
             }
         }
-        
+
         foreach ($this->overwrittenFiles as $path => $content) {
             $disk->put($path, $content);
         }
@@ -272,14 +285,14 @@ class WorkflowDemoSeeder extends Seeder
             $kamar = $this->kamars[$room];
             $tenantId = $room;
             $user = $this->tenants[$tenantId];
-            
+
             $baseDuration = ($room % 6) + 1;
             $daysFuture = ($room * 3) % ($baseDuration * 28) + 1;
             $activeEnd = $this->baseDate->copy()->addDays($daysFuture);
-            
+
             $hasExtension = ($room <= 20);
             $extType = $hasExtension ? ($room % 5) : -1;
-            
+
             $totalDuration = $baseDuration;
             $extDuration = 1;
 
@@ -326,15 +339,15 @@ class WorkflowDemoSeeder extends Seeder
                 $statusTagihan = 'belum_bayar';
                 $statusVerifikasi = null;
                 $tglTagihan = $originalEnd->copy()->subDays(5);
-                
+
                 // Clamp invoice date to today or earlier
                 if ($tglTagihan->gt($this->baseDate)) {
                     $tglTagihan = $this->baseDate->copy()->subDays(1);
                 }
-                
+
                 $jatuhTempo = $originalEnd->copy();
                 $tglBayar = null;
-                
+
                 if ($extType === 0) { // accepted
                     $statusTagihan = 'lunas';
                     $statusVerifikasi = 'diterima';
@@ -430,26 +443,130 @@ class WorkflowDemoSeeder extends Seeder
         }
     }
 
+    protected function seedPerformanceInvoices(): void
+    {
+        $eligibleInvoiceCount = Pembayaran::query()
+            ->where('status_verifikasi', 'diterima')
+            ->whereHas('tagihan', function ($query) {
+                $query->where('status_tagihan', 'lunas');
+            })
+            ->count();
+
+        $remaining = max(
+            0,
+            self::PERFORMANCE_INVOICE_TARGET - $eligibleInvoiceCount
+        );
+
+        if ($remaining === 0) {
+            return;
+        }
+
+        $rentals = array_values(array_merge(
+            $this->activeRentals,
+            $this->completedRentals
+        ));
+
+        if (empty($rentals)) {
+            throw new \RuntimeException(
+                'Cannot create performance invoices without rentals.'
+            );
+        }
+
+        $proofImagePath = $this->publishedPaths['tagihan'] ?? null;
+        $rentalCount = count($rentals);
+
+        for ($i = 1; $i <= $remaining; $i++) {
+            $rental = $rentals[($i - 1) % $rentalCount];
+
+            $rentalStart = Carbon::parse(
+                $rental->tanggal_masuk
+            )->startOfDay();
+
+            $rentalEnd = Carbon::parse(
+                $rental->tanggal_keluar
+            )->startOfDay();
+
+            if ($rentalEnd->gt($this->baseDate)) {
+                $rentalEnd = $this->baseDate->copy();
+            }
+
+            if ($rentalStart->gt($rentalEnd)) {
+                $invoiceDate = $this->baseDate
+                    ->copy()
+                    ->subDays(($i - 1) % 365);
+            } else {
+                $dayRange = (int) $rentalStart->diffInDays(
+                    $rentalEnd
+                );
+
+                $dayOffset = $dayRange === 0
+                    ? 0
+                    : ($i - 1) % ($dayRange + 1);
+
+                $invoiceDate = $rentalStart
+                    ->copy()
+                    ->addDays($dayOffset);
+            }
+
+            $duration = max(
+                1,
+                (int) $rental->durasi_sewa_bulan
+            );
+
+            $monthlyAmount = round(
+                (float) $rental->harga_deal / $duration,
+                2
+            );
+
+            $codeNumber = str_pad(
+                (string) $i,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
+
+            $tagihan = Tagihan::create([
+                'id_sewa' => $rental->id_sewa,
+                'kode_invoice' => "INV-PERF-$codeNumber",
+                'tanggal_tagihan' => $invoiceDate->toDateString(),
+                'tanggal_jatuh_tempo' => $invoiceDate->toDateString(),
+                'total_tagihan' => $monthlyAmount,
+                'status_tagihan' => 'lunas',
+            ]);
+
+            Pembayaran::create([
+                'id_tagihan' => $tagihan->id_tagihan,
+                'tanggal_bayar' => $invoiceDate->toDateString(),
+                'jumlah_bayar' => $monthlyAmount,
+                'metode_pembayaran' => 'Transfer Bank',
+                'bukti_bayar' => $proofImagePath,
+                'status_verifikasi' => 'diterima',
+            ]);
+
+            $this->performanceInvoiceCount++;
+        }
+    }
+
     protected function seedComplaints(): void
     {
         $comp1 = $this->publishedPaths['keluhan_1'] ?? null;
         $comp2 = $this->publishedPaths['keluhan_2'] ?? null;
-        
+
         $configs = [];
-        for ($i=0; $i<40; $i++) {
+        for ($i = 0; $i < 40; $i++) {
             $configs[] = ['type' => 'selesai', 'photo' => ($i < 28), 'sewa' => $this->completedRentals[$i % count($this->completedRentals)]];
         }
-        for ($i=0; $i<20; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $configs[] = ['type' => 'pending', 'photo' => ($i < 14), 'sewa' => $this->activeRentals[$i % count($this->activeRentals)]];
         }
-        for ($i=0; $i<20; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $configs[] = ['type' => 'proses', 'photo' => ($i < 14), 'sewa' => $this->activeRentals[$i % count($this->activeRentals)]];
         }
 
         foreach ($configs as $idx => $c) {
             $sewa = $c['sewa'];
             $status = $c['type'];
-            
+
             $foto = null;
             if ($c['photo']) {
                 $foto = ($idx % 2 === 0 && $comp2) ? $comp2 : $comp1;
@@ -457,7 +574,7 @@ class WorkflowDemoSeeder extends Seeder
             } else {
                 $this->compStats['without_photo']++;
             }
-            
+
             $this->compStats[$status]++;
 
             $tglMasuk = Carbon::parse($sewa->tanggal_masuk);
@@ -490,12 +607,12 @@ class WorkflowDemoSeeder extends Seeder
     protected function seedGuestBook(): void
     {
         $allRentals = array_merge($this->activeRentals, $this->completedRentals);
-        
+
         for ($i = 0; $i < 150; $i++) {
             $sewa = $allRentals[$i % count($allRentals)];
             $tglMasuk = Carbon::parse($sewa->tanggal_masuk);
             $tglKeluar = Carbon::parse($sewa->tanggal_keluar);
-            
+
             $waktu = $tglMasuk->copy()->addDays(($i % 15) + 1);
             if ($waktu->gt($tglKeluar) || $waktu->gt($this->baseDate)) {
                 $waktu = $tglMasuk->copy()->addDays(1);
@@ -509,8 +626,8 @@ class WorkflowDemoSeeder extends Seeder
             }
 
             BukuTamu::create([
-                'nama_tamu' => 'Tamu ' . ($i+1),
-                'no_hp_tamu' => '089' . str_pad((string)($i+1), 9, '2', STR_PAD_LEFT),
+                'nama_tamu' => 'Tamu ' . ($i + 1),
+                'no_hp_tamu' => '089' . str_pad((string)($i + 1), 9, '2', STR_PAD_LEFT),
                 'bertemu_dengan' => $sewa->id_user,
                 'keperluan' => 'Berkunjung',
                 'waktu_berkunjung' => $waktu->toDateTimeString(),
@@ -588,9 +705,9 @@ class WorkflowDemoSeeder extends Seeder
             if ($payments->count() !== 1) throw new \Exception("Assert failed: Initial invoice payment mismatch");
             if ((float)$payments->first()->jumlah_bayar !== (float)$inv->total_tagihan) throw new \Exception("Assert failed: Amount mismatch");
         }
-        
+
         $tagihans = Tagihan::all();
-        foreach($tagihans as $tag) {
+        foreach ($tagihans as $tag) {
             if (Carbon::parse($tag->tanggal_tagihan)->gt(Carbon::parse($tag->tanggal_jatuh_tempo))) {
                 throw new \Exception("Assert failed: tanggal_tagihan > tanggal_jatuh_tempo for {$tag->kode_invoice}");
             }
@@ -598,9 +715,9 @@ class WorkflowDemoSeeder extends Seeder
                 throw new \Exception("Assert failed: tanggal_tagihan is in future for {$tag->kode_invoice}");
             }
         }
-        
+
         $pembayarans = Pembayaran::all();
-        foreach($pembayarans as $pem) {
+        foreach ($pembayarans as $pem) {
             if (Carbon::parse($pem->tanggal_bayar)->gt($this->baseDate)) {
                 throw new \Exception("Assert failed: tanggal_bayar is in future for {$pem->id_pembayaran}");
             }
@@ -621,14 +738,56 @@ class WorkflowDemoSeeder extends Seeder
         }
 
         if (User::where('role', 'penyewa')->distinct('email')->count() !== 100) throw new \Exception("Assert failed: Emails not unique");
+
         if (Kamar::distinct('nomor_kamar')->count() !== 40) throw new \Exception("Assert failed: Kamar numbers not unique");
-        if (Tagihan::distinct('kode_invoice')->count() !== 120) throw new \Exception("Assert failed: Invoice codes not unique");
+        $uniqueInvoiceCodeCount = Tagihan::query()
+            ->distinct()
+            ->count('kode_invoice');
+
+        if ($uniqueInvoiceCodeCount !== Tagihan::count()) {
+            throw new \Exception(
+                'Assert failed: Invoice codes not unique.'
+            );
+        }
+
+        $eligibleInvoiceCount = Pembayaran::query()
+            ->where('status_verifikasi', 'diterima')
+            ->whereHas('tagihan', function ($query) {
+                $query->where('status_tagihan', 'lunas');
+            })
+            ->count();
+
+        if (
+            $eligibleInvoiceCount
+            !== self::PERFORMANCE_INVOICE_TARGET
+        ) {
+            throw new \Exception(
+                'Assert failed: Eligible invoice count is '
+                    . $eligibleInvoiceCount
+                    . ', expected '
+                    . self::PERFORMANCE_INVOICE_TARGET
+                    . '.'
+            );
+        }
+
+        $performanceInvoiceCount = Tagihan::query()
+            ->where('kode_invoice', 'like', 'INV-PERF-%')
+            ->count();
+
+        if (
+            $performanceInvoiceCount
+            !== $this->performanceInvoiceCount
+        ) {
+            throw new \Exception(
+                'Assert failed: Performance invoice count mismatch.'
+            );
+        }
 
         if (BukuTamu::count() !== 150) throw new \Exception("Assert failed: Guest book count not 150");
         if (Pengeluaran::count() !== 72) throw new \Exception("Assert failed: Expenses count not 72");
-        
+
         $months = [];
-        foreach(Pengeluaran::all() as $p) {
+        foreach (Pengeluaran::all() as $p) {
             $months[Carbon::parse($p->tanggal_pengeluaran)->format('Y-m')] = 1;
         }
         if (count($months) !== 12) throw new \Exception("Assert failed: Pengeluaran not covering exactly 12 months.");
@@ -667,5 +826,22 @@ class WorkflowDemoSeeder extends Seeder
         echo "  - Without Photo: {$this->compStats['without_photo']}\n";
         echo "Guest Book Entries: " . BukuTamu::count() . "\n";
         echo "Expenses: " . Pengeluaran::count() . "\n";
+
+        echo "Performance Invoices: "
+            . Tagihan::where(
+                'kode_invoice',
+                'like',
+                'INV-PERF-%'
+            )->count()
+            . "\n";
+
+        echo "Eligible Invoice API Records: "
+            . Pembayaran::query()
+            ->where('status_verifikasi', 'diterima')
+            ->whereHas('tagihan', function ($query) {
+                $query->where('status_tagihan', 'lunas');
+            })
+            ->count()
+            . "\n";
     }
 }
