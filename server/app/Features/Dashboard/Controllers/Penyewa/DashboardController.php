@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Penyewa;
+namespace App\Features\Dashboard\Controllers\Penyewa;
 
 use App\Http\Controllers\Controller;
-use App\Services\Dashboard\PenyewaDashboardService;
+use App\Features\Dashboard\Services\PenyewaDashboardService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller

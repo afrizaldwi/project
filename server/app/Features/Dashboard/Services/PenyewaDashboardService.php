@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard;
+namespace App\Features\Dashboard\Services;
 
 use App\Models\Keluhan;
 use App\Models\RiwayatSewa;

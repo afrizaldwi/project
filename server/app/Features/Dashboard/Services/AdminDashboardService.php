@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard;
+namespace App\Features\Dashboard\Services;
 
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;

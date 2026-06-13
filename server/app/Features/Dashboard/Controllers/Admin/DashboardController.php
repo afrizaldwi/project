@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Features\Dashboard\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\Dashboard\AdminDashboardService;
+use App\Features\Dashboard\Services\AdminDashboardService;
 
 class DashboardController extends Controller
 {

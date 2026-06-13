@@ -2,14 +2,14 @@
 
 use App\Features\Auth\Controllers\AuthController;
 use App\Http\Controllers\Admin\AdminPenghuniController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Features\Dashboard\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LaporanKeuanganController;
 use App\Http\Controllers\Admin\VisitorStatsController;
 use App\Http\Controllers\Api\BukuTamuController;
 use App\Http\Controllers\Api\KeluhanController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KamarController;
-use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
+use App\Features\Dashboard\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Http\Controllers\SewaExtensionController;
 use App\Http\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
