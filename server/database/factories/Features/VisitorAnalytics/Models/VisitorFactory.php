@@ -1,8 +1,8 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Features\VisitorAnalytics\Models;
 
-use App\Models\Visitor;
+use App\Features\VisitorAnalytics\Models\Visitor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

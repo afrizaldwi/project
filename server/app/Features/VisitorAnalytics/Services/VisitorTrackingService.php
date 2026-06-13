@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\VisitorAnalytics\Services;
 
-use App\Models\Visitor;
+use App\Features\VisitorAnalytics\Models\Visitor;
+use App\Infrastructure\VisitorAnalytics\VisitorLocationResolver;
 use Illuminate\Http\Request;
 
 class VisitorTrackingService

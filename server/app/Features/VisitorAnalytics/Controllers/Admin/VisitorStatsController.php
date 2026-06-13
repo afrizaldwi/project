@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Features\VisitorAnalytics\Controllers\Admin;
 
+use App\Features\VisitorAnalytics\Services\VisitorStatsService;
 use App\Http\Controllers\Controller;
-use App\Services\VisitorStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

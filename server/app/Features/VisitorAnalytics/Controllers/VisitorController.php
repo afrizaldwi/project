@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\VisitorAnalytics\Controllers;
 
-use App\Services\VisitorExportService;
-use App\Services\VisitorTrackingService;
+use App\Features\VisitorAnalytics\Services\VisitorExportService;
+use App\Features\VisitorAnalytics\Services\VisitorTrackingService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\VisitorAnalytics\Services;
 
-use App\Models\Visitor;
+use App\Features\VisitorAnalytics\Models\Visitor;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 

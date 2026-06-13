@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\VisitorAnalytics\Services;
 
 use Symfony\Component\HttpFoundation\Response;
 

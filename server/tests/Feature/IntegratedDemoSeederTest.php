@@ -10,7 +10,7 @@ use App\Models\Pengeluaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
-use App\Models\Visitor;
+use App\Features\VisitorAnalytics\Models\Visitor;
 use App\Features\Auth\Services\AuthService;
 use Carbon\Carbon;
 use Database\Seeders\WorkflowDemoSeeder;
