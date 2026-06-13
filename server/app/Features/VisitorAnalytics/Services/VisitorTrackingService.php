@@ -29,7 +29,6 @@ class VisitorTrackingService
             return false;
         }
 
-        $visitorKey = $this->makeVisitorKey($request);
         $visitDate = now()->toDateString();
         $locationConsent = ($data["location_consent"] ?? false) === true;
         $browserConsent = ($data["browser_consent"] ?? false) === true;
@@ -42,9 +41,11 @@ class VisitorTrackingService
         $browserName = $browserConsent
             ? $this->normalizeBrowserName($data["browser_name"] ?? null)
             : null;
+        $browserIdentity = $browserName ?? "Unknown";
+        $visitorKey = $this->makeVisitorKey($request, $browserIdentity);
 
         $visitor = Visitor::where("visitor_key", $visitorKey)
-            ->where("visit_date", $visitDate)
+            ->whereDate("visit_date", $visitDate)
             ->first();
 
         if ($visitor) {
@@ -76,9 +77,13 @@ class VisitorTrackingService
         return true;
     }
 
-    private function makeVisitorKey(Request $request): string
+    private function makeVisitorKey(Request $request, string $browserIdentity): string
     {
-        $rawKey = $this->normalizeIp($request->ip()) . "|" . $request->userAgent();
+        $rawKey = implode("|", [
+            $this->normalizeIp($request->ip()),
+            (string) $request->userAgent(),
+            $browserIdentity,
+        ]);
 
         return hash("sha256", $rawKey);
     }
