@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\User;

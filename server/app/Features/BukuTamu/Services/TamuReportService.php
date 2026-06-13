@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Patterns\Factory\Report;
+namespace App\Features\BukuTamu\Services;
 
-use App\Models\BukuTamu;
+use App\Features\BukuTamu\Models\BukuTamu;
+use App\Patterns\Factory\Report\ReportServiceInterface;
 
 class TamuReportService implements ReportServiceInterface
 {

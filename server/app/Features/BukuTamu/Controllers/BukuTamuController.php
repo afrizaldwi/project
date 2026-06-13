@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Features\BukuTamu\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\BukuTamu;
+use App\Features\BukuTamu\Models\BukuTamu;
 use App\Models\RiwayatSewa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;

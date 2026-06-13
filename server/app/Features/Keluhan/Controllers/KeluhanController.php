@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Features\Keluhan\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
 use App\Models\RiwayatSewa;
-use App\Patterns\Strategy\AdminKeluhanStrategy;
-use App\Patterns\Strategy\PenyewaKeluhanStrategy;
+use App\Features\Keluhan\Services\AdminKeluhanStrategy;
+use App\Features\Keluhan\Services\PenyewaKeluhanStrategy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

@@ -2,6 +2,8 @@
 
 namespace App\Patterns\Factory\Report;
 
+use App\Features\BukuTamu\Services\TamuReportService;
+use App\Features\Keluhan\Services\KeluhanReportService;
 use InvalidArgumentException;
 
 class ReportServiceFactory
