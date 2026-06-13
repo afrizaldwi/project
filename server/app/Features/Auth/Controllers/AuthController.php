@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\Auth\Controllers;
 
-use App\Contracts\Auth\JwtAuthStrategy;
-use App\Http\Requests\LoginRequest;
-use App\Services\Auth\MobileJwtAuthStrategy;
-use App\Services\Auth\WebJwtAuthStrategy;
-use App\Services\AuthService;
+use App\Features\Auth\Contracts\JwtAuthStrategy;
+use App\Features\Auth\Requests\LoginRequest;
+use App\Features\Auth\Services\AuthService;
+use App\Features\Auth\Strategies\MobileJwtAuthStrategy;
+use App\Features\Auth\Strategies\WebJwtAuthStrategy;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
@@ -153,5 +154,4 @@ class AuthController extends Controller
 
         return $cookies;
     }
-
 }

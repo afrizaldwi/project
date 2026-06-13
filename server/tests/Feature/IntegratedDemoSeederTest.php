@@ -11,7 +11,7 @@ use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
 use App\Models\Visitor;
-use App\Services\AuthService;
+use App\Features\Auth\Services\AuthService;
 use Carbon\Carbon;
 use Database\Seeders\WorkflowDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

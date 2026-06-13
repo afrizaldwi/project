@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Auth;
+namespace App\Features\Auth\Strategies;
 
-use App\Contracts\Auth\JwtAuthStrategy;
+use App\Features\Auth\Contracts\JwtAuthStrategy;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
