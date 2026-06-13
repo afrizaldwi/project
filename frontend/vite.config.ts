@@ -14,11 +14,25 @@ export default defineConfig({
         changeOrigin: true,
         xfwd: true,
       },
-      "/sanctum": {
+      "/storage": {
         target: "http://kost-nginx:80",
         changeOrigin: true,
         xfwd: true,
       },
     },
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/") || id.includes("node_modules/react-router-dom/") || id.includes("node_modules/react-router/")) {
+            return "vendor";
+          }
+          if (id.includes("node_modules/chart.js/") || id.includes("node_modules/react-chartjs-2/")) {
+            return "charts";
+          }
+        },
+      },
+    },
+  },
 });
