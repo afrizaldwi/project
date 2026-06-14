@@ -3,22 +3,12 @@
 namespace App\Features\VisitorAnalytics\Services;
 
 use App\Features\VisitorAnalytics\Models\Visitor;
+use App\Features\VisitorAnalytics\Support\BrowserIdentity;
 use App\Infrastructure\VisitorAnalytics\VisitorLocationResolver;
 use Illuminate\Http\Request;
 
 class VisitorTrackingService
 {
-    private const BROWSERS = [
-        "Brave",
-        "Chrome",
-        "Edge",
-        "Firefox",
-        "Safari",
-        "Opera",
-        "Samsung Internet",
-        "Unknown",
-    ];
-
     public function __construct(
         private VisitorLocationResolver $visitorLocationResolver
     ) {}
@@ -39,9 +29,9 @@ class VisitorTrackingService
             )
             : ["country" => null, "city" => null];
         $browserName = $browserConsent
-            ? $this->normalizeBrowserName($data["browser_name"] ?? null)
+            ? BrowserIdentity::normalize($data["browser_name"] ?? null)
             : null;
-        $browserIdentity = $browserName ?? "Unknown";
+        $browserIdentity = $browserName ?? BrowserIdentity::UNKNOWN;
         $visitorKey = $this->makeVisitorKey($request, $browserIdentity);
 
         $visitor = Visitor::where("visitor_key", $visitorKey)
@@ -95,22 +85,5 @@ class VisitorTrackingService
         }
 
         return $ip;
-    }
-
-    private function normalizeBrowserName(?string $browserName): string
-    {
-        $browserName = trim((string) $browserName);
-
-        if ($browserName === "") {
-            return "Unknown";
-        }
-
-        foreach (self::BROWSERS as $browser) {
-            if (strcasecmp($browserName, $browser) === 0) {
-                return $browser;
-            }
-        }
-
-        return "Unknown";
     }
 }

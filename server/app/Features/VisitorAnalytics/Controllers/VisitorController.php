@@ -4,6 +4,7 @@ namespace App\Features\VisitorAnalytics\Controllers;
 
 use App\Features\VisitorAnalytics\Services\VisitorExportService;
 use App\Features\VisitorAnalytics\Services\VisitorTrackingService;
+use App\Features\VisitorAnalytics\Support\BrowserIdentity;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,16 +28,7 @@ class VisitorController extends Controller
                 "nullable",
                 "string",
                 "max:50",
-                Rule::in([
-                    "Brave",
-                    "Chrome",
-                    "Edge",
-                    "Firefox",
-                    "Safari",
-                    "Opera",
-                    "Samsung Internet",
-                    "Unknown",
-                ]),
+                Rule::in(BrowserIdentity::values()),
             ],
             "latitude" => ["nullable", "numeric", "between:-90,90"],
             "longitude" => ["nullable", "numeric", "between:-180,180"],
