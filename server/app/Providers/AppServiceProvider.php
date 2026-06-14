@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Features\Auth\Services\AuthService;
 use App\Features\Penghuni\Services\AdminPenghuniService;
 use App\Features\Laporan\Services\LaporanKeuanganService;
+use App\Features\InvoiceTransaksi\Services\InvoiceService;
 use App\Features\VisitorAnalytics\Services\VisitorTrackingService;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(VisitorTrackingService::class);
         $this->app->singleton(AdminPenghuniService::class);
         $this->app->singleton(LaporanKeuanganService::class);
+        $this->app->singleton(InvoiceService::class);
     }
 
     /**
@@ -31,5 +33,6 @@ class AppServiceProvider extends ServiceProvider
                 \App\Features\Notifications\Commands\CheckTagihanJatuhTempo::class,
             ]);
         }
+        $this->loadViewsFrom(app_path('Features/InvoiceTransaksi/Views'), 'invoice-transaksi');
     }
 }

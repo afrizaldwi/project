@@ -2,8 +2,8 @@
 
 namespace App\Features\Laporan\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Features\Laporan\Services\LaporanKeuanganService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

@@ -3,7 +3,6 @@ import { RefreshCw } from "lucide-react";
 
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
-import usePolling from "../../hook/usePolling";
 import type {
   NotifikasiItem,
   PaginationMeta,
@@ -18,12 +17,7 @@ import PendingPaymentsTable from "../../components/tagihan/admin/PendingPayments
 import PaymentVerificationModal from "../../components/tagihan/admin/PaymentVerificationModal";
 import PaginationControls from "../../components/ui/PaginationControls";
 
-const POLLING_INTERVAL_MS = 5000;
 const PER_PAGE = 10;
-
-const isUnauthorizedError = (error: unknown) => {
-  return (error as { response?: { status?: number } })?.response?.status === 401;
-};
 
 const AdminTagihan = () => {
   const [tagihan, setTagihan] = useState<TagihanReminderItem[]>([]);
@@ -103,49 +97,9 @@ const AdminTagihan = () => {
     }
   }, [tagihanPage, pendingPage, statusFilter]);
 
-  const refreshPaymentData = useCallback(async () => {
-    try {
-      const [tagihanData, pendingData] = await Promise.all([
-        tagihanReminderApi.getAdminTagihan({ page: tagihanPage, per_page: PER_PAGE, status: statusFilter }),
-        tagihanReminderApi.getPendingPayments({ page: pendingPage, per_page: PER_PAGE }),
-      ]);
-      let needRefetch = false;
-
-      if (tagihanData.data.length === 0 && tagihanPage > 1) {
-        setTagihanPage(Math.max(1, tagihanData.meta.last_page));
-        needRefetch = true;
-      } else {
-        setTagihan(tagihanData.data);
-        setTagihanMeta(tagihanData.meta);
-        if (tagihanData.summary) {
-          setTagihanSummary(tagihanData.summary);
-        }
-      }
-
-      if (pendingData.data.length === 0 && pendingPage > 1) {
-        setPendingPage(Math.max(1, pendingData.meta.last_page));
-        needRefetch = true;
-      } else {
-        setPendingPayments(pendingData.data);
-        setPendingMeta(pendingData.meta);
-      }
-
-      if (needRefetch) return;
-    } catch (error) {
-      if (isUnauthorizedError(error)) {
-        throw error;
-      }
-    }
-  }, [tagihanPage, pendingPage, statusFilter]);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  usePolling(refreshPaymentData, {
-    enabled: verifyingId === null,
-    intervalMs: POLLING_INTERVAL_MS,
-  });
 
   const handleRunDueDateCheck = async () => {
     try {
@@ -163,6 +117,12 @@ const AdminTagihan = () => {
     idPembayaran: number,
     action: "diterima" | "ditolak"
   ) => {
+    const actionLabel = action === "diterima" ? "menerima" : "menolak";
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin ${actionLabel} verifikasi pembayaran ini?`
+    );
+    if (!confirmed) return;
+
     try {
       setVerifyingId(idPembayaran);
 

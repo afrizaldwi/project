@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import kamarService from "../../services/kamarService";
-import type { KamarFormData } from "../../types";
+import { type KamarFormData, defaultKamarForm } from "../../types";
 import KamarForm from "../../components/kamar/KamarForm";
 import KamarMetadata from "../../components/kamar/KamarMetadata";
 
@@ -11,14 +11,6 @@ const AdminKamarEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const [form, setForm] = useState<KamarFormData>({
-    nomor_kamar: "",
-    luas_kamar: "",
-    fasilitas: "",
-    harga_bulanan: "",
-    status_kamar: "tersedia",
-    foto_kamar: null,
-  });
   const [preview, setPreview] = useState<string | null>(null);
   const [existingFoto, setExistingFoto] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
@@ -26,6 +18,7 @@ const AdminKamarEdit = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof KamarFormData, string>>>({});
+  const [form, setForm] = useState<KamarFormData>(defaultKamarForm());
 
   useEffect(() => {
     const fetchKamar = async () => {

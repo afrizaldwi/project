@@ -7,11 +7,11 @@ use App\Features\Laporan\Controllers\LaporanKeuanganController;
 use App\Features\VisitorAnalytics\Controllers\Admin\VisitorStatsController;
 use App\Features\BukuTamu\Controllers\BukuTamuController;
 use App\Features\Keluhan\Controllers\KeluhanController;
-use App\Http\Controllers\InvoiceController;
 use App\Features\Kamar\Controllers\KamarController;
 use App\Features\Sewa\Controllers\SewaExtensionController;
 use App\Features\Dashboard\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Features\Notifications\Controllers\TagihanReminderController;
+use App\Features\InvoiceTransaksi\Controllers\InvoiceController;
 use App\Features\VisitorAnalytics\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 

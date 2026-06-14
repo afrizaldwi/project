@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Features\InvoiceTransaksi\Seeders;
 
 use App\Features\Kamar\Models\Kamar;
 use App\Features\Tagihan\Models\Pembayaran;

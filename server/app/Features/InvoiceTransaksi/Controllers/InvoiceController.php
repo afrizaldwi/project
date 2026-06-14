@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\InvoiceTransaksi\Controllers;
 
-use App\Services\InvoiceService;
+use App\Features\InvoiceTransaksi\Services\InvoiceService;
+use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class InvoiceController extends Controller
         $invoice = $this->invoiceService->getInvoiceDetail($idPembayaran);
         $fileName = ($invoice['kode_invoice'] ?? 'invoice') . '.pdf';
 
-        return Pdf::loadView('pdf.invoice', [
+        return Pdf::loadView('invoice-transaksi::invoice', [
             'invoice' => $invoice,
         ])
             ->setPaper('a4', 'portrait')
@@ -80,7 +81,7 @@ class InvoiceController extends Controller
 
         $fileName = ($invoice['kode_invoice'] ?? 'invoice') . '.pdf';
 
-        return Pdf::loadView('pdf.invoice', [
+        return Pdf::loadView('invoice-transaksi::invoice', [
             'invoice' => $invoice,
         ])
             ->setPaper('a4', 'portrait')
