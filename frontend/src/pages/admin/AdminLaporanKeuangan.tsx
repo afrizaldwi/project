@@ -86,6 +86,11 @@ const AdminLaporanKeuangan = () => {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin mencatat pengeluaran berikut?\n\nJudul: ${form.judul_pengeluaran}\nJumlah: ${formatRupiah(form.jumlah_pengeluaran)}`
+    );
+    if (!confirmed) return;
+
     try {
       setIsSubmitting(true);
       setErrorMessage("");

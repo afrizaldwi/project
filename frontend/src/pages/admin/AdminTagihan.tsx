@@ -163,6 +163,12 @@ const AdminTagihan = () => {
     idPembayaran: number,
     action: "diterima" | "ditolak"
   ) => {
+    const actionLabel = action === "diterima" ? "menerima" : "menolak";
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin ${actionLabel} verifikasi pembayaran ini?`
+    );
+    if (!confirmed) return;
+
     try {
       setVerifyingId(idPembayaran);
 
