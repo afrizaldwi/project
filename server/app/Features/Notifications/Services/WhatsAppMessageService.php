@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\Notifications\Services;
 
 use App\Models\Tagihan;
-use App\Patterns\Strategy\NotificationContext;
-use App\Patterns\Strategy\WhatsAppNotificationStrategy;
+use App\Features\Notifications\Patterns\Strategy\NotificationContext;
+use App\Features\Notifications\Patterns\Strategy\WhatsAppNotificationStrategy;
 
 class WhatsAppMessageService
 {

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Features\Tagihan\Models;
+
+use App\Models\Tagihan;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

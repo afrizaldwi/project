@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\Notifications\Controllers;
 
-use App\Models\MobileDeviceToken;
-use App\Patterns\Facade\TagihanReminderFacade;
+use App\Http\Controllers\Controller;
+use App\Features\Notifications\Models\MobileDeviceToken;
+use App\Features\Notifications\Patterns\Facade\TagihanReminderFacade;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

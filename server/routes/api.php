@@ -11,8 +11,8 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KamarController;
 use App\Features\Dashboard\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Http\Controllers\SewaExtensionController;
-use App\Http\Controllers\TagihanReminderController;
 use App\Features\VisitorAnalytics\Controllers\VisitorController;
+use App\Features\Notifications\Controllers\TagihanReminderController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/track-visitor', [VisitorController::class, 'track']);

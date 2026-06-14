@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\Notifications\Services;
 
-use App\Models\Notifikasi;
+use App\Features\Notifications\Models\Notifikasi;
 use App\Models\Tagihan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
+use App\Features\Notifications\Patterns\Observer\DueCheckSubject;
+use App\Features\Notifications\Patterns\Observer\SystemNotificationObserver;
+use App\Features\Tagihan\States\PaymentContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -78,10 +81,10 @@ class TagihanReminderService
             ->get();
 
         // Instantiate the Subject (Observer pattern)
-        $subject = new \App\Patterns\Observer\DueCheckSubject();
+        $subject = new DueCheckSubject();
 
         // Attach system observer strictly for warning notifications on the system
-        $systemObserver = new \App\Patterns\Observer\SystemNotificationObserver($this);
+        $systemObserver = new SystemNotificationObserver($this);
         $subject->attach($systemObserver);
 
         foreach ($tagihanList as $tagihan) {
@@ -282,7 +285,7 @@ class TagihanReminderService
                 ->firstOrFail();
 
             // Delegate state transition logic to PaymentContext (State pattern)
-            $context = new \App\Patterns\State\PaymentContext($pembayaran);
+            $context = new PaymentContext($pembayaran);
             $context->verify($pembayaran, $catatanAdmin);
 
             $pembayaran->refresh();
@@ -301,7 +304,7 @@ class TagihanReminderService
                 ->firstOrFail();
 
             // Delegate state transition logic to PaymentContext (State pattern)
-            $context = new \App\Patterns\State\PaymentContext($pembayaran);
+            $context = new PaymentContext($pembayaran);
             $context->reject($pembayaran, $catatanAdmin);
 
             $pembayaran->refresh();

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\Notifications\Services;
 
-use App\Models\MobileDeviceToken;
-use App\Models\Notifikasi;
+use App\Features\Notifications\Models\MobileDeviceToken;
+use App\Features\Notifications\Models\Notifikasi;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

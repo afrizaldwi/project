@@ -2,8 +2,8 @@
 
 namespace App\Features\Laporan\Services;
 
-use App\Models\Pembayaran;
 use App\Features\Laporan\Repositories\KeuanganRepository;
+use App\Features\Tagihan\Models\Pembayaran;
 use Illuminate\Support\Collection;
 
 class LaporanKeuanganService

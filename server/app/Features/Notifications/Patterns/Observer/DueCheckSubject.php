@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Patterns\Observer;
+namespace App\Features\Notifications\Patterns\Observer;
 
 use App\Models\Tagihan;
 

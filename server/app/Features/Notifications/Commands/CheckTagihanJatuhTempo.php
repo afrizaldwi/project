@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Features\Notifications\Commands;
 
-use App\Services\TagihanReminderService;
+use App\Features\Notifications\Services\TagihanReminderService;
 use Illuminate\Console\Command;
 
 class CheckTagihanJatuhTempo extends Command

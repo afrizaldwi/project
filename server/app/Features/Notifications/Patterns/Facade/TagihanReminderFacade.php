@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Patterns\Facade;
+namespace App\Features\Notifications\Patterns\Facade;
 
-use App\Services\TagihanReminderService;
+use App\Features\Notifications\Services\TagihanReminderService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 

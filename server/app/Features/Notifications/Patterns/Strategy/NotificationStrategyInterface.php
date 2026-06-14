@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Patterns\Strategy;
+namespace App\Features\Notifications\Patterns\Strategy;
 
 use App\Models\Tagihan;
 

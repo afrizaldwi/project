@@ -1,6 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Features\Notifications\Models;
+
+use App\Models\User;
+use App\Models\Tagihan;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

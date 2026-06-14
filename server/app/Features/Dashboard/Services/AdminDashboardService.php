@@ -5,8 +5,8 @@ namespace App\Features\Dashboard\Services;
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
-use App\Models\Pembayaran;
 use App\Features\Keluhan\Models\Keluhan;
+use App\Features\Tagihan\Models\Pembayaran;
 use Carbon\Carbon;
 
 class AdminDashboardService

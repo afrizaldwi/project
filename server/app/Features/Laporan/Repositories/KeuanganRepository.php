@@ -2,8 +2,8 @@
 
 namespace App\Features\Laporan\Repositories;
 
-use App\Models\Pembayaran;
 use App\Features\Laporan\Models\Pengeluaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use App\Models\Tagihan;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
