@@ -11,6 +11,7 @@ class PenyewaDashboardService
 {
     public function getSummary(int $userId): array
     {
+        $now = Carbon::now();
         $activeSewa = $this->getActiveSewa($userId);
 
         if (! $activeSewa) {
@@ -32,13 +33,14 @@ class PenyewaDashboardService
         $activeTagihan = $this->getActiveTagihan($activeSewa->id_sewa);
         $latestTagihan = $this->getLatestTagihan($activeSewa->id_sewa);
         $displayTagihan = $activeTagihan ?? $latestTagihan;
+        $contractMetrics = $this->getContractMetrics($activeSewa, $now);
 
         return [
             'cards' => [
                 'kamar_saya' => $activeSewa->kamar?->nomor_kamar ?? '-',
                 'tagihan_aktif' => $this->getTagihanAktif($activeSewa->id_sewa),
                 'status_pembayaran' => $displayTagihan?->status_tagihan ?? '-',
-                'sisa_masa_sewa' => $this->getSisaMasaSewa($activeSewa),
+                'sisa_masa_sewa' => $contractMetrics['sisa_masa_sewa'],
                 'keluhan_saya' => $this->getTotalKeluhanSaya($activeSewa->id_sewa),
             ],
             'kamar' => [
@@ -58,8 +60,8 @@ class PenyewaDashboardService
                 'tanggal_keluar' => $activeSewa->tanggal_keluar,
                 'durasi_sewa_bulan' => $activeSewa->durasi_sewa_bulan,
                 'status_sewa' => $activeSewa->status_sewa,
-                'progress_persen' => $this->getProgressMasaSewa($activeSewa),
-                'sisa_masa_sewa' => $this->getSisaMasaSewa($activeSewa),
+                'progress_persen' => $contractMetrics['progress_persen'],
+                'sisa_masa_sewa' => $contractMetrics['sisa_masa_sewa'],
             ],
             'keluhan_terakhir' => $this->getKeluhanTerakhir($activeSewa->id_sewa),
         ];
@@ -101,22 +103,42 @@ class PenyewaDashboardService
         return Keluhan::where('id_sewa', $sewaId)->count();
     }
 
-    private function getSisaMasaSewa(RiwayatSewa $sewa): string
+    private function getContractMetrics(RiwayatSewa $sewa, Carbon $now): array
     {
         if (! $sewa->tanggal_masuk || ! $sewa->durasi_sewa_bulan) {
-            return '-';
+            return [
+                'sisa_masa_sewa' => '-',
+                'progress_persen' => 0,
+            ];
         }
 
         $tanggalMulai = Carbon::parse($sewa->tanggal_masuk);
         $tanggalSelesai = $tanggalMulai->copy()->addMonths($sewa->durasi_sewa_bulan);
+        $sisaMasaSewa = $now->greaterThanOrEqualTo($tanggalSelesai)
+            ? 'Selesai'
+            : (int) ceil($now->diffInMonths($tanggalSelesai)) . ' bulan';
 
-        if (Carbon::now()->greaterThanOrEqualTo($tanggalSelesai)) {
-            return 'Selesai';
+        if ($now->greaterThanOrEqualTo($tanggalSelesai)) {
+            return [
+                'sisa_masa_sewa' => $sisaMasaSewa,
+                'progress_persen' => 100,
+            ];
         }
 
-        $sisaBulan = (int) ceil(Carbon::now()->diffInMonths($tanggalSelesai));
+        if ($now->lessThanOrEqualTo($tanggalMulai)) {
+            return [
+                'sisa_masa_sewa' => $sisaMasaSewa,
+                'progress_persen' => 0,
+            ];
+        }
 
-        return $sisaBulan . ' bulan';
+        $totalHari = $tanggalMulai->diffInDays($tanggalSelesai);
+        $hariBerjalan = $tanggalMulai->diffInDays($now);
+
+        return [
+            'sisa_masa_sewa' => $sisaMasaSewa,
+            'progress_persen' => $totalHari <= 0 ? 0 : (int) round(($hariBerjalan / $totalHari) * 100),
+        ];
     }
 
     private function getKeluhanTerakhir(int $sewaId): array
@@ -133,32 +155,5 @@ class PenyewaDashboardService
                 ];
             })
             ->toArray();
-    }
-
-    private function getProgressMasaSewa(RiwayatSewa $sewa): int
-    {
-        if (! $sewa->tanggal_masuk || ! $sewa->durasi_sewa_bulan) {
-            return 0;
-        }
-
-        $tanggalMulai = Carbon::parse($sewa->tanggal_masuk);
-        $tanggalSelesai = $tanggalMulai->copy()->addMonths($sewa->durasi_sewa_bulan);
-
-        if (Carbon::now()->lessThanOrEqualTo($tanggalMulai)) {
-            return 0;
-        }
-
-        if (Carbon::now()->greaterThanOrEqualTo($tanggalSelesai)) {
-            return 100;
-        }
-
-        $totalHari = $tanggalMulai->diffInDays($tanggalSelesai);
-        $hariBerjalan = $tanggalMulai->diffInDays(Carbon::now());
-
-        if ($totalHari <= 0) {
-            return 0;
-        }
-
-        return (int) round(($hariBerjalan / $totalHari) * 100);
     }
 }
