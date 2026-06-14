@@ -18,7 +18,7 @@ import PendingPaymentsTable from "../../components/tagihan/admin/PendingPayments
 import PaymentVerificationModal from "../../components/tagihan/admin/PaymentVerificationModal";
 import PaginationControls from "../../components/ui/PaginationControls";
 
-const POLLING_INTERVAL_MS = 5000;
+const POLLING_INTERVAL_MS = 30000;
 const PER_PAGE = 10;
 
 const isUnauthorizedError = (error: unknown) => {
@@ -142,10 +142,10 @@ const AdminTagihan = () => {
     fetchData();
   }, [fetchData]);
 
-  usePolling(refreshPaymentData, {
-    enabled: verifyingId === null,
-    intervalMs: POLLING_INTERVAL_MS,
-  });
+  // usePolling(refreshPaymentData, {
+  //   enabled: verifyingId === null,
+  //   intervalMs: POLLING_INTERVAL_MS,
+  // });
 
   const handleRunDueDateCheck = async () => {
     try {
