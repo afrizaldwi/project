@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repositories\Admin;
+namespace App\Features\Laporan\Repositories;
 
 use App\Models\Pembayaran;
-use App\Models\Pengeluaran;
+use App\Features\Laporan\Models\Pengeluaran;
 use App\Models\Tagihan;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;

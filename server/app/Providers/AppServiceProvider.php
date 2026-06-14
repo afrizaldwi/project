@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use App\Features\Auth\Services\AuthService;
-use App\Services\Admin\AdminPenghuniService;
-use App\Services\Admin\LaporanKeuanganService;
+use App\Features\Penghuni\Services\AdminPenghuniService;
+use App\Features\Laporan\Services\LaporanKeuanganService;
 use App\Features\VisitorAnalytics\Services\VisitorTrackingService;
 use Illuminate\Support\ServiceProvider;
 

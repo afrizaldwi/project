@@ -7,7 +7,7 @@ use App\Models\Kamar;
 use App\Features\Keluhan\Models\Keluhan;
 use App\Models\Notifikasi;
 use App\Models\Pembayaran;
-use App\Models\Pengeluaran;
+use App\Features\Laporan\Models\Pengeluaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;

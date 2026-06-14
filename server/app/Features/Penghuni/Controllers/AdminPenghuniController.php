@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Features\Penghuni\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\Admin\AdminPenghuniService;
+use App\Features\Penghuni\Services\AdminPenghuniService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

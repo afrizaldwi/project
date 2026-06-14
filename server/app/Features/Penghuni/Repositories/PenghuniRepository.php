@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Admin;
+namespace App\Features\Penghuni\Repositories;
 
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;

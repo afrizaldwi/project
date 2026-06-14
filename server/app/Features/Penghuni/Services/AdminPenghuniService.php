@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Admin;
+namespace App\Features\Penghuni\Services;
 
 use App\Models\Pembayaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
-use App\Repositories\Admin\PenghuniRepository;
+use App\Features\Penghuni\Repositories\PenghuniRepository;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;

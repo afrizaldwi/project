@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Admin;
+namespace App\Features\Laporan\Services;
 
 use App\Models\Pembayaran;
-use App\Repositories\Admin\KeuanganRepository;
+use App\Features\Laporan\Repositories\KeuanganRepository;
 use Illuminate\Support\Collection;
 
 class LaporanKeuanganService

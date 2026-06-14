@@ -1,9 +1,9 @@
 <?php
 
 use App\Features\Auth\Controllers\AuthController;
-use App\Http\Controllers\Admin\AdminPenghuniController;
+use App\Features\Penghuni\Controllers\AdminPenghuniController;
 use App\Features\Dashboard\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\LaporanKeuanganController;
+use App\Features\Laporan\Controllers\LaporanKeuanganController;
 use App\Features\VisitorAnalytics\Controllers\Admin\VisitorStatsController;
 use App\Features\BukuTamu\Controllers\BukuTamuController;
 use App\Features\Keluhan\Controllers\KeluhanController;
