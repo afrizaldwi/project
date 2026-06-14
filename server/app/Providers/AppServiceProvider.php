@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
+use App\Features\Auth\Services\AuthService;
 use App\Services\Admin\AdminPenghuniService;
 use App\Services\Admin\LaporanKeuanganService;
-use App\Services\AuthService;
-use App\Services\VisitorTrackingService;
+use App\Features\VisitorAnalytics\Services\VisitorTrackingService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

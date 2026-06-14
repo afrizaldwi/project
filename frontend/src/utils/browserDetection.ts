@@ -1,12 +1,4 @@
-export type BrowserName =
-  | "Brave"
-  | "Edge"
-  | "Opera"
-  | "Samsung Internet"
-  | "Firefox"
-  | "Safari"
-  | "Chrome"
-  | "Unknown";
+import type { VisitorBrowserName } from "../types";
 
 type BrowserBrand = {
   brand: string;
@@ -25,7 +17,7 @@ type NavigatorWithBrowserHints = Navigator & {
 const hasBrand = (brands: BrowserBrand[], pattern: RegExp) =>
   brands.some((brand) => pattern.test(brand.brand));
 
-export const detectBrowserName = async (): Promise<BrowserName> => {
+export const detectBrowserName = async (): Promise<VisitorBrowserName> => {
   const browserNavigator = navigator as NavigatorWithBrowserHints;
 
   try {
