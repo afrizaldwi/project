@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Features\Keluhan\Models;
-use App\Models\RiwayatSewa;
+
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

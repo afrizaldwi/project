@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kamar;
+use App\Features\Kamar\Models\Kamar;
 use App\Features\Tagihan\Models\Pembayaran;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
 use Illuminate\Database\Seeder;

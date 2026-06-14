@@ -6,7 +6,7 @@ use App\Features\Keluhan\Requests\StoreKeluhanRequest;
 use App\Features\Keluhan\Requests\UpdateStatusKeluhanRequest;
 use App\Features\Keluhan\Services\KeluhanService;
 use App\Http\Controllers\Controller;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

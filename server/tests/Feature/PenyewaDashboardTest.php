@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Features\Dashboard\Services\PenyewaDashboardService;
-use App\Models\Kamar;
-use App\Models\RiwayatSewa;
+use App\Features\Kamar\Models\Kamar;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;

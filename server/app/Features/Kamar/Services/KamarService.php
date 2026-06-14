@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\Kamar\Services;
 
-use App\Models\Kamar;
-use App\Repositories\Contracts\KamarRepositoryInterface;
+use App\Features\Kamar\Contracts\KamarRepositoryInterface;
+use App\Features\Kamar\Models\Kamar;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;

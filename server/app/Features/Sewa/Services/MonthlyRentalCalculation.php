@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Strategies\Implementations;
+namespace App\Features\Sewa\Services;
 
-use App\Services\Strategies\Contracts\DateCalculationStrategy;
+use App\Features\Sewa\Contracts\DateCalculationStrategy;
 use Carbon\Carbon;
 
 class MonthlyRentalCalculation implements DateCalculationStrategy

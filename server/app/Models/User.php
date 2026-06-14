@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;

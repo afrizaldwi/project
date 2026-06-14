@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kamar;
-use App\Models\RiwayatSewa;
+use App\Features\Kamar\Models\Kamar;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

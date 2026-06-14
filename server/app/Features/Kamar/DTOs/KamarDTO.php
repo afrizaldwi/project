@@ -1,8 +1,8 @@
 <?php
 
-namespace App\DTO;
+namespace App\Features\Kamar\DTOs;
 
-use App\Models\Kamar;
+use App\Features\Kamar\Models\Kamar;
 
 readonly class KamarDTO
 {

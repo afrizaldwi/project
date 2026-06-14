@@ -1,8 +1,8 @@
 <?php
 
-namespace App\DTO;
+namespace App\Features\Sewa\DTOs;
 
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 
 readonly class SewaDetailDTO
 {

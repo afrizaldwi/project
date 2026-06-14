@@ -4,7 +4,7 @@ namespace App\Features\BukuTamu\Services;
 
 use App\Features\BukuTamu\Contracts\BukuTamuRepositoryInterface;
 use App\Features\BukuTamu\Models\BukuTamu;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;

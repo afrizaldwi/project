@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Repositories\Eloquent;
+namespace App\Features\Kamar\Repositories;
 
-use App\Models\Kamar;
-use App\Models\RiwayatSewa;
-use App\Repositories\Contracts\KamarRepositoryInterface;
+use App\Features\Kamar\Contracts\KamarRepositoryInterface;
+use App\Features\Kamar\Models\Kamar;
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
