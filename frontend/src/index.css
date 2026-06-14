@@ -13,6 +13,7 @@
 }
 
 @tailwind base;
+
 html {
   scroll-behavior: smooth;
 }

@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\BukuTamu;
-use App\Models\Kamar;
-use App\Models\Keluhan;
-use App\Models\Notifikasi;
-use App\Models\Pembayaran;
-use App\Models\Pengeluaran;
-use App\Models\RiwayatSewa;
+use App\Features\BukuTamu\Models\BukuTamu;
+use App\Features\Kamar\Models\Kamar;
+use App\Features\Keluhan\Models\Keluhan;
+use App\Features\Laporan\Models\Pengeluaran;
+use App\Features\Notifications\Models\Notifikasi;
+use App\Features\Tagihan\Models\Pembayaran;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
 use Carbon\Carbon;

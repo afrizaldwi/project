@@ -3,7 +3,6 @@ import { RefreshCw } from "lucide-react";
 
 import NotificationModal from "../../components/notifications/NotificationModal";
 import { tagihanReminderApi } from "../../api/tagihanReminder";
-import usePolling from "../../hook/usePolling";
 import type {
   NotifikasiItem,
   PaginationMeta,
@@ -17,6 +16,7 @@ import TagihanTable from "../../components/tagihan/admin/TagihanTable";
 import PendingPaymentsTable from "../../components/tagihan/admin/PendingPaymentsTable";
 import PaymentVerificationModal from "../../components/tagihan/admin/PaymentVerificationModal";
 import PaginationControls from "../../components/ui/PaginationControls";
+import usePolling from "../../hook/usePolling";
 
 const POLLING_INTERVAL_MS = 5000;
 const PER_PAGE = 10;
@@ -106,9 +106,17 @@ const AdminTagihan = () => {
   const refreshPaymentData = useCallback(async () => {
     try {
       const [tagihanData, pendingData] = await Promise.all([
-        tagihanReminderApi.getAdminTagihan({ page: tagihanPage, per_page: PER_PAGE, status: statusFilter }),
-        tagihanReminderApi.getPendingPayments({ page: pendingPage, per_page: PER_PAGE }),
+        tagihanReminderApi.getAdminTagihan({
+          page: tagihanPage,
+          per_page: PER_PAGE,
+          status: statusFilter,
+        }),
+        tagihanReminderApi.getPendingPayments({
+          page: pendingPage,
+          per_page: PER_PAGE,
+        }),
       ]);
+
       let needRefetch = false;
 
       if (tagihanData.data.length === 0 && tagihanPage > 1) {
@@ -117,6 +125,7 @@ const AdminTagihan = () => {
       } else {
         setTagihan(tagihanData.data);
         setTagihanMeta(tagihanData.meta);
+
         if (tagihanData.summary) {
           setTagihanSummary(tagihanData.summary);
         }
@@ -163,6 +172,12 @@ const AdminTagihan = () => {
     idPembayaran: number,
     action: "diterima" | "ditolak"
   ) => {
+    const actionLabel = action === "diterima" ? "menerima" : "menolak";
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin ${actionLabel} verifikasi pembayaran ini?`
+    );
+    if (!confirmed) return;
+
     try {
       setVerifyingId(idPembayaran);
 

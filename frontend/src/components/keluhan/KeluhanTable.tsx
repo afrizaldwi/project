@@ -1,6 +1,6 @@
 import type { Keluhan, KeluhanStatus } from "../../types";
 import { getStorageUrl } from "../../utils/storageUrl";
-import { TableHead, TableCell } from "../ui/Table";
+
 
 const statusLabel: Record<KeluhanStatus, string> = {
   pending: "Menunggu",
