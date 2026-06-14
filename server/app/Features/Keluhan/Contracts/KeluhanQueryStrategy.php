@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Patterns\Strategy;
+namespace App\Features\Keluhan\Contracts;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;

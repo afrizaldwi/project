@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Patterns\Strategy;
+namespace App\Features\Keluhan\Services;
 
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use App\Features\Keluhan\Contracts\KeluhanQueryStrategy;
 
 class AdminKeluhanStrategy implements KeluhanQueryStrategy
 {

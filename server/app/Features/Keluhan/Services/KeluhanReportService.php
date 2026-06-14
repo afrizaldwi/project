@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Patterns\Factory\Report;
+namespace App\Features\Keluhan\Services;
 
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
+use App\Patterns\Factory\Report\ReportServiceInterface;
 
 class KeluhanReportService implements ReportServiceInterface
 {

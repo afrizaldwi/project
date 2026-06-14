@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\BukuTamu;
+use App\Features\BukuTamu\Models\BukuTamu;
 use App\Models\Kamar;
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
 use App\Models\Pembayaran;
 use App\Models\Pengeluaran;
 use App\Models\RiwayatSewa;

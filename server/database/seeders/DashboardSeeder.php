@@ -7,7 +7,7 @@ use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\Pembayaran;
-use App\Models\Keluhan;
+use App\Features\Keluhan\Models\Keluhan;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use RuntimeException;

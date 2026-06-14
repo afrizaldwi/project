@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\BukuTamu;
+use App\Features\BukuTamu\Models\BukuTamu;
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\User;
