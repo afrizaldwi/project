@@ -147,17 +147,6 @@ class VisitorStatsService
             ]);
     }
 
-    private function getDailyVisitors(Collection $visitors): Collection
-    {
-        return $visitors
-            ->groupBy(fn($visitor): string => $this->formatDate($visitor->visit_date))
-            ->map(fn(Collection $group, string $date): array => [
-                'date' => $date,
-                'unique_visitors' => $group->count(),
-            ])
-            ->sortBy('date');
-    }
-
     private function getLocationVisitors(Collection $visitors): Collection
     {
         return $visitors
