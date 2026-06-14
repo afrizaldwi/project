@@ -7,7 +7,7 @@ use App\Features\Sewa\Contracts\RiwayatSewaRepositoryInterface;
 use App\Features\Sewa\DTOs\SewaDetailDTO;
 use App\Features\Sewa\DTOs\SewaExtensionDTO;
 use App\Features\Sewa\Models\RiwayatSewa;
-use App\Repositories\Contracts\TagihanRepositoryInterface;
+use App\Features\Tagihan\Contracts\TagihanRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

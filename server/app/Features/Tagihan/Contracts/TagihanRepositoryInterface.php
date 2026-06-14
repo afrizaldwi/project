@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Contracts;
+namespace App\Features\Tagihan\Contracts;
 
 use App\Models\Tagihan;
 

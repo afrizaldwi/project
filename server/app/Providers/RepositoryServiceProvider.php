@@ -12,8 +12,8 @@ use App\Features\Sewa\Contracts\DateCalculationStrategy;
 use App\Features\Sewa\Contracts\RiwayatSewaRepositoryInterface;
 use App\Features\Sewa\Repositories\RiwayatSewaRepository;
 use App\Features\Sewa\Services\MonthlyRentalCalculation;
-use App\Repositories\Contracts\TagihanRepositoryInterface;
-use App\Repositories\Eloquent\TagihanRepository;
+use App\Features\Tagihan\Contracts\TagihanRepositoryInterface;
+use App\Features\Tagihan\Repositories\TagihanRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider

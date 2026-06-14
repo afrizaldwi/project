@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repositories\Eloquent;
+namespace App\Features\Tagihan\Repositories;
 
+use App\Features\Tagihan\Contracts\TagihanRepositoryInterface;
 use App\Models\Tagihan;
-use App\Repositories\Contracts\TagihanRepositoryInterface;
 
 class TagihanRepository implements TagihanRepositoryInterface
 {
