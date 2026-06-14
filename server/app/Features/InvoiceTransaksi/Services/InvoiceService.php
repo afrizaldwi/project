@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Features\InvoiceTransaksi\Services;
 
 use App\Models\Pembayaran;
 use Illuminate\Pagination\LengthAwarePaginator;

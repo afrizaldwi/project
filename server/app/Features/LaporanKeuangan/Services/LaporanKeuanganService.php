@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Admin;
+namespace App\Features\LaporanKeuangan\Services;
 
 use App\Models\Pembayaran;
 use App\Repositories\Admin\KeuanganRepository;

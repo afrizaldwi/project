@@ -183,8 +183,8 @@ class IntegratedDemoSeederTest extends TestCase
         $this->assertEquals(12, $extensions->where('status_tagihan', 'belum_bayar')->count());
         $this->assertEquals(4, $extensions->where('status_tagihan', 'telat')->count()); // 4 overdue
 
-        $this->assertEquals(112, Pembayaran::count());
-        $this->assertEquals(104, Pembayaran::where('status_verifikasi', 'diterima')->count()); // 100 initial + 4 ext
+        $this->assertEquals(1008, Pembayaran::count());
+        $this->assertEquals(1000, Pembayaran::where('status_verifikasi', 'diterima')->count()); // 100 initial + 4 ext + 896 perf
         $this->assertEquals(4, Pembayaran::where('status_verifikasi', 'pending')->count());
         $this->assertEquals(4, Pembayaran::where('status_verifikasi', 'ditolak')->count());
 
@@ -216,7 +216,7 @@ class IntegratedDemoSeederTest extends TestCase
         // Uniqueness
         $this->assertEquals(100, User::where('role', 'penyewa')->distinct('email')->count());
         $this->assertEquals(40, Kamar::distinct('nomor_kamar')->count());
-        $this->assertEquals(120, Tagihan::distinct('kode_invoice')->count());
+        $this->assertEquals(1016, Tagihan::distinct('kode_invoice')->count());
 
         // Non-overlapping intervals
         $rooms = RiwayatSewa::select('id_kamar', 'tanggal_masuk', 'tanggal_keluar')

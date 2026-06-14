@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Admin\AdminPenghuniService;
-use App\Services\Admin\LaporanKeuanganService;
+use App\Features\LaporanKeuangan\Services\LaporanKeuanganService;
 use App\Services\AuthService;
 use App\Services\VisitorTrackingService;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +26,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->loadViewsFrom(app_path('Features/InvoiceTransaksi/Views'), 'invoice-transaksi');
     }
 }

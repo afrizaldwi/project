@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Features\LaporanKeuangan\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\Admin\LaporanKeuanganService;
+use App\Features\LaporanKeuangan\Services\LaporanKeuanganService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
