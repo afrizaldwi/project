@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Patterns\State;
+namespace App\Features\Tagihan\States;
 
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 
 class DitolakPaymentState implements PaymentStateInterface
 {

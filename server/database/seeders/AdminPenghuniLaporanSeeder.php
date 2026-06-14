@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Kamar;
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use App\Models\Pengeluaran;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;

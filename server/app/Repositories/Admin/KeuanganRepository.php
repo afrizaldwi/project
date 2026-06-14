@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Admin;
 
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use App\Models\Pengeluaran;
 use App\Models\Tagihan;
 use Carbon\CarbonImmutable;

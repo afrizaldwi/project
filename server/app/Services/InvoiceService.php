@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class InvoiceService

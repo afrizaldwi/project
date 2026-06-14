@@ -11,7 +11,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KamarController;
 use App\Http\Controllers\Penyewa\DashboardController as PenyewaDashboardController;
 use App\Http\Controllers\SewaExtensionController;
-use App\Http\Controllers\TagihanReminderController;
+use App\Features\Notifications\Controllers\TagihanReminderController;
 use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 

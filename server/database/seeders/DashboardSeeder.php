@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Kamar;
 use App\Models\RiwayatSewa;
 use App\Models\Tagihan;
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use App\Models\Keluhan;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;

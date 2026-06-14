@@ -2,7 +2,7 @@
 
 namespace App\Services\Admin;
 
-use App\Models\Pembayaran;
+use App\Features\Tagihan\Models\Pembayaran;
 use App\Repositories\Admin\KeuanganRepository;
 use Illuminate\Support\Collection;
 

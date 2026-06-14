@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Patterns\Observer;
+namespace App\Features\Notifications\Patterns\Observer;
 
 use App\Models\Tagihan;
-use App\Services\TagihanReminderService;
+use App\Features\Notifications\Services\TagihanReminderService;
 
 class SystemNotificationObserver implements NotificationObserverInterface
 {
