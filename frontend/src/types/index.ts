@@ -1,13 +1,13 @@
 export interface User {
   id: number;
-  namaLengkap: string;
+  nama_lengkap: string;
   email: string;
   role: "admin" | "penyewa";
-  noHp: string;
-  fotoProfil: string | null;
-  alamatAsal: string | null;
-  createdAt: string;
-  updatedAt: string;
+  no_hp: string;
+  foto_profil: string | null;
+  alamat_asal: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AuthContextType {
