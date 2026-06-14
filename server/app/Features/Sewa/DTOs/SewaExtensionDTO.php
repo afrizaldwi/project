@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DTO;
+namespace App\Features\Sewa\DTOs;
 
 use Carbon\Carbon;
 

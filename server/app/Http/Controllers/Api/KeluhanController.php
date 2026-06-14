@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Keluhan;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Patterns\Strategy\AdminKeluhanStrategy;
 use App\Patterns\Strategy\PenyewaKeluhanStrategy;
 use Illuminate\Http\JsonResponse;

@@ -3,7 +3,7 @@
 namespace App\Services\Dashboard;
 
 use App\Models\Keluhan;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use Carbon\Carbon;
 

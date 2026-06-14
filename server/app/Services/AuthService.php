@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;

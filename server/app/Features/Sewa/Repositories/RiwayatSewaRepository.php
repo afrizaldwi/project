@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repositories\Eloquent;
+namespace App\Features\Sewa\Repositories;
 
-use App\Models\RiwayatSewa;
-use App\Repositories\Contracts\RiwayatSewaRepositoryInterface;
+use App\Features\Sewa\Contracts\RiwayatSewaRepositoryInterface;
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Support\Collection;
 
 class RiwayatSewaRepository implements RiwayatSewaRepositoryInterface

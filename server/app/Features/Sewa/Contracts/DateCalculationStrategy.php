@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Strategies\Contracts;
+namespace App\Features\Sewa\Contracts;
 
 use Carbon\Carbon;
 

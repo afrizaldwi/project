@@ -2,8 +2,8 @@
 
 namespace App\Services\Dashboard;
 
-use App\Models\Kamar;
-use App\Models\RiwayatSewa;
+use App\Features\Kamar\Models\Kamar;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\Pembayaran;
 use App\Models\Keluhan;

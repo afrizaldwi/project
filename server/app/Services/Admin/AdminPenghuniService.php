@@ -3,7 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Pembayaran;
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use App\Models\Tagihan;
 use App\Models\User;
 use App\Repositories\Admin\PenghuniRepository;

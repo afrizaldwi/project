@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Kamar;
+use App\Features\Kamar\Models\Kamar;
 use Illuminate\Database\Seeder;
 
 class KamarSeeder extends Seeder

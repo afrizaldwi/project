@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use App\Repositories\Contracts\KamarRepositoryInterface;
-use App\Repositories\Contracts\RiwayatSewaRepositoryInterface;
+use App\Features\Kamar\Contracts\KamarRepositoryInterface;
+use App\Features\Kamar\Repositories\KamarRepository;
+use App\Features\Sewa\Contracts\DateCalculationStrategy;
+use App\Features\Sewa\Contracts\RiwayatSewaRepositoryInterface;
+use App\Features\Sewa\Repositories\RiwayatSewaRepository;
+use App\Features\Sewa\Services\MonthlyRentalCalculation;
 use App\Repositories\Contracts\TagihanRepositoryInterface;
-use App\Repositories\Eloquent\KamarRepository;
-use App\Repositories\Eloquent\RiwayatSewaRepository;
 use App\Repositories\Eloquent\TagihanRepository;
-use App\Services\Strategies\Contracts\DateCalculationStrategy;
-use App\Services\Strategies\Implementations\MonthlyRentalCalculation;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider

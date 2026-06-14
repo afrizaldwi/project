@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\Sewa\Controllers;
 
-use App\Http\Requests\PerpanjangRequest;
-use App\Services\SewaExtensionService;
+use App\Features\Sewa\Requests\PerpanjangRequest;
+use App\Features\Sewa\Services\SewaExtensionService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 

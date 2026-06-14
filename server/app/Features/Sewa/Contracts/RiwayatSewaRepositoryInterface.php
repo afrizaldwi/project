@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories\Contracts;
+namespace App\Features\Sewa\Contracts;
 
-use App\Models\RiwayatSewa;
+use App\Features\Sewa\Models\RiwayatSewa;
 use Illuminate\Support\Collection;
 
 interface RiwayatSewaRepositoryInterface

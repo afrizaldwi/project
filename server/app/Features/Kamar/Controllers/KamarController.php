@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Features\Kamar\Controllers;
 
-use App\Http\Requests\KamarRequest;
-use App\Services\KamarService;
+use App\Features\Kamar\Requests\KamarRequest;
+use App\Features\Kamar\Services\KamarService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
