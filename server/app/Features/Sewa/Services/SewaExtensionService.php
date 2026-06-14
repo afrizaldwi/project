@@ -68,10 +68,19 @@ class SewaExtensionService
                 $extensionDTO->durasi_sewa_bulan
             );
 
+            $extensionAmount = $this->calculateExtensionAmount(
+                $sewa,
+                $extensionDTO->durasi_sewa_bulan
+            );
+
             $sewa = $this->sewaRepository->update($sewa->id_sewa, [
                 'tanggal_keluar' => $tanggalKeluarBaru->toDateString(),
-                'durasi_sewa_bulan' => ((int) $sewa->durasi_sewa_bulan) + $extensionDTO->durasi_sewa_bulan,
-                'harga_deal' => ((float) $sewa->harga_deal) + $extensionDTO->harga_deal,
+                'durasi_sewa_bulan' => ((int) $sewa->durasi_sewa_bulan)
+                    + $extensionDTO->durasi_sewa_bulan,
+                'harga_deal' => round(
+                    ((float) $sewa->harga_deal) + $extensionAmount,
+                    2
+                ),
                 'status_sewa' => 'aktif',
             ]);
 
@@ -80,18 +89,35 @@ class SewaExtensionService
                 'kode_invoice' => $this->generateInvoiceCode($sewa->id_sewa),
                 'tanggal_tagihan' => now()->toDateString(),
                 'tanggal_jatuh_tempo' => $tanggalMulaiPerpanjangan->toDateString(),
-                'total_tagihan' => $extensionDTO->harga_deal,
+                'total_tagihan' => $extensionAmount,
                 'status_tagihan' => 'belum_bayar',
             ]);
 
-            $sewaFresh = $this->sewaRepository->findByIdWithRelations($sewa->id_sewa, ['user', 'kamar']);
+            $sewaFresh = $this->sewaRepository->findByIdWithRelations(
+                $sewa->id_sewa,
+                ['user', 'kamar']
+            );
+
             $tanggalKeluarFresh = $this->resolveTanggalKeluar($sewaFresh);
 
             return [
-                'sewa' => SewaDetailDTO::fromModel($sewaFresh, $tanggalKeluarFresh?->toDateString())->toArray(),
+                'sewa' => SewaDetailDTO::fromModel(
+                    $sewaFresh,
+                    $tanggalKeluarFresh?->toDateString()
+                )->toArray(),
                 'tagihan' => $tagihan,
             ];
         });
+    }
+
+    private function calculateExtensionAmount(
+        RiwayatSewa $sewa,
+        int $durationMonths
+    ): float {
+        return round(
+            ((float) $sewa->kamar->harga_bulanan) * $durationMonths,
+            2
+        );
     }
 
     private function resolveTanggalKeluar(RiwayatSewa $sewa): ?Carbon
@@ -113,7 +139,8 @@ class SewaExtensionService
     private function generateInvoiceCode(int $idSewa): string
     {
         do {
-            $code = 'INV-EXT-' . now()->format('Ymd') . '-' . $idSewa . '-' . Str::upper(Str::random(6));
+            $code = 'INV-EXT-' . now()->format('Ymd') . '-' . $idSewa . '-'
+                . Str::upper(Str::random(6));
         } while ($this->tagihanRepository->invoiceCodeExists($code));
 
         return $code;

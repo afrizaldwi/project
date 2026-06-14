@@ -9,7 +9,6 @@ readonly class SewaExtensionDTO
     public function __construct(
         public Carbon $tanggal_mulai,
         public int $durasi_sewa_bulan,
-        public float $harga_deal,
     ) {}
 
     public static function fromArray(array $data): self
@@ -17,7 +16,6 @@ readonly class SewaExtensionDTO
         return new self(
             tanggal_mulai: Carbon::parse($data['tanggal_mulai'])->startOfDay(),
             durasi_sewa_bulan: (int) $data['durasi_sewa_bulan'],
-            harga_deal: (float) $data['harga_deal'],
         );
     }
 
@@ -26,7 +24,6 @@ readonly class SewaExtensionDTO
         return [
             'tanggal_mulai' => $this->tanggal_mulai->toDateString(),
             'durasi_sewa_bulan' => $this->durasi_sewa_bulan,
-            'harga_deal' => $this->harga_deal,
         ];
     }
 }

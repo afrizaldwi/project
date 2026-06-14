@@ -406,7 +406,6 @@ export interface SewaExtensionDetail {
 export interface SewaExtensionPayload {
   tanggal_mulai: string;
   durasi_sewa_bulan: number;
-  harga_deal: number;
 }
 
 export interface SewaExtensionResponse {

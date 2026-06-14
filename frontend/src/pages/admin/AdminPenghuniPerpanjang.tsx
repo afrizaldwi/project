@@ -109,7 +109,6 @@ const AdminPenghuniPerpanjang = () => {
       await sewaExtensionService.perpanjang(sewaId, {
         tanggal_mulai: tanggalMulai,
         durasi_sewa_bulan: durasi,
-        harga_deal: totalTagihan,
       });
       alert("Sewa berhasil diperpanjang dan tagihan baru berhasil dibuat.");
       navigate("/admin/penghuni");

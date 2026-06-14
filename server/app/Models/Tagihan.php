@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Features\Sewa\Models\RiwayatSewa;
+
 use Illuminate\Database\Eloquent\Model;
 use App\Features\Tagihan\Models\Pembayaran;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
