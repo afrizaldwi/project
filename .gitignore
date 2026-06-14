@@ -1,2 +1,11 @@
-mobile/
 .env
+/server/tests/
+/server/phpunit.xml
+
+/docker-compose.yml
+/frontend/Dockerfile
+/server/docker/
+
+/.env.example
+/frontend/.env.example
+/server/.env.example
